@@ -37,7 +37,10 @@ jobs:
       - run: npm run test:pg
       - run: npm run build
       - run: npm run test:storage-http
-      - run: npm run test:backup
+      # pg_dump/pg_restore must match the PostgreSQL 16 server (a newer client emits
+      # settings such as transaction_timeout that 16 rejects).
+      - run: sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client-16
+      - run: PATH=/usr/lib/postgresql/16/bin:$PATH npm run test:backup
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e:pg
       - run: npm run test:e2e:oidc
