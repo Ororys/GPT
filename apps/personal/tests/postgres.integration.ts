@@ -195,7 +195,7 @@ test('migrations and seed rerun preserve imports and checksum', async () => {
   assert.equal((await read()).record.observations.length, 37);
   assert.equal(
     (await db.admin.query('SELECT count(*)::int n FROM public.hc_personal_migration')).rows[0].n,
-    3,
+    4,
   );
   const rows = (await db.admin.query('SELECT name,sha256 FROM public.hc_personal_migration')).rows;
   await db.admin.query("UPDATE public.hc_personal_migration SET sha256='changed'");
@@ -501,4 +501,41 @@ test('corrections: versioned, original kept, stale version refused, concurrent w
     ).rows[0].n,
     2,
   );
+});
+
+test('PDF overlaps: same parameter and day from another document signalled, never merged', async () => {
+  const { fixturePdf } = await import('../src/modules/extraction/corpus');
+  const { extractSyntheticPdf } = await import('../src/modules/extraction/native');
+  const overlaps = (sha: string, subject = 'personal:demo-alpha', person = 'demo-alpha') =>
+    db.api
+      .query('SELECT personal.api_pdf_overlaps($1,$2,$3) r', [subject, person, sha])
+      .then((x) => x.rows[0].r);
+  // standard (17/11/2026) was confirmed earlier; decimales has the same day.
+  const bytes = await fixturePdf('decimales');
+  const p = await extractSyntheticPdf(bytes, 'demo-alpha');
+  const before = (await read()).record.observations.length;
+  assert.equal((await stageProposal(p, bytes)).status, 'ok');
+  const r = await overlaps(p.sha256);
+  assert.equal(r.status, 'ok');
+  const byCode = Object.fromEntries(
+    r.overlaps.map(
+      (o: { candidateId: string; matches: { value: number; documentId: string }[] }) => [
+        p.candidates.find((c) => c.id === o.candidateId)!.code,
+        o.matches.map((m) => [m.value, m.documentId]),
+      ],
+    ),
+  );
+  assert.deepEqual(byCode, {
+    CREATININE: [[9.2, stagedPdf.id]],
+    HBA1C: [[5.4, stagedPdf.id]],
+    LDL_C: [[1.27, stagedPdf.id]],
+  });
+  assert.equal((await read()).record.observations.length, before, 'nothing inserted or merged');
+  // The confirmed document never overlaps with itself; another day has no overlap.
+  assert.deepEqual((await overlaps(stagedPdf.sha256)).overlaps, []);
+  const columns = await extractSyntheticPdf(await fixturePdf('colonnes'), 'demo-alpha');
+  assert.deepEqual((await overlaps(columns.sha256)).overlaps, []);
+  assert.equal((await overlaps(p.sha256, 'personal:demo-beta', 'demo-alpha')).status, 'forbidden');
+  assert.equal((await overlaps(p.sha256, 'personal:demo-beta', 'demo-beta')).status, 'not_found');
+  assert.equal((await overlaps('0'.repeat(64))).status, 'not_found');
 });

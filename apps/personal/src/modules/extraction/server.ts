@@ -1,7 +1,15 @@
 import 'server-only';
 import { databaseCall } from '../storage/postgres';
 import { storageMode } from '../storage/mode';
-import { extractSyntheticPdf, type PdfProposal } from './native';
+import { extractSyntheticPdf, type PdfOverlap, type PdfProposal } from './native';
+async function overlaps(personId: string, subject: string, sha: string) {
+  const r = await databaseCall<{ status: string; overlaps: PdfOverlap[] }>(
+    'SELECT personal.api_pdf_overlaps($1,$2,$3) AS result',
+    [subject, personId, sha],
+  );
+  if (r.status !== 'ok') throw Error(r.status === 'forbidden' ? 'FORBIDDEN' : 'INVALID_PDF');
+  return r.overlaps;
+}
 export async function stagePdf(bytes: Uint8Array, personId: string, subject: string) {
   if (storageMode() !== 'postgres') throw Error('PDF_REQUIRES_POSTGRES');
   const proposal = await extractSyntheticPdf(bytes, personId);
@@ -16,7 +24,7 @@ export async function stagePdf(bytes: Uint8Array, personId: string, subject: str
     ],
   );
   if (r.status !== 'ok') throw Error(r.status === 'forbidden' ? 'FORBIDDEN' : 'INVALID_PDF');
-  return r;
+  return { ...r, overlaps: await overlaps(personId, subject, proposal.sha256) };
 }
 export async function confirmPdf(
   personId: string,

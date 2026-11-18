@@ -45,6 +45,17 @@ export interface UnrecognizedLine {
   page: number;
   text: string;
 }
+/** Same parameter, same UTC day, another document. Informative only, never stored. */
+export interface PdfOverlap {
+  candidateId: string;
+  matches: {
+    observationId: string;
+    documentId: string;
+    documentTitle: string;
+    value: number;
+    unit: string;
+  }[];
+}
 export interface PdfProposal {
   id: string;
   fixtureId: FixtureId;

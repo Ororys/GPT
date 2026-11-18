@@ -60,3 +60,7 @@ Livré : cas limites PDF (colonnes, lignes non reprises, valeurs « < », doublo
 ## Incrément personnel 0.5 — 18 novembre 2026
 
 Livré : correction versionnée des résultats PDF (D-01 pour l'espace personnel), avec historique, motif, concurrence et Time Machine. Prochain : signalement non bloquant des doublons inter-documents. Voir [le bilan](docs/personal-sprint-05/BILAN.md).
+
+## Incrément personnel 0.6 — 18 novembre 2026
+
+Livré : signalement non bloquant des doublons inter-documents en revue PDF (D-02 partiel, limité aux PDF et au jour UTC). Voir [le bilan](docs/personal-sprint-06/BILAN.md).

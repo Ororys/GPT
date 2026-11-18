@@ -1,3 +1,7 @@
+# Sprint personnel 06 / 0.6.0 — 18 novembre 2026
+
+Signalement non bloquant des doublons entre documents lors de la revue PDF (même paramètre, même jour UTC, autre document) : migration additive 004, calcul à la lecture, résultat décoché par défaut, rien de fusionné. Voir docs/personal-sprint-06/BILAN.md.
+
 # Sprint personnel 05 / 0.5.0 — 18 novembre 2026
 
 Correction versionnée des résultats lus dans un PDF : migration additive 003, table immuable sous RLS, motif obligatoire, contrôle de version concurrente, historique et Time Machine. Valeur et texte d'origine jamais modifiés. Conflits et mode non PostgreSQL renvoient 409 au lieu de 500. Voir docs/personal-sprint-05/BILAN.md.

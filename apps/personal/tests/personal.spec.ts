@@ -459,3 +459,33 @@ test('correction versionnée : valeur lue conservée, motif, historique et refus
   );
   expect(stale).toBe(409);
 });
+
+test('doublon inter-documents : même paramètre le même jour signalé et décoché, ajout seulement explicite', async ({
+  page,
+}) => {
+  test.skip(process.env.HC_PERSONAL_E2E_STORAGE !== 'postgres', 'PDF staging requires PostgreSQL');
+  // The standard PDF (17/11/2026) is confirmed by the earlier PDF test.
+  await open(page, '/documents');
+  await page
+    .locator('.documents-hero')
+    .getByRole('button', { name: 'Importer une démo', exact: true })
+    .click();
+  const dialog = page.getByRole('dialog');
+  await dialog.getByRole('combobox', { name: 'Exemple PDF' }).selectOption('decimales');
+  await dialog.getByRole('button', { name: 'Essayer ce PDF' }).click();
+  await expect(dialog.locator('.pdf-overlap')).toHaveCount(3);
+  await expect(dialog.locator('.pdf-overlap').first()).toContainText(
+    'Déjà dans le dossier le même jour (UTC) : 1,27 g/L · Bilan PDF · 17 novembre 2026 · valeur différente',
+  );
+  const ldl = dialog.getByRole('checkbox', { name: 'Ajouter LDL-cholestérol', exact: true });
+  await expect(ldl).toBeEnabled();
+  await expect(ldl).not.toBeChecked();
+  await expect(
+    dialog.getByRole('button', { name: 'Ajouter 0 résultat(s) sélectionné(s)' }),
+  ).toBeDisabled();
+  await page.screenshot({ path: `${shots}/12-overlap.png`, fullPage: true });
+  await ldl.check();
+  await expect(
+    dialog.getByRole('button', { name: 'Ajouter 1 résultat(s) sélectionné(s)' }),
+  ).toBeEnabled();
+});

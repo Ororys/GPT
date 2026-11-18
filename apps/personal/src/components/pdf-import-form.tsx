@@ -10,7 +10,12 @@ import {
   TriangleAlert,
   ArrowUpRight,
 } from 'lucide-react';
-import type { CandidateIssue, CandidateNote, PdfProposal } from '@/modules/extraction/native';
+import type {
+  CandidateIssue,
+  CandidateNote,
+  PdfOverlap,
+  PdfProposal,
+} from '@/modules/extraction/native';
 import { PDF_FIXTURES, type FixtureId } from '@/modules/extraction/corpus';
 import { Pill, Notice } from './ui';
 const message = (code: string) =>
@@ -47,6 +52,7 @@ export function PdfImportForm({ onImported }: { onImported: () => Promise<void> 
   const [fixture, setFixture] = useState<FixtureId>('standard');
   const [proposal, setProposal] = useState<PdfProposal | null>(null);
   const [selected, setSelected] = useState<string[]>([]);
+  const [overlaps, setOverlaps] = useState<PdfOverlap[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -67,8 +73,16 @@ export function PdfImportForm({ onImported }: { onImported: () => Promise<void> 
       const result = await response.json();
       if (!response.ok) throw Error(message(result.error));
       const p = result.proposal as PdfProposal;
+      const found = (result.overlaps ?? []) as PdfOverlap[];
       setProposal(p);
-      setSelected(p.candidates.filter((c) => c.eligible).map((c) => c.id));
+      setOverlaps(found);
+      // A value already present that day from another document starts unselected: adding it
+      // stays possible, but only by an explicit choice.
+      setSelected(
+        p.candidates
+          .filter((c) => c.eligible && !found.some((o) => o.candidateId === c.id))
+          .map((c) => c.id),
+      );
       setReviewed(result.reviewed);
       if (result.reviewed) setSuccess('Ce document a déjà été ajouté. Aucun doublon ne sera créé.');
     } catch (e) {
@@ -237,6 +251,18 @@ export function PdfImportForm({ onImported }: { onImported: () => Promise<void> 
                         Page {c.page} ·{' '}
                         {c.eligible ? 'À vérifier par vous' : blockedReason(c.issues)}
                       </small>
+                      {overlaps
+                        .find((o) => o.candidateId === c.id)
+                        ?.matches.map((m) => (
+                          <small className="pdf-overlap" key={m.observationId}>
+                            Déjà dans le dossier le même jour (UTC) :{' '}
+                            {m.value.toLocaleString('fr-FR')} {m.unit} · {m.documentTitle} ·{' '}
+                            {m.value === c.value && m.unit === c.observation?.unit
+                              ? 'valeur identique'
+                              : 'valeur différente'}
+                            . Non coché par défaut ; rien n’est fusionné.
+                          </small>
+                        ))}
                     </span>
                     <b>
                       {c.value === null ? '—' : c.value.toLocaleString('fr-FR')}{' '}

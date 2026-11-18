@@ -4827,3 +4827,7 @@ tbody tr:last-child td {
 .correction-history ol {
   margin: 4px 0 0 18px;
 }
+
+.pdf-candidate small.pdf-overlap {
+  color: var(--text);
+}
