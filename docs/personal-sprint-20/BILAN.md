@@ -21,3 +21,7 @@ Résultat : réussi au premier passage.
 ## Limites
 
 Restauration dans la même grappe (les rôles existent déjà). Une restauration sur une grappe neuve demande de recréer d'abord les rôles (`db:prepare`). Pas de sauvegarde chiffrée, planifiée ni externalisée : cela dépend de l'hébergeur (B-02). Pas de limitation de débit, qui relève du proxy inverse de l'hébergement.
+
+## CI (même soirée)
+
+Sur GitHub, l'outil `pg_dump` de la machine était plus récent que le serveur PostgreSQL 16 (il écrivait `transaction_timeout`, inconnu en 16), et le paquet `postgresql-client-16` n'y est pas installable. L'exercice tourne désormais avec `pg_dump`/`pg_restore` exécutés depuis l'image `postgres:16-alpine` du service, donc à la même version. Run vert le 18/11 à 19 h 27 UTC (commit `1d00486`), y compris les tests navigateur et la connexion réelle.
