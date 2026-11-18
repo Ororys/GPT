@@ -4679,6 +4679,31 @@ tbody tr:last-child td {
   margin: 9px 0;
   overflow-wrap: anywhere;
 }
+.pdf-unrecognized {
+  border: 1px dashed var(--border-strong);
+  border-radius: 9px;
+  padding: 11px 15px;
+}
+.pdf-unrecognized summary {
+  cursor: pointer;
+  color: var(--accent);
+  font-size: 10px;
+  line-height: 1.8;
+}
+.pdf-unrecognized p {
+  font-size: 10px;
+  line-height: 1.8;
+  color: var(--muted);
+}
+.pdf-unrecognized .source-quote {
+  font-size: 11px;
+  color: inherit;
+  padding: 10px;
+  background: var(--bg);
+  border-radius: 7px;
+  margin: 9px 0 0;
+  overflow-wrap: anywhere;
+}
 .pdf-import-form > .notice {
   font-size: 10px;
   line-height: 1.8;

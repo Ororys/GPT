@@ -1,0 +1,28 @@
+
+> @health-convergence/personal@0.3.0 test:pg
+> tsx --test tests/postgres.integration.ts
+
+✔ fresh migrations, stored entities and snapshot provenance (353.579545ms)
+✔ SQL role has no direct data or internal function privileges, cannot become owner (71.647115ms)
+✔ patient isolation, invalid subjects and durable denied audit (12.424695ms)
+✔ RLS: owner sees no dossier without authorized scope, no caller-controlled scope bypass (3.572998ms)
+✔ database identity revocation takes effect on next read and import (4.674581ms)
+✔ unknown fixture and cross-user import insert nothing (18.373886ms)
+✔ atomicity: database insert failure rolls back document, observation, receipt and success audit (6.760404ms)
+✔ six concurrent clients: imported once, persistent receipt, identical retry (66.357262ms)
+✔ immutable results, documents, receipts and audit; bad units rejected (45.349285ms)
+✔ migrations and seed rerun preserve imports and checksum (120.849307ms)
+✔ PDF: native candidates staged with original bytes, no automatic observation insertion (192.446567ms)
+✔ PDF: cross-user intake and direct table access refused (5.245286ms)
+✔ PDF: incompatible unit and forged selection cannot become observations (19.028919ms)
+✔ PDF: failure during confirmation rolls back document, observations and review event (7.921568ms)
+✔ PDF: six concurrent confirmations insert each selected value once and preserve original units (77.859897ms)
+✔ PDF sprint 04: new fixtures whitelisted, ambiguous candidates refused by SQL, unreferenced value kept honest (70.505077ms)
+ℹ tests 16
+ℹ suites 0
+ℹ pass 16
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1503.279979

@@ -345,3 +345,60 @@ test('PDF: six concurrent confirmations insert each selected value once and pres
     /IMMUTABLE_PERSONAL_RECORD/,
   );
 });
+test('PDF sprint 04: new fixtures whitelisted, ambiguous candidates refused by SQL, unreferenced value kept honest', async () => {
+  const { fixturePdf } = await import('../src/modules/extraction/corpus');
+  const { extractSyntheticPdf } = await import('../src/modules/extraction/native');
+  for (const id of ['colonnes', 'ambigus', 'dates'])
+    assert.equal(
+      (await db.admin.query('SELECT count(*)::int n FROM personal.pdf_fixture WHERE id=$1', [id]))
+        .rows[0].n,
+      1,
+    );
+  const ambiguousBytes = await fixturePdf('ambigus');
+  const ambiguous = await extractSyntheticPdf(ambiguousBytes, 'demo-alpha');
+  const staged = await stageProposal(ambiguous, ambiguousBytes);
+  assert.equal(staged.status, 'ok');
+  assert.deepEqual(staged.proposal.unrecognized, [
+    { page: 1, text: 'Commentaire | voir le laboratoire' },
+  ]);
+  const duplicate = ambiguous.candidates.find((c) => c.code === 'FERRITIN')!;
+  const qualified = ambiguous.candidates.find((c) => c.code === 'HBA1C')!;
+  assert.equal((await confirmProposal(ambiguous, [duplicate.id])).status, 'invalid');
+  assert.equal((await confirmProposal(ambiguous, [qualified.id])).status, 'invalid');
+  const creatinine = ambiguous.candidates.find((c) => c.eligible)!;
+  assert.equal((await confirmProposal(ambiguous, [creatinine.id])).inserted, 1);
+
+  const datesBytes = await fixturePdf('dates');
+  const dates = await extractSyntheticPdf(datesBytes, 'demo-alpha');
+  assert.equal((await stageProposal(dates, datesBytes)).status, 'ok');
+  assert.equal(
+    (
+      await confirmProposal(
+        dates,
+        dates.candidates.map((c) => c.id),
+      )
+    ).status,
+    'invalid',
+  );
+  assert.equal(
+    (await db.admin.query('SELECT count(*)::int n FROM personal.document WHERE id=$1', [dates.id]))
+      .rows[0].n,
+    0,
+  );
+
+  const columnsBytes = await fixturePdf('colonnes');
+  const columns = await extractSyntheticPdf(columnsBytes, 'demo-alpha');
+  assert.equal((await stageProposal(columns, columnsBytes)).status, 'ok');
+  const all = columns.candidates.map((c) => c.id);
+  assert.equal((await confirmProposal(columns, all)).inserted, 3);
+  const r = await read();
+  const vitd = r.record.observations.find(
+    (o: { sourceId: string; code: string }) => o.sourceId === columns.id && o.code === 'VITD',
+  );
+  assert.equal(vitd.value, 28);
+  assert.equal(vitd.reference, undefined);
+  assert.equal(vitd.evidence.sourceText, 'Vitamine D | 28 | ng/mL | > 20');
+  assert.equal(vitd.measuredAt.slice(0, 10), '2026-10-03');
+  const doc = r.record.documents.find((d: { id: string }) => d.id === columns.id);
+  assert.equal(doc.title, 'Bilan PDF · 3 octobre 2026');
+});

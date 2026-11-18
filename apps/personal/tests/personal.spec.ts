@@ -361,3 +361,37 @@ test('PDF limites : unité incompatible bloquée et absence de texte signalée s
   await expect(dialog.locator('.pdf-candidate')).toHaveCount(0);
   await expect(dialog.getByText(/Aucun résultat n’a été inventé/)).toBeVisible();
 });
+
+test('PDF ambigus : motifs de blocage explicites, lignes non reprises visibles, seul le résultat net est ajoutable', async ({
+  page,
+}) => {
+  test.skip(process.env.HC_PERSONAL_E2E_STORAGE !== 'postgres', 'PDF staging requires PostgreSQL');
+  await open(page, '/documents');
+  await page
+    .locator('.documents-hero')
+    .getByRole('button', { name: 'Importer une démo', exact: true })
+    .click();
+  const dialog = page.getByRole('dialog');
+  await dialog.getByRole('combobox', { name: 'Exemple PDF' }).selectOption('ambigus');
+  await dialog.getByRole('button', { name: 'Essayer ce PDF' }).click();
+  await expect(dialog.locator('.pdf-candidate')).toHaveCount(4);
+  await expect(dialog.getByText(/paramètre présent plusieurs fois/)).toHaveCount(2);
+  await expect(dialog.getByText(/valeur précédée d’un signe, non interprétée/)).toBeVisible();
+  await expect(dialog.getByRole('checkbox', { name: 'Ajouter HbA1c', exact: true })).toBeDisabled();
+  await expect(
+    dialog.getByRole('checkbox', { name: 'Ajouter Créatinine', exact: true }),
+  ).toBeChecked();
+  await dialog.getByText('1 ligne(s) lue(s) mais non reprise(s)').click();
+  await expect(dialog.getByText('Page 1 · Commentaire | voir le laboratoire')).toBeVisible();
+  await page.screenshot({ path: `${shots}/10-pdf-ambigus.png`, fullPage: true });
+  await expect(
+    dialog.getByRole('button', { name: 'Ajouter 1 résultat(s) sélectionné(s)' }),
+  ).toBeEnabled();
+
+  await dialog.getByRole('combobox', { name: 'Exemple PDF' }).selectOption('dates');
+  await dialog.getByRole('button', { name: 'Essayer ce PDF' }).click();
+  await expect(dialog.getByText(/Plusieurs dates de prélèvement/)).toBeVisible();
+  await expect(
+    dialog.getByRole('button', { name: 'Ajouter 0 résultat(s) sélectionné(s)' }),
+  ).toBeDisabled();
+});

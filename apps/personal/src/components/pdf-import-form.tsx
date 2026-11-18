@@ -10,7 +10,7 @@ import {
   TriangleAlert,
   ArrowUpRight,
 } from 'lucide-react';
-import type { PdfProposal } from '@/modules/extraction/native';
+import type { CandidateIssue, CandidateNote, PdfProposal } from '@/modules/extraction/native';
 import { PDF_FIXTURES, type FixtureId } from '@/modules/extraction/corpus';
 import { Pill, Notice } from './ui';
 const message = (code: string) =>
@@ -25,6 +25,24 @@ const message = (code: string) =>
           : code === 'REVIEW_CONFLICT'
             ? 'Ce document a déjà été revu avec une autre sélection.'
             : 'Le PDF n’a pas pu être traité. Aucun résultat n’a été ajouté.';
+const issueLabel: Record<CandidateIssue, string> = {
+  UNIT_MISMATCH_NO_CONVERSION: 'unité incompatible, non convertie',
+  MEASUREMENT_DATE_MISSING: 'date de prélèvement absente',
+  MEASUREMENT_DATE_INVALID: 'date de prélèvement invalide',
+  MEASUREMENT_DATE_AMBIGUOUS: 'plusieurs dates de prélèvement',
+  PATIENT_NOT_IDENTIFIED: 'dossier non identifié',
+  INVALID_VALUE: 'valeur invalide',
+  VALUE_QUALIFIER_NOT_SUPPORTED: 'valeur précédée d’un signe, non interprétée',
+  VALUE_NOT_NUMERIC: 'valeur non numérique',
+  DUPLICATE_IN_DOCUMENT: 'paramètre présent plusieurs fois',
+};
+const noteLabel: Record<CandidateNote, string> = {
+  REFERENCE_ABSENT: 'Aucune référence de laboratoire sur la ligne.',
+  REFERENCE_NOT_STRUCTURED: 'Référence conservée dans le texte source, non structurée.',
+  ROW_RECONSTRUCTED_FROM_COLUMNS: 'Ligne reconstituée à partir de colonnes alignées.',
+};
+const blockedReason = (issues: CandidateIssue[]) =>
+  'Non ajouté : ' + issues.map((i) => issueLabel[i] ?? 'à vérifier').join(', ');
 export function PdfImportForm({ onImported }: { onImported: () => Promise<void> }) {
   const [fixture, setFixture] = useState<FixtureId>('standard');
   const [proposal, setProposal] = useState<PdfProposal | null>(null);
@@ -184,6 +202,13 @@ export function PdfImportForm({ onImported }: { onImported: () => Promise<void> 
               {proposal.status === 'ocr-required' ? 'OCR nécessaire' : 'Texte natif lu'}
             </Pill>
           </div>
+          {proposal.status !== 'ocr-required' &&
+            proposal.warnings.map((w) => (
+              <div className="feedback error" role="status" key={w}>
+                <TriangleAlert size={18} />
+                {w}
+              </div>
+            ))}
           {proposal.status === 'ocr-required' ? (
             <div className="feedback error" role="status">
               <TriangleAlert size={18} />
@@ -210,11 +235,12 @@ export function PdfImportForm({ onImported }: { onImported: () => Promise<void> 
                       <strong>{c.label}</strong>
                       <small>
                         Page {c.page} ·{' '}
-                        {c.eligible ? 'À vérifier par vous' : 'Non ajouté : unité incompatible'}
+                        {c.eligible ? 'À vérifier par vous' : blockedReason(c.issues)}
                       </small>
                     </span>
                     <b>
-                      {c.value.toLocaleString('fr-FR')} <small>{c.unit}</small>
+                      {c.value === null ? '—' : c.value.toLocaleString('fr-FR')}{' '}
+                      <small>{c.unit}</small>
                     </b>
                   </label>
                   <details>
@@ -224,10 +250,27 @@ export function PdfImportForm({ onImported }: { onImported: () => Promise<void> 
                       Page {c.page} · zone PDF x={Math.round(c.bounds.x)}, y=
                       {Math.round(c.bounds.y)} · confiance non calibrée : aucune valeur annoncée.
                     </small>
+                    {c.notes?.map((n) => (
+                      <small key={n}>{noteLabel[n] ?? n}</small>
+                    ))}
                   </details>
                 </article>
               ))}
             </div>
+          )}
+          {!!proposal.unrecognized?.length && (
+            <details className="pdf-unrecognized">
+              <summary>{proposal.unrecognized.length} ligne(s) lue(s) mais non reprise(s)</summary>
+              <p>
+                Paramètre non pris en charge ou format non reconnu : rien n’est déduit de ces
+                lignes.
+              </p>
+              {proposal.unrecognized.map((l, i) => (
+                <p className="source-quote" key={i}>
+                  Page {l.page} · {l.text}
+                </p>
+              ))}
+            </details>
           )}
           <Notice>
             La date du prélèvement est connue au jour près ; aucune heure n’est déduite. Les valeurs
@@ -264,9 +307,9 @@ export function PdfImportForm({ onImported }: { onImported: () => Promise<void> 
         </div>
       )}
       <Notice>
-        Uniquement les fichiers synthétiques de ce prototype. Les autres formats de laboratoire,
-        scans, documents réels et corrections de valeur ne sont pas pris en charge dans cet
-        incrément.
+        Uniquement les fichiers synthétiques de ce prototype, sous forme de tableau contrôlé (lignes
+        à séparateurs ou colonnes alignées). Les autres formats de laboratoire, scans, documents
+        réels et corrections de valeur ne sont pas pris en charge dans cet incrément.
       </Notice>
     </div>
   );

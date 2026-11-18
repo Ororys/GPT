@@ -1,5 +1,6 @@
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
-export type FixtureId = 'standard' | 'decimales' | 'unites' | 'scan' | 'autre-profil';
+export type FixtureId =
+  'standard' | 'decimales' | 'unites' | 'scan' | 'colonnes' | 'ambigus' | 'dates' | 'autre-profil';
 export const PDF_FIXTURES = [
   {
     id: 'standard' as const,
@@ -21,8 +22,23 @@ export const PDF_FIXTURES = [
     label: 'Document sans texte',
     description: 'Cas limite : aucune extraction sans OCR.',
   },
+  {
+    id: 'colonnes' as const,
+    label: 'Tableau en colonnes',
+    description: 'Cellules séparées, référence unilatérale et paramètre non pris en charge.',
+  },
+  {
+    id: 'ambigus' as const,
+    label: 'Résultats ambigus',
+    description: 'Paramètre répété, valeur précédée de « < » et ligne non reconnue.',
+  },
+  {
+    id: 'dates' as const,
+    label: 'Deux dates de prélèvement',
+    description: 'Dates contradictoires : aucun résultat ajoutable.',
+  },
 ];
-const values: Record<Exclude<FixtureId, 'scan'>, string[]> = {
+const values: Record<Exclude<FixtureId, 'scan' | ExtendedId>, string[]> = {
   standard: [
     'Ferritine | 64 | µg/L | 30 - 300',
     'LDL-cholesterol | 1,27 | g/L | 0,5 - 1,6',
@@ -50,6 +66,7 @@ export function fixturePdf(id: FixtureId): Promise<Uint8Array> {
   return result.then((b) => b.slice());
 }
 async function generate(id: FixtureId) {
+  if (isExtended(id)) return generateExtended(id);
   const pdf = await PDFDocument.create();
   pdf.setCreationDate(new Date('2026-11-18T00:00:00Z'));
   pdf.setModificationDate(new Date('2026-11-18T00:00:00Z'));
@@ -76,6 +93,78 @@ async function generate(id: FixtureId) {
     line('Aucun patient reel. Aucune interpretation medicale.', 100, 10);
     line(`Page ${n + 1}/${pages} - fichier de demonstration ${id}`, 76, 9);
   }
+  return pdf.save();
+}
+/**
+ * Sprint 04 corpus. Kept separate from `generate` so the bytes, and therefore the
+ * whitelisted SHA-256, of the five sprint 03 fixtures never change.
+ */
+type ExtendedId = 'colonnes' | 'ambigus' | 'dates';
+const isExtended = (id: FixtureId): id is ExtendedId =>
+  id === 'colonnes' || id === 'ambigus' || id === 'dates';
+interface ExtendedPage {
+  date: string;
+  /** Pipe rows are drawn as one text run; cell rows as one run per column. */
+  rows: (string | string[])[];
+}
+const extended: Record<ExtendedId, ExtendedPage[]> = {
+  colonnes: [
+    {
+      date: '03/10/2026',
+      rows: [
+        ['Ferritine', '58', 'µg/L', '30 - 300'],
+        ['Vitamine D', '28', 'ng/mL', '> 20'],
+        ['Glycemie a jeun', '0,92', 'g/L', '0,70 - 1,10'],
+        ['Hemoglobine', '14,1', 'g/dL', '13 - 17'],
+      ],
+    },
+  ],
+  ambigus: [
+    {
+      date: '24/10/2026',
+      rows: [
+        'Ferritine | 64 | µg/L | 30 - 300',
+        'Creatinine | 9,0 | mg/L | 7 - 13',
+        'HbA1c | < 4 | % | 4 - 6',
+        'Ferritine | 46 | µg/L | 30 - 300',
+        'Commentaire | voir le laboratoire',
+      ],
+    },
+  ],
+  dates: [
+    { date: '14/09/2026', rows: ['LDL-cholesterol | 1,31 | g/L | 0,5 - 1,6'] },
+    { date: '21/09/2026', rows: ['HbA1c | 5,5 | % | 4 - 6'] },
+  ],
+};
+const columns = [44, 230, 330, 420];
+async function generateExtended(id: ExtendedId) {
+  const pdf = await PDFDocument.create();
+  pdf.setCreationDate(new Date('2026-11-18T00:00:00Z'));
+  pdf.setModificationDate(new Date('2026-11-18T00:00:00Z'));
+  pdf.setAuthor('Convergence - corpus synthetique');
+  pdf.setTitle('Bilan biologique synthetique ' + id);
+  const font = await pdf.embedFont(StandardFonts.Helvetica),
+    bold = await pdf.embedFont(StandardFonts.HelveticaBold);
+  const pages = extended[id];
+  pages.forEach((spec, n) => {
+    const page = pdf.addPage([595, 842]);
+    const text = (t: string, x: number, y: number, size = 11, strong = false) =>
+      page.drawText(t, { x, y, size, font: strong ? bold : font });
+    text('BILAN BIOLOGIQUE - DONNEES SYNTHETIQUES', 44, 790, 15, true);
+    text('DOSSIER SYNTHETIQUE : demo-alpha', 44, 757);
+    text('PRELEVEMENT : ' + spec.date, 44, 733);
+    text('LABORATOIRE : Laboratoire Boreal - fictif', 44, 709);
+    const header = ['Parametre', 'Resultat', 'Unite', 'Reference du laboratoire'];
+    if (spec.rows.some(Array.isArray)) header.forEach((h, i) => text(h, columns[i], 665, 10, true));
+    else text(header.join(' | '), 44, 665, 10, true);
+    spec.rows.forEach((row, i) => {
+      const y = 630 - i * 46;
+      if (Array.isArray(row)) row.forEach((cell, c) => text(cell, columns[c], y));
+      else text(row, 44, y);
+    });
+    text('Aucun patient reel. Aucune interpretation medicale.', 44, 100, 10);
+    text(`Page ${n + 1}/${pages.length} - fichier de demonstration ${id}`, 44, 76, 9);
+  });
   return pdf.save();
 }
 export async function pdfDigest(bytes: Uint8Array) {

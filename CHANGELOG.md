@@ -1,3 +1,7 @@
+# Sprint personnel 04 / 0.4.0 — 18 novembre 2026
+
+Parcours PDF natif consolidé : lignes reconstituées depuis des colonnes, lignes non reprises exposées, valeurs « < » et doublons intra-document bloqués, dates multiples ou invalides refusées, toutes les mentions de dossier contrôlées, titre issu de la date lue. Trois PDF synthétiques ajoutés à la liste blanche ; empreintes des PDF existants verrouillées. Aucune migration SQL, aucun OCR/LLM. Voir docs/personal-sprint-04/BILAN.md.
+
 # Sprint personnel 02 / 0.2.0 — 18 novembre 2026
 
 Persistance PostgreSQL du nouvel espace : schéma additif, RLS, rôles, import concurrent atomique/idempotent, audit et mode local explicite. Configuration privée, volume Compose, CI et tests enrichis. Aucun OCR/LLM ou connecteur réel ajouté. Voir docs/personal-sprint-02/BILAN.md.

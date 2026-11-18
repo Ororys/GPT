@@ -51,3 +51,8 @@ Raccordement PostgreSQL et tests SQL/E2E livrés. Restent : rapprochement contr�
 ## Incrément personnel 0.3 — 18 novembre 2026
 
 Voir [le bilan PDF et relais Claude Code](docs/personal-sprint-03/BILAN.md) pour les changements, tests réellement exécutés et limites. Les conclusions historiques restent datées de leurs audits respectifs.
+
+
+## Incrément personnel 0.4 — 18 novembre 2026
+
+Livré : cas limites PDF (colonnes, lignes non reprises, valeurs « < », doublons intra-document, dates ambiguës/invalides). Prochain P1 : correction versionnée des candidats avec historique ; ensuite signalement des doublons inter-documents. Voir [le bilan](docs/personal-sprint-04/BILAN.md).

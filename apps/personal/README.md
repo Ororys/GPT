@@ -1,4 +1,4 @@
-# Convergence Personal 0.3 — PostgreSQL, données synthétiques
+# Convergence Personal 0.4 — PostgreSQL, données synthétiques
 
 Les cinq pages sont raccordées à une base PostgreSQL réelle, sans fallback silencieux. Aucun dossier réel, OCR, LLM ou fournisseur connecté.
 
@@ -49,3 +49,9 @@ Architecture, bilan et limites : `../../docs/personal-sprint-02/BILAN.md`. L'ide
 ## PDF biologiques synthétiques — sprint 03
 
 Extraction native réelle avec unpdf, limitée aux PDF du corpus synthétique identifié par SHA-256. Revue explicite avant intégration transactionnelle PostgreSQL ; PDF original conservé. Aucun OCR, LLM ou analyseur universel de laboratoire. Les unités incompatibles sont bloquées, les références proviennent du document, et une date connue au jour ne devient pas une heure de prélèvement supposée. Voir `../../docs/personal-sprint-03/BILAN.md`.
+
+## Cas limites PDF — sprint 04
+
+Tableau en colonnes reconstitué par coordonnées ; lignes non reprises affichées ; valeurs « < », paramètres répétés et dates multiples ou invalides bloqués avec motif. Trois PDF synthétiques ajoutés à la liste blanche. Voir `../../docs/personal-sprint-04/BILAN.md`.
+
+Si le Chromium de Playwright n'est pas téléchargeable, `HC_PLAYWRIGHT_CHROMIUM=<chemin>` permet d'utiliser un Chromium déjà installé.

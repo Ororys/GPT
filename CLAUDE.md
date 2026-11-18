@@ -11,7 +11,7 @@ Agir de façon autonome sur les corrections ordinaires et tester les changements
 ## Lire en premier
 
 1. `HANDOFF_CLAUDE_CODE.md` — carte du dépôt, commandes et limites.
-2. `docs/personal-sprint-03/BILAN.md` — incrément PDF et preuves.
+2. `docs/personal-sprint-03/BILAN.md` puis `docs/personal-sprint-04/BILAN.md` — incréments PDF et preuves.
 3. `apps/personal/README.md` et `apps/personal/AGENTS.md`.
 4. `SECURITY.md`, `BLOCKERS.md`, `ARCHITECTURE.md` et `TEST_REPORT.md`.
 5. `docs/personal-sprint-02/BILAN.md` pour le raccordement PostgreSQL.
@@ -37,6 +37,7 @@ Lecture réelle du texte natif avec unpdf/PDF.js, uniquement sur un corpus PDF s
 - La date est connue au jour près : minuit UTC est un ancrage technique et `measuredPrecision=day` le précise. Ne pas en déduire une heure de prélèvement.
 - La méthode de mesure n'étant pas fournie, elle est `lab_method_not_reported`. Elle est distincte de la méthode d'extraction `pdf-native-v1`.
 - Le parser actuel reconnaît un format de tableau contrôlé, pas tous les laboratoires français. Ne pas retirer la restriction d'empreinte pour « rendre l'import plus pratique ».
+- Depuis le sprint 04 : lignes non reprises listées, valeurs « < », doublons intra-document et dates multiples/invalides bloqués ; jamais de choix automatique entre deux valeurs ou deux dates. Les empreintes des PDF existants sont verrouillées par test : ne pas modifier leur générateur.
 - Pas encore de correction manuelle de valeur et d'historique de rectification ; ne pas écraser le texte ou les valeurs originales pour l'ajouter.
 
 ## Discipline technique

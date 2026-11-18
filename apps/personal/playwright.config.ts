@@ -15,6 +15,10 @@ export default defineConfig({
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
     ...devices['Desktop Chrome'],
+    // Optional: reuse a preinstalled Chromium when the bundled one is absent.
+    ...(process.env.HC_PLAYWRIGHT_CHROMIUM
+      ? { launchOptions: { executablePath: process.env.HC_PLAYWRIGHT_CHROMIUM } }
+      : {}),
   },
   webServer: {
     command: 'npm run start -- --port 3100',
