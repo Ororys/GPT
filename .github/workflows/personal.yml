@@ -37,10 +37,18 @@ jobs:
       - run: npm run test:pg
       - run: npm run build
       - run: npm run test:storage-http
-      # pg_dump/pg_restore must match the PostgreSQL 16 server (a newer client emits
-      # settings such as transaction_timeout that 16 rejects).
-      - run: sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client-16
-      - run: PATH=/usr/lib/postgresql/16/bin:$PATH npm run test:backup
+      # pg_dump/pg_restore must match the PostgreSQL 16 server (a newer client emits settings
+      # such as transaction_timeout that 16 rejects): run them from the service's own image;
+      # host network reaches the service port, /tmp holds the dump file.
+      - name: PostgreSQL 16 client tools
+        run: |
+          mkdir -p "$RUNNER_TEMP/pg16"
+          for t in pg_dump pg_restore; do
+            printf '#!/bin/sh\nexec docker run --rm --network host -v /tmp:/tmp postgres:16-alpine %s "$@"\n' "$t" > "$RUNNER_TEMP/pg16/$t"
+            chmod +x "$RUNNER_TEMP/pg16/$t"
+          done
+          echo "$RUNNER_TEMP/pg16" >> "$GITHUB_PATH"
+      - run: pg_dump --version && npm run test:backup
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e:pg
       - run: npm run test:e2e:oidc
