@@ -1,3 +1,7 @@
+# Sprint 13 / 0.13.0 — 18 novembre 2026
+
+Applications Android et iOS (Capacitor) ouvrant le même serveur que le site ; lecture seule et minimisée de Santé / Health Connect (sommeil, FC au repos, VFC, pas, distance) sous autorisation explicite ; migration additive 009 ; builds natifs en CI (Android réussi). Voir docs/personal-sprint-13/BILAN.md.
+
 # Sprint personnel 12 / 0.12.0 — 18 novembre 2026
 
 Connexion réelle des patients en option (`HC_PERSONAL_AUTH=oidc`) : OIDC code + PKCE, jeton vérifié, double authentification exigée (amr), rattachement contrôlé uniquement (migration additive 008, script opérateur), sujet haché. Fournisseur OpenID local pour les tests. Correction de la redirection de retour (hôte public). Voir docs/personal-sprint-12/BILAN.md.
