@@ -50,3 +50,10 @@ Note de décision préparée à la demande du fondateur : « statue grâce à te
 4. Demander le raccordement Pro Santé Connect (B-01, B-07).
 5. Décider du lancement d'applications natives Android/iOS (B-08).
 6. Revue de sécurité indépendante avant toute exposition (B-10, dépense).
+
+## Suite donnée par le fondateur (18 novembre 2026)
+
+- B-05 : V1 strictement descriptive confirmée ; destination prévue rédigée dans [DESTINATION_PREVUE.md](DESTINATION_PREVUE.md), à faire relire.
+- B-02 : comparatif demandé, voir [COMPARATIF_HDS.md](COMPARATIF_HDS.md).
+- B-08 : applications Android et iOS souhaitées.
+- B-01 : vraie connexion patient prioritaire dans le code.
