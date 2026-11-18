@@ -1,19 +1,23 @@
-# Convergence Personal 0.2 — PostgreSQL
+# Convergence Personal 0.22 — web, Android et iPhone
 
-Le nouvel espace B2C conserve les cinq pages et utilise maintenant PostgreSQL par défaut.
+**Commencer par [l'état du produit](docs/ETAT_DU_PRODUIT.md)** (synthèse en langage simple, questions ouvertes).
+
+| Dossier | Contenu |
+|---|---|
+| `apps/personal` | Application Next.js/React/TypeScript + PostgreSQL (migrations `sql/001–012`) : les écrans, le serveur et les règles d'accès |
+| `apps/mobile` | Applications Android et iOS (Capacitor) qui ouvrent le même serveur ; lecture Santé / Health Connect |
+| `demo-mobile` | Démo privée Sites (Worker, données fictives en session), figée au sprint 11 |
+| racine | API historique v3.1 (schéma `hc`), conservée |
 
 ```bash
 npm run personal:install
-npm run personal:env
-npm run personal:db:up
-npm run personal:db:prepare
-npm run personal:dev
-# http://127.0.0.1:3000
+npm run personal:env        # secrets locaux générés (jamais versionnés)
+npm run personal:db:up      # PostgreSQL 16 via Docker Compose
+npm run personal:db:prepare # migrations, seed synthétique, clé de preuve de session
+npm run personal:dev        # http://127.0.0.1:3000
 ```
 
-Node 22+ et Docker Compose. Le serveur doit rester local et ne recevoir que des données synthétiques. Une installation PostgreSQL locale dédiée peut remplacer Docker : voir [les instructions](apps/personal/README.md).
-
-[Bilan du sprint 02](docs/personal-sprint-02/BILAN.md) · [capture du stockage connecté](docs/personal-sprint-02/evidence/postgresql-settings.png). Le mode fichiers précédent est conservé avec `HC_PERSONAL_STORAGE=local` explicite ; aucune bascule automatique en cas de panne. Aucun OCR, LLM ou fournisseur réel. L'API historique ci-dessous est conservée.
+Node 24+. Données exclusivement synthétiques ; aucun OCR, LLM ni fournisseur réel connecté. Tests et preuves : [apps/personal/README.md](apps/personal/README.md) et `docs/personal-sprint-*/`.
 
 ---
 

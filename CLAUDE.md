@@ -10,7 +10,7 @@ Agir de façon autonome sur les corrections ordinaires et tester les changements
 
 ## Lire en premier
 
-1. `HANDOFF_CLAUDE_CODE.md` — carte du dépôt, commandes et limites.
+1. `docs/ETAT_DU_PRODUIT.md` — synthèse à jour pour le fondateur ; `HANDOFF_CLAUDE_CODE.md` — carte d'origine du dépôt.
 2. `docs/personal-sprint-03/BILAN.md`, `docs/personal-sprint-04/BILAN.md` `docs/personal-sprint-05/BILAN.md`, `docs/personal-sprint-06/BILAN.md`, `docs/personal-sprint-07/BILAN.md`, `docs/personal-sprint-08/BILAN.md`, `docs/personal-sprint-09/BILAN.md`, `docs/personal-sprint-10/BILAN.md`, `docs/personal-sprint-11/BILAN.md`, `docs/personal-sprint-12/BILAN.md`, `docs/personal-sprint-13/BILAN.md` puis `docs/personal-sprint-14/BILAN.md` — incréments PDF, correction versionnée, doublons inter-documents, résumé de consultation, passeport de qualité, autorisations, mesures du centre, jour local, connexion réelle, applications mobiles, données du téléphone et preuves.
 3. `apps/personal/README.md` et `apps/personal/AGENTS.md`.
 4. `SECURITY.md`, `BLOCKERS.md`, `docs/DECISIONS_BLOQUANTS.md`, `ARCHITECTURE.md` et `TEST_REPORT.md`.
