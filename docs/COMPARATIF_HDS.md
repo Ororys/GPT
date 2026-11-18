@@ -9,7 +9,7 @@ Demande du fondateur : comparer trois hébergeurs, **sans rien signer ni payer**
 | Exécution de l'application Node.js | PaaS (déploiement depuis Git) | Instances ou Kubernetes managé (plus d'exploitation à notre charge) | Instances, conteneurs ou Kubernetes |
 | Conditions annoncées | Contrat HDS spécifique | Support Business ou Enterprise, option HDS à activer | Support Business ou Enterprise, contrat HDS ; hébergement limité à la France |
 | Données en France | Oui, annoncé | Selon les régions choisies | Oui pour les offres HDS |
-| Tarifs | Non relevés | Non relevés | Non relevés |
+| Tarifs (voir ci-dessous) | Forfait HDS de 200 €/mois + ressources ×1,4 (à confirmer) | Base PostgreSQL « Business » ≈ 138 € HT/mois + support Business obligatoire (prix non trouvé) | Non relevés |
 
 ## Recommandation
 
@@ -22,3 +22,35 @@ Cette recommandation repose **uniquement sur les pages publiques des hébergeurs
 3. Rappel : l'hébergeur certifié ne rend pas l'éditeur conforme. AIPD, sécurité applicative, identité et revue indépendante restent nécessaires (B-03, B-01, B-10).
 
 Rien n'a été souscrit. Le choix et la signature appartiennent au fondateur.
+
+## Coûts estimés (recherche du 18 novembre 2026, sans devis)
+
+Ordres de grandeur tirés des pages publiques. **Un devis écrit reste nécessaire.**
+
+| | Clever Cloud | OVHcloud |
+|---|---|---|
+| Ticket d'entrée HDS | Forfait de **200 €/mois**, puis tarif standard des ressources **×1,4**, selon la page HDS. Un article de Clever Cloud d'avril 2026 dit pourtant que le HDS est inclus sans surcoût pour les bases : **contradiction à lever** | Support **Business obligatoire** pour les produits HDS ; prix non trouvé |
+| Base PostgreSQL | Petite base (1 vCPU, 2 Go) ≈ 6,80 €/mois au tarif standard, soit ≈ 10 € en HDS | Offre « Business » à 2 nœuds (DB1-4) ≈ 0,19 €/h, soit **≈ 138 € HT/mois** (calcul : prix horaire × 730 h) |
+| Application Node | Petite instance : prix non relevé | Instance ou Kubernetes : prix non relevé |
+| Connexion (Keycloak) | Keycloak géré dès **47 €/mois**, 100 utilisateurs actifs inclus, puis 0,05 € par utilisateur. Une évolution de tarif est annoncée au 1er novembre 2026, non relevée | À installer soi-même |
+| **Estimation pour démarrer** | **≈ 300 à 450 €/mois HT**, connexion comprise | **≈ 250 à 400 €/mois HT** hors support Business, connexion non comprise |
+
+Ces montants sont des estimations, pas des prix contractuels. Pour 1 000 utilisateurs actifs, la connexion Clever Cloud ajouterait ≈ 45 €/mois au tarif relevé.
+
+Sources : [Clever Cloud — HDS](https://www.clever.cloud/health-hds/), [Clever Cloud — singularités (avril 2026)](https://www.clever.cloud/blog/company/2026/04/08/what-makes-clever-cloud-unique/), [Clever Cloud vs AWS](https://www.clever.cloud/clever-cloud-vs-aws/), [Keycloak géré](https://www.clever.cloud/product/managed-keycloak-as-a-service/), [OVHcloud — tarifs Public Cloud](https://us.ovhcloud.com/public-cloud/prices/), [OVHcloud — évolution des prix](https://blog.ovhcloud.com/en/posts/pricing-evolution-of-public-cloud-bare-metal-and-vps-at-ovhcloud/), [OVHcloud — calcul du prix des bases](https://docs.ovhcloud.com/en/guides/public-cloud/databases/pricing), [OVHcloud — certification HDS](https://docs.ovhcloud.com/en/guides/account-and-service-management/account-information/hds-certification).
+
+## Fournisseur de connexion pour les patients (B-01)
+
+**Recommandation : Keycloak, logiciel libre, géré par le même hébergeur HDS** (offre Keycloak de Clever Cloud).
+
+- Keycloak parle le standard OpenID Connect déjà intégré dans le code (sprint 12) : aucun développement spécifique.
+- Il gère la double authentification (application d'authentification, clé de sécurité).
+- Les identités restent chez le même hébergeur, en France, ce qui évite un sous-traitant de plus.
+- Le logiciel est libre : on peut changer d'hébergeur sans changer de système de connexion.
+
+**À vérifier auprès de Clever Cloud :** que l'offre Keycloak est bien **dans le périmètre de la certification HDS**. Il faudra aussi vérifier, à l'essai, que Keycloak transmet bien l'information de double authentification (`amr`) exigée par le code.
+
+Écartés :
+- **FranceConnect** : son ouverture au privé est limitée aux cas où une loi impose de vérifier l'identité ([Le Monde Informatique](https://www.lemondeinformatique.fr/actualites/lire-franceconnect-s-ouvre-timidement-au-secteur-prive-79204.html), [CGU fournisseurs de service](https://partenaires.franceconnect.gouv.fr/files/CGU_FS_v3.9.pdf)), ce qui ne semble pas notre cas. À confirmer auprès de la DINUM.
+- **Pro Santé Connect** : réservé aux professionnels de santé, à garder pour un futur accès soignant.
+- **Services américains** (Auth0, Firebase…) : identités hors de l'hébergement de santé.

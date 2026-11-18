@@ -35,10 +35,10 @@ Document de synthèse pour le fondateur, en langage simple. Référence techniqu
 
 ## Ce qui ne dépend que de vous
 
-1. **Hébergement de santé** : choisir un hébergeur certifié HDS (Clever Cloud en premier, voir `COMPARATIF_HDS.md`) et demander des devis. Sans hébergement, l'application ne peut pas recevoir de vraies personnes.
-2. **Fournisseur d'identité** pour les patients (connexion avec double authentification).
-3. **Relecture réglementaire** de la destination prévue (`DESTINATION_PREVUE.md`).
-4. **Analyse RGPD (AIPD)** et vraie politique de confidentialité.
+1. **Hébergement de santé** : choisir un hébergeur certifié HDS et demander des devis. Clever Cloud est en premier choix, pour environ 300 à 450 €/mois HT estimés, connexion comprise (voir `COMPARATIF_HDS.md`). Sans hébergement, l'application ne peut pas recevoir de vraies personnes.
+2. **Fournisseur d'identité** pour les patients : Keycloak géré par l'hébergeur est recommandé (voir `COMPARATIF_HDS.md`).
+3. **Relecture réglementaire** de la destination prévue (`DESTINATION_PREVUE.md`), déjà relue et complétée une première fois.
+4. **Analyse RGPD (AIPD)** : un projet est prêt dans `AIPD_PROJET.md`, à faire valider. Écart majeur : il est impossible aujourd'hui de supprimer un compte.
 5. **Comptes de publication** : Apple Developer (99 $/an) et Google Play (25 $, une fois).
 6. **Visibilité du dépôt GitHub** : il est public, alors qu'il contient les dossiers maîtres et les documents d'entreprise.
 
