@@ -1,3 +1,7 @@
+# Sprint 22 / 0.22.0 — 18 novembre 2026
+
+Synchronisation automatique des données du téléphone à l'ouverture de l'application (autorisation requise, au plus toutes les 6 h, silencieuse en cas d'échec). Voir docs/personal-sprint-22/BILAN.md.
+
 # Sprint 21 / 0.21.0 — 18 novembre 2026
 
 S-02 : la base vérifie elle-même la signature de la session (HMAC, expiration, sujet et dossier) avant tout accès ; migration additive 012 ; activée par db:prepare ; E2E exécutés avec preuve exigée ; contre-épreuve 200/403. Voir docs/personal-sprint-21/BILAN.md.

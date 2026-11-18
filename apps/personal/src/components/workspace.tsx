@@ -72,6 +72,35 @@ const pageMeta: Record<View, { title: string; subtitle: string }> = {
     subtitle: 'Profil de démonstration, apparence et contrôle de vos données.',
   },
 };
+/**
+ * In the mobile app only: refresh the last 7 days of phone data at start-up when the
+ * permission is granted and the last sync is over 6 hours old. Silent on failure: the
+ * manual import in Paramètres reports errors.
+ */
+async function autoSyncPhone(onImported: () => Promise<void>) {
+  try {
+    const { isNativeApp, importPhoneHealth } = await import('@/modules/device/bridge');
+    const { shouldAutoSync, SYNC_KEY } = await import('@/modules/device/sync-policy');
+    if (!isNativeApp()) return;
+    const res = await fetch('/api/consents', { cache: 'no-store' });
+    if (!res.ok) return;
+    const consents = (await res.json()) as { source: string; granted: boolean }[];
+    let lastSync: string | null = null;
+    try {
+      lastSync = localStorage.getItem(SYNC_KEY);
+    } catch {}
+    const allowed = consents.some((c) => c.source === 'device-health' && c.granted);
+    if (!shouldAutoSync({ native: true, consentGranted: allowed, lastSync, now: Date.now() }))
+      return;
+    const r = await importPhoneHealth(7);
+    try {
+      localStorage.setItem(SYNC_KEY, new Date().toISOString());
+    } catch {}
+    if (r.inserted > 0) await onImported();
+  } catch {
+    // Manual import remains available and explains errors.
+  }
+}
 export function Workspace({ view }: { view: View }) {
   const router = useRouter();
   const [record, setRecord] = useState<HealthRecord | null>(null);
@@ -160,6 +189,10 @@ export function Workspace({ view }: { view: View }) {
       if (!cancelled) {
         setPersonId(profile);
         setRecord(value);
+        void autoSyncPhone(async () => {
+          const again = await fetch(`/api/records/${profile}`, { cache: 'no-store' });
+          if (again.ok && !cancelled) setRecord((await again.json()) as HealthRecord);
+        });
       }
     }
     void boot().catch((e) => {
