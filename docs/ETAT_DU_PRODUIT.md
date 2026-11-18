@@ -1,6 +1,6 @@
 # Où en est Convergence — état au 18 novembre 2026
 
-Document de synthèse pour le fondateur, en langage simple. Le détail de chaque étape est dans `docs/personal-sprint-NN/BILAN.md`, avec ses preuves de tests.
+Document de synthèse pour le fondateur, en langage simple. Référence technique de l'API : `API_PERSONAL.md`. Le détail de chaque étape est dans `docs/personal-sprint-NN/BILAN.md`, avec ses preuves de tests.
 
 ## Ce que fait le produit aujourd'hui
 
