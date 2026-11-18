@@ -1,3 +1,7 @@
+# Sprint 16 / 0.16.0 — 18 novembre 2026
+
+Audit d'accessibilité automatisé complet (6 pages × 2 thèmes × 2 tailles + fenêtres) : 36 constats corrigés (noms accessibles alignés sur le texte visible, bouton de recherche nommé), 0 restant. Voir docs/personal-sprint-16/BILAN.md.
+
 # Sprint 15 / 0.15.0 — 18 novembre 2026
 
 Données du téléphone dans le résumé PDF et le passeport de qualité (jours mesurés, moyennes des seuls jours présents, notes de méthode). Voir docs/personal-sprint-15/BILAN.md.

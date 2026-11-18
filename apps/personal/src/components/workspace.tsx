@@ -198,7 +198,7 @@ export function Workspace({ view }: { view: View }) {
         Aller au contenu
       </a>
       <aside className="sidebar">
-        <Link href="/" className="brand" aria-label="Convergence, accueil">
+        <Link href="/" className="brand">
           <span className="brand-mark">
             <i />
             <i />
@@ -207,6 +207,7 @@ export function Workspace({ view }: { view: View }) {
           <span className="brand-name">
             convergence<span>PERSONAL HEALTH INTELLIGENCE</span>
           </span>
+          <span className="sr-only">, accueil</span>
         </Link>
         <div className="workspace-label">
           <span>ESPACE PERSONNEL</span>
@@ -274,7 +275,11 @@ export function Workspace({ view }: { view: View }) {
             <strong>{pageName}</strong>
           </div>
           <div className="topbar-actions">
-            <button className="global-search" onClick={() => setSearchOpen(true)}>
+            <button
+              className="global-search"
+              aria-label="Retrouver dans mon histoire"
+              onClick={() => setSearchOpen(true)}
+            >
               <Search size={15} />
               <span>Retrouver dans mon histoire</span>
               <kbd>⌕</kbd>
@@ -290,7 +295,7 @@ export function Workspace({ view }: { view: View }) {
             <button
               className="avatar-button"
               onClick={() => navigate('settings')}
-              aria-label="Ouvrir le profil"
+              aria-label={`${record?.profile.initials || 'AM'}, ouvrir les paramètres`}
             >
               <span className="avatar small">{record?.profile.initials || 'AM'}</span>
             </button>

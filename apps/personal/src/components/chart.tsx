@@ -218,7 +218,11 @@ export function DataChart({
           <button
             className="text-button"
             onClick={() => setTable(!table)}
-            aria-label={table ? 'Afficher le graphique' : 'Afficher les données en tableau'}
+            aria-label={
+              table
+                ? 'Graphique : revenir au graphique'
+                : 'Tableau accessible : afficher les données'
+            }
           >
             {table ? <ChartNoAxesCombined size={13} /> : <Table2 size={13} />}{' '}
             {table ? 'Graphique' : 'Tableau accessible'}

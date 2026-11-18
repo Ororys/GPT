@@ -23,11 +23,14 @@ test('overview réel : données, graphique interactif, comparaison, tableau acce
   await expect(page.locator('.trend-panel .chart-legend')).toContainText('Durée du sommeil');
   await page
     .locator('.trend-panel')
-    .getByRole('button', { name: 'Afficher les données en tableau' })
+    .getByRole('button', { name: /^Tableau accessible/ })
     .click();
   await expect(page.locator('.trend-panel table')).toBeVisible();
   await expect(page.locator('.trend-panel table tbody tr')).toHaveCount(90);
-  await page.locator('.trend-panel').getByRole('button', { name: 'Afficher le graphique' }).click();
+  await page
+    .locator('.trend-panel')
+    .getByRole('button', { name: /^Graphique/ })
+    .click();
   await page.evaluate(() => window.scrollTo(0, 0));
   await page.screenshot({ path: `${shots}/01-overview-dark-desktop.png`, fullPage: true });
   expect(errors).toEqual([]);
@@ -279,11 +282,11 @@ test('graphique 10 000 points : rendu, zoom et tableau paginé avec lacunes', as
   await expect(page.locator('canvas')).toBeVisible();
   await page.locator('canvas').hover({ position: { x: 300, y: 160 } });
   await page.mouse.wheel(0, -200);
-  await page.getByRole('button', { name: 'Afficher les données en tableau' }).click();
+  await page.getByRole('button', { name: /^Tableau accessible/ }).click();
   await expect(page.locator('tbody tr')).toHaveCount(250);
   await page.getByRole('button', { name: /Afficher 250 points supplémentaires/ }).click();
   await expect(page.locator('tbody tr')).toHaveCount(500);
-  await page.getByRole('button', { name: 'Afficher le graphique' }).click();
+  await page.getByRole('button', { name: /^Graphique/ }).click();
   await page.screenshot({ path: `${shots}/07-chart-10000.png`, fullPage: true });
 });
 
@@ -797,4 +800,56 @@ test('données du téléphone affichées : nuits et cœur en vue d’ensemble, p
   await expect(
     page.locator('.phone-panel', { hasText: 'Pas et distance au quotidien' }),
   ).toContainText('dédoublonne téléphone et montre');
+});
+
+test('accessibilité complète : 6 pages × 2 thèmes × 2 tailles et fenêtres principales, WCAG 2.1 AA', async ({
+  page,
+}) => {
+  test.setTimeout(180_000);
+  const audit = async (where: string, include?: string) => {
+    let builder = new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']);
+    if (include) builder = builder.include(include);
+    const r = await builder.analyze();
+    return r.violations.map(
+      (v) =>
+        `${where} · ${v.id} · ${v.nodes
+          .map((n) => n.target.join(' '))
+          .slice(0, 3)
+          .join(' | ')}`,
+    );
+  };
+  const found: string[] = [];
+  for (const size of [
+    { width: 1280, height: 900 },
+    { width: 390, height: 844 },
+  ]) {
+    await page.setViewportSize(size);
+    for (const theme of ['dark', 'light'] as const) {
+      await page.emulateMedia({ colorScheme: theme, reducedMotion: 'reduce' });
+      for (const path of ['/', '/biology', '/sport', '/documents', '/timeline', '/settings']) {
+        await open(page, path);
+        await page.evaluate((t) => {
+          document.documentElement.dataset.theme = t;
+          localStorage.setItem('convergence-theme', t);
+        }, theme);
+        found.push(...(await audit(`${path} ${theme} ${size.width}`)));
+      }
+    }
+  }
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await open(page, '/documents');
+  await page
+    .locator('.documents-hero')
+    .getByRole('button', { name: 'Importer une démo', exact: true })
+    .click();
+  found.push(...(await audit('import', '[role=dialog]')));
+  await page.keyboard.press('Escape');
+  await open(page, '/biology');
+  await page.getByRole('button', { name: 'Bilan source' }).first().click();
+  found.push(...(await audit('source', '[role=dialog]')));
+  await page.keyboard.press('Escape');
+  await open(page, '/');
+  await page.getByRole('button', { name: 'Passeport de qualité' }).click();
+  found.push(...(await audit('passeport', '[role=dialog]')));
+  expect(found).toEqual([]);
 });

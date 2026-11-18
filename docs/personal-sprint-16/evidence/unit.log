@@ -1,0 +1,64 @@
+
+> @health-convergence/personal@0.15.0 test
+> tsx --test tests/*.test.ts
+
+✔ correction : virgule française, motif obligatoire, aucune unité ni conversion acceptée (4.276191ms)
+✔ Time Machine : une correction n’apparaît qu’à partir du moment où elle est connue (3.110578ms)
+✔ sommeil : seul le temps endormi compte, chevauchements fusionnés, jour du réveil (18.126832ms)
+✔ pas et distance : total quotidien de la plateforme, jamais additionné deux fois (0.411063ms)
+✔ VFC : une série par méthode, jamais mélangées ; FC au repos moyenne du jour local (0.510818ms)
+✔ données du téléphone : types limités, unité imposée sans conversion, plage de dates (6.274058ms)
+✔ clé d’idempotence : stable, distincte par plateforme et par valeur (0.420469ms)
+✔ forme : pas et distance en total quotidien, sommeil avec son état (0.527256ms)
+✔ jeu synthétique : schémas stricts, patient et unités cohérents (10.201977ms)
+✔ provenance : chaque mesure retrouve son document et le même événement timeline (4.341706ms)
+✔ calcul sportif : somme des seules activités filtrées, aucune moyenne fictive (3.69076ms)
+✔ sommeil : lacunes conservées, moyenne sur les seules mesures disponibles (4.651712ms)
+✔ Time Machine : un événement ancien mais connu plus tard reste absent (4.323485ms)
+✔ dernière valeur indépendante de l’ordre et d’une autre catégorie (6.106088ms)
+✔ isolation des fixtures : une copie ne modifie jamais une autre et bêta reste vide (7.605988ms)
+✔ import : contrat synthétique, valeurs originales et provenance conservés (1.641787ms)
+✔ session : signature, expiration, sujets connus et refus inter-dossier (1.31288ms)
+✔ limites du périmètre : pas de score médical, plages attachées au laboratoire (3.119162ms)
+✔ échantillons sportifs : distance intégrée et FC moyenne cohérentes avec le résumé (3.363445ms)
+✔ préparation graphique : 10 000 points, trous non remplacés et index exact (14.964022ms)
+✔ PDF synthétique : une vraie page, empreinte déterministe et métadonnées explicites (236.68252ms)
+✔ OIDC : jeton valide avec double authentification, sujet haché et stable (46.359004ms)
+✔ OIDC : signature, émetteur, audience, nonce, expiration et alg none refusés (139.737913ms)
+✔ OIDC : sans facteur exigé (amr), connexion refusée (48.271126ms)
+✔ configuration : HTTPS obligatoire hors machine locale, PKCE S256 conforme RFC 7636 (0.673193ms)
+✔ sessions : chaque mode n’accepte que ses propres sessions (1.275387ms)
+✔ période sans donnée : jours calendaires, bornes incluses, fin de fenêtre comptée (2.986076ms)
+✔ passeport : provenance, couverture et notes techniques sans lecture médicale (11.985374ms)
+✔ passeport : unités, laboratoires et appareils multiples signalés ; dossier vide honnête (8.728134ms)
+✔ passeport : mesures du centre avec protocole déclaré, changement de protocole signalé (6.500843ms)
+✔ passeport : séries du téléphone avec couverture locale et notes de méthode (7.500813ms)
+✔ PDF natif : six valeurs extraites, page, texte, coordonnées et absence de confiance inventée (209.033332ms)
+✔ deux pages et virgules françaises : attribution de page et dates exactes (25.13013ms)
+✔ unités : seulement équivalence typographique micro, aucune conversion mmol/L (10.964964ms)
+✔ sans texte : OCR requis, aucun résultat inventé (5.874345ms)
+✔ sécurité : empreinte, taille, faux PDF et autre dossier (32.993535ms)
+✔ revue : aucune observation sans sélection explicite, uniquement candidats compatibles (6.841618ms)
+✔ upload Node : empreinte limitée à la vue Buffer, sans octets voisins ni mutation (6.939439ms)
+✔ corpus : empreintes des PDF du sprint 03 inchangées (liste blanche des bases existantes) (10.162947ms)
+✔ colonnes : lignes reconstituées par coordonnées, référence unilatérale non structurée (10.515712ms)
+✔ ambigus : doublon intra-document et signe « < » bloqués, ligne inconnue exposée (9.631965ms)
+✔ dates : deux prélèvements contradictoires, aucune date choisie ni résultat ajoutable (10.65649ms)
+✔ date de prélèvement : jour calendaire réel, accord de toutes les occurrences (0.286717ms)
+✔ reconstitution : regroupement par ligne de base, ordre haut-bas puis gauche-droite (0.236291ms)
+✔ résumé : sélection par période, sources et lacunes, sans calcul d’évolution (8.345718ms)
+✔ résumé : correction et unités multiples signalées, jamais converties (3.635882ms)
+✔ PDF du résumé : texte réel, sources et limites présentes, vocabulaire interprétatif absent (300.228451ms)
+✔ résumé : données du téléphone à part, jours mesurés et moyenne des seuls jours présents (41.835988ms)
+✔ jour local (C-01) : fuseau du dossier, minuit et changement d’heure (17.816304ms)
+✔ valeur connue au jour près : date calendaire jamais décalée (0.296141ms)
+✔ arithmétique calendaire indépendante du fuseau (0.379146ms)
+✔ passeport : une nuit à 23 h 30 UTC appartient au lendemain à Paris (2.300523ms)
+ℹ tests 52
+ℹ suites 0
+ℹ pass 52
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1748.990463
