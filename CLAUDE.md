@@ -11,7 +11,7 @@ Agir de façon autonome sur les corrections ordinaires et tester les changements
 ## Lire en premier
 
 1. `HANDOFF_CLAUDE_CODE.md` — carte du dépôt, commandes et limites.
-2. `docs/personal-sprint-03/BILAN.md`, `docs/personal-sprint-04/BILAN.md` `docs/personal-sprint-05/BILAN.md`, `docs/personal-sprint-06/BILAN.md`, `docs/personal-sprint-07/BILAN.md`, `docs/personal-sprint-08/BILAN.md`, `docs/personal-sprint-09/BILAN.md` puis `docs/personal-sprint-10/BILAN.md` — incréments PDF, correction versionnée, doublons inter-documents, résumé de consultation, passeport de qualité, autorisations, mesures du centre et preuves.
+2. `docs/personal-sprint-03/BILAN.md`, `docs/personal-sprint-04/BILAN.md` `docs/personal-sprint-05/BILAN.md`, `docs/personal-sprint-06/BILAN.md`, `docs/personal-sprint-07/BILAN.md`, `docs/personal-sprint-08/BILAN.md`, `docs/personal-sprint-09/BILAN.md`, `docs/personal-sprint-10/BILAN.md` puis `docs/personal-sprint-11/BILAN.md` — incréments PDF, correction versionnée, doublons inter-documents, résumé de consultation, passeport de qualité, autorisations, mesures du centre, jour local et preuves.
 3. `apps/personal/README.md` et `apps/personal/AGENTS.md`.
 4. `SECURITY.md`, `BLOCKERS.md`, `ARCHITECTURE.md` et `TEST_REPORT.md`.
 5. `docs/personal-sprint-02/BILAN.md` pour le raccordement PostgreSQL.
@@ -56,6 +56,10 @@ Lecture réelle du texte natif avec unpdf/PDF.js, uniquement sur un corpus PDF s
 ## Mesures du centre (sprint 10)
 
 Décision du fondateur : séries de la page Biologie, catégorie « Mesures du centre », dans le modèle d'observation existant. Protocole obligatoire dans `method`, **jamais de plage de référence inventée**, aucune interprétation de la pression artérielle. `labBiomarkers` (laboratoire, PDF) et `biomarkers` (catalogue complet) sont distincts.
+
+## Jour local et temps (sprint 11)
+
+Tout regroupement par jour passe par `modules/observations/time.ts` (TS) ou `personal.local_day` (SQL) : jour calendaire du fuseau du dossier, valeur au jour près jamais décalée. Ne plus utiliser `slice(0, 10)` sur un instant. Les graphiques utilisent un axe temporel proportionnel. Aucun seuil (EWGSOP2, STEADI…) n'est affiché, même sourcé.
 
 ## Discipline technique
 

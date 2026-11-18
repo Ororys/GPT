@@ -1,3 +1,7 @@
+# Sprint personnel 11 / 0.11.0 — 18 novembre 2026
+
+Règle du jour local (C-01, fuseau du dossier, migration additive 007), axe temporel proportionnel, cinq levers de chaise et masse grasse estimée (protocoles sourcés, aucun seuil). Démo mobile alignée. Voir docs/personal-sprint-11/BILAN.md.
+
 # Sprint personnel 10 / 0.10.0 — 18 novembre 2026
 
 Mesures du centre (tour de taille, PA systolique/diastolique, préhension) en nouvelle catégorie de la page Biologie, sur deux bilans annuels fictifs, avec protocole explicite et sans plage de référence inventée. Résumé et passeport mis à jour. Axe des graphiques : année affichée sur plusieurs années. Démo mobile resynchronisée (sprints 04–10), testée, non republiée. Voir docs/personal-sprint-10/BILAN.md.

@@ -257,8 +257,8 @@ export function PdfImportForm({ onImported }: { onImported: () => Promise<void> 
                         .find((o) => o.candidateId === c.id)
                         ?.matches.map((m) => (
                           <small className="pdf-overlap" key={m.observationId}>
-                            Déjà dans le dossier le même jour (UTC) :{' '}
-                            {m.value.toLocaleString('fr-FR')} {m.unit} · {m.documentTitle} ·{' '}
+                            Déjà dans le dossier le même jour : {m.value.toLocaleString('fr-FR')}{' '}
+                            {m.unit} · {m.documentTitle} ·{' '}
                             {m.value === c.value && m.unit === c.observation?.unit
                               ? 'valeur identique'
                               : 'valeur différente'}

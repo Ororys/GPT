@@ -1,0 +1,33 @@
+
+> @health-convergence/personal@0.10.0 test:pg
+> tsx --test tests/postgres.integration.ts
+
+✔ fresh migrations, stored entities and snapshot provenance (473.547255ms)
+✔ SQL role has no direct data or internal function privileges, cannot become owner (76.970308ms)
+✔ patient isolation, invalid subjects and durable denied audit (13.457096ms)
+✔ RLS: owner sees no dossier without authorized scope, no caller-controlled scope bypass (3.852916ms)
+✔ database identity revocation takes effect on next read and import (3.860462ms)
+✔ unknown fixture and cross-user import insert nothing (20.567287ms)
+✔ atomicity: database insert failure rolls back document, observation, receipt and success audit (6.662946ms)
+✔ six concurrent clients: imported once, persistent receipt, identical retry (78.309623ms)
+✔ immutable results, documents, receipts and audit; bad units rejected (45.104178ms)
+✔ migrations and seed rerun preserve imports and checksum (198.761669ms)
+✔ PDF: native candidates staged with original bytes, no automatic observation insertion (176.16172ms)
+✔ PDF: cross-user intake and direct table access refused (4.314987ms)
+✔ PDF: incompatible unit and forged selection cannot become observations (16.92667ms)
+✔ PDF: failure during confirmation rolls back document, observations and review event (6.60386ms)
+✔ PDF: six concurrent confirmations insert each selected value once and preserve original units (53.406658ms)
+✔ PDF sprint 04: new fixtures whitelisted, ambiguous candidates refused by SQL, unreferenced value kept honest (64.802765ms)
+✔ corrections: versioned, original kept, stale version refused, concurrent writers serialized (74.60855ms)
+✔ PDF overlaps: same parameter and day from another document signalled, never merged (94.080099ms)
+✔ audit: summary export accepted, unknown events still refused (3.06073ms)
+✔ consents: revocation stops PDF staging, confirmation and import in SQL; history kept (126.66438ms)
+✔ local day (C-01): instants follow the dossier zone across midnight and DST, day values never shift (15.711312ms)
+ℹ tests 21
+ℹ suites 0
+ℹ pass 21
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2011.116879

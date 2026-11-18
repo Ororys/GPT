@@ -1,5 +1,6 @@
 import type { HealthRecord, Observation } from '../health-records/model';
 import { mean, withinPeriod } from '../observations/selectors';
+import { localDay, zoneOf } from '../observations/time';
 /**
  * Factual, sourced summary to prepare a consultation. Selection and counting only:
  * no trend wording, no thresholds, no interpretation, no score.
@@ -101,7 +102,7 @@ export function consultationSummary(record: HealthRecord, periodDays: number): C
     markers,
     missing,
     sleep: {
-      nights: new Set(nights.map((n) => n.date.slice(0, 10))).size,
+      nights: new Set(nights.map((n) => localDay(n.date, zoneOf(record)))).size,
       days: periodDays,
       meanHours: mean(nights.map((n) => n.durationHours)),
       meanRestingHeartRate: mean(nights.map((n) => n.restingHeartRate)),

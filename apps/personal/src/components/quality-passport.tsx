@@ -12,6 +12,8 @@ const noteLabel: Record<ComparabilityNote, string> = {
   HRV_METHOD_SPECIFIC: 'VFC propre à sa méthode de calcul : non comparable à une autre méthode.',
   ANALYTICAL_METHOD_NOT_REPORTED: 'Méthode analytique non indiquée par le document.',
   SEVERAL_PROTOCOLS: 'Plusieurs méthodes ou protocoles : valeurs non directement comparables.',
+  DEVICE_ESTIMATE_BIA:
+    'Estimation par impédancemétrie : sensible à l’hydratation et non validée aux IMC extrêmes (ESPEN 2004).',
 };
 const day = (iso: string) => dateLabel(iso, { day: 'numeric', month: 'short', year: 'numeric' });
 export function QualityPassportModal({

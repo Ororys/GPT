@@ -475,7 +475,7 @@ test('doublon inter-documents : même paramètre le même jour signalé et déco
   await dialog.getByRole('button', { name: 'Essayer ce PDF' }).click();
   await expect(dialog.locator('.pdf-overlap')).toHaveCount(3);
   await expect(dialog.locator('.pdf-overlap').first()).toContainText(
-    'Déjà dans le dossier le même jour (UTC) : 1,27 g/L · Bilan PDF · 17 novembre 2026 · valeur différente',
+    'Déjà dans le dossier le même jour : 1,27 g/L · Bilan PDF · 17 novembre 2026 · valeur différente',
   );
   const ldl = dialog.getByRole('checkbox', { name: 'Ajouter LDL-cholestérol', exact: true });
   await expect(ldl).toBeEnabled();
@@ -516,7 +516,7 @@ test('passeport de qualité : couverture, appareils et limites depuis la vue d�
   page,
 }) => {
   await open(page, '/');
-  await expect(page.locator('.quality-strip p')).toContainText('biomarqueurs suivis');
+  await expect(page.locator('.quality-strip p')).toContainText('paramètres suivis');
   await page.getByRole('button', { name: 'Passeport de qualité' }).click();
   const dialog = page.getByRole('dialog', { name: 'Passeport de qualité' });
   await expect(
@@ -593,7 +593,7 @@ test('mesures du centre : catégorie dédiée, protocole affiché, sans référe
   await page
     .getByRole('combobox', { name: 'Catégorie biologique' })
     .selectOption('Mesures du centre');
-  await expect(page.locator('.biomarker-option')).toHaveCount(4);
+  await expect(page.locator('.biomarker-option')).toHaveCount(6);
   await page.locator('.biomarker-option', { hasText: 'Tour de taille' }).click();
   await page.getByRole('checkbox', { name: 'Tout l’historique' }).check();
   await expect(page.locator('.large-value')).toContainText('84');

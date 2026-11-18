@@ -1,8 +1,9 @@
 import { type HealthRecord, type Observation, DEMO_NOW } from '../health-records/model';
+import { DEFAULT_TIME_ZONE } from './time';
 export const dateLabel = (
   iso: string,
   options: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short' },
-) => new Date(iso).toLocaleDateString('fr-FR', { ...options, timeZone: 'UTC' });
+) => new Date(iso).toLocaleDateString('fr-FR', { ...options, timeZone: DEFAULT_TIME_ZONE });
 export function withinPeriod(date: string, period: number, asOf = DEMO_NOW) {
   const t = Date.parse(date),
     end = Date.parse(asOf);

@@ -121,6 +121,8 @@ export interface TimelineItem {
 }
 export interface HealthRecord {
   personId: string;
+  /** IANA zone used to assign instants to calendar days (C-01). Default Europe/Paris. */
+  timeZone?: string;
   synthetic: true;
   storage: 'synthetic-fixture+local-imports' | 'postgresql' | 'mobile-demo-session';
   asOf: string;

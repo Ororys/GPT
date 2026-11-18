@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { ExternalLink, FileText, Check, Info, PencilLine, TriangleAlert } from 'lucide-react';
 import type { HealthRecord, Observation } from '@/modules/health-records/model';
 import { dateLabel } from '@/modules/observations/selectors';
+import { localDay, zoneOf } from '@/modules/observations/time';
 import { Modal, Pill, Notice } from './ui';
 import { number } from './format';
 export function EvidenceModal({
@@ -78,11 +79,15 @@ export function EvidenceModal({
           <div className="evidence-grid">
             <div>
               <span>Date de mesure</span>
-              <strong>{doc.date.slice(0, 10)}</strong>
+              <strong>
+                {doc.datePrecision === 'day'
+                  ? doc.date.slice(0, 10)
+                  : localDay(doc.date, zoneOf(record))}
+              </strong>
             </div>
             <div>
               <span>Connue dans le dossier</span>
-              <strong>{doc.knownAt.slice(0, 10)}</strong>
+              <strong>{localDay(doc.knownAt, zoneOf(record))}</strong>
             </div>
             <div>
               <span>Identifiant de source</span>

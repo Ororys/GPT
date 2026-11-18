@@ -106,6 +106,24 @@ export const centreMeasures: Biomarker[] = [
     color: '#b5c8f2',
     decimals: 1,
   },
+  {
+    code: 'CHAIR_5X',
+    label: 'Cinq levers de chaise (temps)',
+    shortLabel: '5 levers de chaise',
+    category: CENTRE_CATEGORY,
+    unit: 's',
+    color: '#c9e39a',
+    decimals: 1,
+  },
+  {
+    code: 'BODY_FAT',
+    label: 'Masse grasse estimée (impédancemétrie)',
+    shortLabel: 'Masse grasse estimée',
+    category: CENTRE_CATEGORY,
+    unit: '%',
+    color: '#f2c6a0',
+    decimals: 1,
+  },
 ];
 /** Full catalogue shown in the record: laboratory parameters, then centre measurements. */
 export const biomarkers: Biomarker[] = [...labBiomarkers, ...centreMeasures];
@@ -116,7 +134,11 @@ export const CENTRE_PROTOCOL: Record<string, string> = {
     'Tensiomètre automatique, assis après 5 min de repos, moyenne de 3 mesures au bras gauche (protocole fictif)',
   BP_DIA:
     'Tensiomètre automatique, assis après 5 min de repos, moyenne de 3 mesures au bras gauche (protocole fictif)',
-  GRIP: 'Dynamomètre à main, main dominante, meilleur de 3 essais (protocole fictif)',
+  GRIP: 'Dynamomètre à main, 3 essais par main, meilleure des 6 valeurs, d’après le protocole de Southampton (protocole fictif)',
+  CHAIR_5X:
+    'Cinq levers de chaise sans accoudoirs, bras croisés sur la poitrine, aussi vite que possible ; arrêt si appui des bras ou au-delà de 60 s (protocole fictif, test de type EWGSOP2/SPPB)',
+  BODY_FAT:
+    'Impédancemètre segmentaire, estimation calculée par l’appareil, pas une mesure directe ; conditions de mesure non standardisées dans ce prototype (protocole fictif)',
 };
 const centreVisits = [
   { id: 'report-2025-10-22', date: '2025-10-22T09:00:00Z', knownAt: '2025-10-30T11:00:00Z' },
@@ -127,6 +149,8 @@ const centreValues: Record<string, number[]> = {
   BP_SYS: [124, 121],
   BP_DIA: [78, 77],
   GRIP: [41.5, 42],
+  CHAIR_5X: [9.8, 9.5],
+  BODY_FAT: [24.1, 23.4],
 };
 const dates = ['2024-02-09', '2024-08-16', '2025-02-12', '2025-11-14', '2026-05-12', '2026-11-04'];
 const values: Record<string, number[]> = {
@@ -323,6 +347,7 @@ export function baseRecord(personId = PERSON_ALPHA): HealthRecord {
     synthetic: true,
     storage: 'synthetic-fixture+local-imports',
     asOf: DEMO_NOW,
+    timeZone: 'Europe/Paris',
     profile: empty
       ? { firstName: 'Camille', initials: 'CD', description: 'Profil fictif · dossier vide' }
       : { firstName: 'Alex', initials: 'AM', description: 'Profil fictif · Bordeaux' },

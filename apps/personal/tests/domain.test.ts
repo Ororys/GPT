@@ -21,8 +21,8 @@ import { authorize, issueSession, verifySession } from '../src/modules/identity/
 
 test('jeu synthétique : schémas stricts, patient et unités cohérents', () => {
   const record = baseRecord();
-  // 6 laboratory parameters × 6 reports + 4 centre measures × 2 annual reports.
-  assert.equal(record.observations.length, 44);
+  // 6 laboratory parameters × 6 reports + 6 centre measures × 2 annual reports.
+  assert.equal(record.observations.length, 48);
   for (const o of record.observations) {
     assert.ok(ObservationSchema.safeParse(o).success);
     assert.equal(o.personId, record.personId);
@@ -33,7 +33,7 @@ test('jeu synthétique : schémas stricts, patient et unités cohérents', () =>
     assert.ok(o.measuredAt <= o.knownAt);
     assert.ok(o.knownAt <= DEMO_NOW);
   }
-  assert.equal(new Set(record.observations.map((o) => o.id)).size, 44);
+  assert.equal(new Set(record.observations.map((o) => o.id)).size, 48);
 });
 test('provenance : chaque mesure retrouve son document et le même événement timeline', () => {
   const record = baseRecord();

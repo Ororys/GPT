@@ -32,3 +32,8 @@ L'adaptateur personnel est volontairement synthétique avec reçus locaux mono-p
 ## Actualisation sprint 02 / 0.2
 
 La limite « nouvel espace sans PostgreSQL » de la version 0.1 est levée. L'identité demeure fictive, les rôles API font confiance au sujet transmis et l'audit n'est pas indépendant de l'appelant ni de l'administrateur. Aucun fournisseur, OCR/LLM, document réel, sauvegarde/PRA ou conformité n'est validé. L'exécution locale a utilisé PostgreSQL 16.11, pas le nouveau Compose. Les reçus fichiers anciens sont conservés mais non repris automatiquement.
+
+
+## Actualisation 0.11 — 18 novembre 2026
+
+C-01 tranché pour l'espace personnel : jour calendaire du fuseau IANA du dossier (Europe/Paris par défaut), valeurs au jour près non décalées. Reste ouvert : décalage par mesure (voyages) quand de vrais connecteurs existeront.

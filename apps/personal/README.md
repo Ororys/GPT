@@ -1,4 +1,4 @@
-# Convergence Personal 0.10 — PostgreSQL, données synthétiques
+# Convergence Personal 0.11 — PostgreSQL, données synthétiques
 
 Les cinq pages sont raccordées à une base PostgreSQL réelle, sans fallback silencieux. Aucun dossier réel, OCR, LLM ou fournisseur connecté.
 

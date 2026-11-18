@@ -26,7 +26,7 @@ test('fresh migrations, stored entities and snapshot provenance', async () => {
   assert.equal(r.status, 'ok');
   assert.equal(r.record.storage, 'postgresql');
   assert.equal(r.record.documents.length, 8);
-  assert.equal(r.record.observations.length, 44);
+  assert.equal(r.record.observations.length, 48);
   assert.equal(r.record.activities.length, 52);
   assert.equal(r.record.sleep.length, 83);
   for (const o of r.record.observations) {
@@ -118,7 +118,7 @@ test('unknown fixture and cross-user import insert nothing', async () => {
   assert.equal((await imported('a'.repeat(64))).status, 'invalid');
   assert.equal((await imported(hash, 'personal:demo-beta', 'demo-alpha')).status, 'forbidden');
   assert.equal((await imported(hash, 'personal:demo-beta', 'demo-beta')).status, 'invalid');
-  assert.equal((await read()).record.observations.length, 44);
+  assert.equal((await read()).record.observations.length, 48);
 });
 test('atomicity: database insert failure rolls back document, observation, receipt and success audit', async () => {
   await db.admin.query(
@@ -155,7 +155,7 @@ test('six concurrent clients: imported once, persistent receipt, identical retry
     values.reduce((n, v) => n + v.duplicates, 0),
     5,
   );
-  assert.equal((await read()).record.observations.length, 45);
+  assert.equal((await read()).record.observations.length, 49);
   assert.equal((await read()).record.documents.length, 9);
   const c = new pg.Client({ connectionString: db.apiUrl });
   await c.connect();
@@ -192,10 +192,10 @@ test('immutable results, documents, receipts and audit; bad units rejected', asy
 });
 test('migrations and seed rerun preserve imports and checksum', async () => {
   await prepareDatabase(db.adminUrl, db.apiUrl);
-  assert.equal((await read()).record.observations.length, 45);
+  assert.equal((await read()).record.observations.length, 49);
   assert.equal(
     (await db.admin.query('SELECT count(*)::int n FROM public.hc_personal_migration')).rows[0].n,
-    6,
+    7,
   );
   const rows = (await db.admin.query('SELECT name,sha256 FROM public.hc_personal_migration')).rows;
   await db.admin.query("UPDATE public.hc_personal_migration SET sha256='changed'");
@@ -686,4 +686,28 @@ test('consents: revocation stops PDF staging, confirmation and import in SQL; hi
   // Restore for any later test.
   await set('pdf-documents', 4, true);
   await set('structured-import', 2, true);
+});
+
+test('local day (C-01): instants follow the dossier zone across midnight and DST, day values never shift', async () => {
+  const day = (at: string, precision: string | null, zone = 'Europe/Paris') =>
+    db.admin
+      .query("SELECT to_char(personal.local_day($1::timestamptz,$2,$3),'YYYY-MM-DD') d", [
+        at,
+        precision,
+        zone,
+      ])
+      .then((x) => x.rows[0].d);
+  assert.equal(await day('2026-10-24T22:30:00Z', 'instant'), '2026-10-25', 'summer time, UTC+2');
+  assert.equal(await day('2026-10-25T22:30:00Z', 'instant'), '2026-10-25', 'winter time, UTC+1');
+  assert.equal(await day('2026-10-25T23:30:00Z', 'instant'), '2026-10-26');
+  assert.equal(await day('2026-11-17T00:00:00Z', 'day', 'America/New_York'), '2026-11-17');
+  assert.equal(await day('2026-11-17T02:00:00Z', 'instant', 'America/New_York'), '2026-11-16');
+  const r = (
+    await db.api.query('SELECT personal.api_pdf_overlaps($1,$2,$3) r', [
+      'personal:demo-alpha',
+      'demo-alpha',
+      stagedPdf.sha256,
+    ])
+  ).rows[0].r;
+  assert.equal(r.timeZone, 'Europe/Paris');
 });

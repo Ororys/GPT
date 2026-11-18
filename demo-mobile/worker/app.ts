@@ -8,8 +8,9 @@ import {consultationSummary,SUMMARY_PERIODS} from '../src/modules/summary/model'
 import {consultationSummaryPdf} from '../src/modules/summary/pdf';
 import type {HealthRecord} from '../src/modules/health-records/model';
 import type {PdfOverlap} from '../src/modules/extraction/native';
-// Same rule as personal.api_pdf_overlaps: same parameter, same UTC day, another document; signal only.
-function overlapsFor(value:HealthRecord,p:PdfProposal):PdfOverlap[]{return p.candidates.filter(c=>c.observation).map(c=>({candidateId:c.id,matches:value.observations.filter(o=>o.code===c.code&&o.sourceId!==p.id&&o.measuredAt.slice(0,10)===c.observation!.measuredAt.slice(0,10)).map(o=>({observationId:o.id,documentId:o.sourceId,documentTitle:value.documents.find(d=>d.id===o.sourceId)?.title??o.sourceId,value:o.value,unit:o.unit}))})).filter(o=>o.matches.length);}
+import {dayOf,zoneOf} from '../src/modules/observations/time';
+// Same rule as personal.api_pdf_overlaps (C-01 local day): same parameter, same day, another document; signal only.
+function overlapsFor(value:HealthRecord,p:PdfProposal):PdfOverlap[]{return p.candidates.filter(c=>c.observation).map(c=>({candidateId:c.id,matches:value.observations.filter(o=>o.code===c.code&&o.sourceId!==p.id&&dayOf(o,zoneOf(value))===dayOf(c.observation!,zoneOf(value))).map(o=>({observationId:o.id,documentId:o.sourceId,documentTitle:value.documents.find(d=>d.id===o.sourceId)?.title??o.sourceId,value:o.value,unit:o.unit}))})).filter(o=>o.matches.length);}
 const HTML='<!doctype html><html lang="fr" data-theme="dark"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><meta name="color-scheme" content="dark light"><title>Convergence — démo mobile privée</title><link rel="stylesheet" href="/app.css"></head><body><div id="root"></div><script type="module" src="/app.js"></script></body></html>';
 const ORIGIN='https://convergence-mobile-demo.waxyphlox4.chatgpt.site';
 const HEADERS={'x-content-type-options':'nosniff','referrer-policy':'no-referrer','cache-control':'no-store','content-security-policy':"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'"};

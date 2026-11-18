@@ -1,4 +1,5 @@
 'use client';
+import { localDay, weekStart, zoneOf } from '@/modules/observations/time';
 import { useState } from 'react';
 import { Bike, Footprints, Waves, ArrowUpRight, Timer, Route, Mountain, Info } from 'lucide-react';
 import type { PageProps } from './overview';
@@ -26,9 +27,7 @@ export function Sport({ record, period, openActivity }: PageProps) {
   const chart: ChartSeries[] = (() => {
     const byWeek = new Map<string, number>();
     for (const a of selected) {
-      const d = new Date(a.date);
-      d.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 6) % 7));
-      const day = d.toISOString().slice(0, 10);
+      const day = weekStart(localDay(a.date, zoneOf(record)));
       byWeek.set(day, (byWeek.get(day) || 0) + a.durationMinutes);
     }
     return [

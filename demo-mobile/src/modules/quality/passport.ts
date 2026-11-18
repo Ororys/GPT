@@ -1,5 +1,6 @@
 import type { HealthRecord } from '../health-records/model';
 import { withinPeriod } from '../observations/selectors';
+import { addDays, localDay, zoneOf } from '../observations/time';
 /**
  * Quality passport (R12): where each series comes from, how it was obtained, how complete
  * it is and what makes values non-comparable. Technical facts only, never a medical reading.
@@ -11,7 +12,8 @@ export type ComparabilityNote =
   | 'MANUFACTURER_ESTIMATE'
   | 'HRV_METHOD_SPECIFIC'
   | 'ANALYTICAL_METHOD_NOT_REPORTED'
-  | 'SEVERAL_PROTOCOLS';
+  | 'SEVERAL_PROTOCOLS'
+  | 'DEVICE_ESTIMATE_BIA';
 export interface Gap {
   from: string;
   to: string;
@@ -51,27 +53,29 @@ export interface QualityPassport {
   biology: BiologyPassport[];
   daily: DailyPassport[];
 }
-const DAY = 86_400_000;
-const dayOf = (iso: string) => iso.slice(0, 10);
-/** Longest run of calendar days without data inside [asOf - window, asOf]. */
-export function longestGap(dates: string[], asOf: string, windowDays: number): Gap | null {
-  const end = Date.parse(dayOf(asOf) + 'T00:00:00Z');
-  const start = end - (windowDays - 1) * DAY;
-  const present = new Set(dates.map(dayOf));
+/** Longest run of local calendar days without data, window ending on the local day of asOf. */
+export function longestGap(
+  dates: string[],
+  asOf: string,
+  windowDays: number,
+  timeZone?: string,
+): Gap | null {
+  const end = localDay(asOf, timeZone);
+  const present = new Set(dates.map((d) => localDay(d, timeZone)));
   let best: Gap | null = null;
-  let runStart: number | null = null;
-  for (let t = start; t <= end + DAY; t += DAY) {
-    const missing = t <= end && !present.has(new Date(t).toISOString().slice(0, 10));
-    if (missing && runStart === null) runStart = t;
-    if (!missing && runStart !== null) {
-      const days = (t - runStart) / DAY;
-      if (!best || days > best.days)
-        best = {
-          from: new Date(runStart).toISOString().slice(0, 10),
-          to: new Date(t - DAY).toISOString().slice(0, 10),
-          days,
-        };
+  let runStart: string | null = null;
+  let runDays = 0;
+  for (let i = windowDays - 1; i >= -1; i--) {
+    const day = addDays(end, -i);
+    const missing = i >= 0 && !present.has(day);
+    if (missing) {
+      runStart ??= day;
+      runDays++;
+    } else if (runStart) {
+      if (!best || runDays > best.days)
+        best = { from: runStart, to: addDays(day, -1), days: runDays };
       runStart = null;
+      runDays = 0;
     }
   }
   return best;
@@ -84,6 +88,7 @@ const ACQUISITION: Record<string, string> = {
   declared: 'Déclaré',
 };
 export function qualityPassport(record: HealthRecord, windowDays = 90): QualityPassport {
+  const zone = zoneOf(record);
   const biology = record.biomarkers.map((b): BiologyPassport => {
     const rows = record.observations
       .filter((o) => o.code === b.code)
@@ -113,6 +118,9 @@ export function qualityPassport(record: HealthRecord, windowDays = 90): QualityP
       ...new Set(rows.map((o) => o.method).filter((m) => m !== 'lab_method_not_reported')),
     ];
     if (protocols.length > 1) notes.push('SEVERAL_PROTOCOLS');
+    // ESPEN 2004 (Kyle et al., Clin Nutr 23:1430): BIA not validated at extreme BMI or
+    // abnormal hydration. Stated as a technical limit, never as a reading of the value.
+    if (b.code === 'BODY_FAT') notes.push('DEVICE_ESTIMATE_BIA');
     return {
       code: b.code,
       label: b.label,
@@ -152,12 +160,13 @@ export function qualityPassport(record: HealthRecord, windowDays = 90): QualityP
       unit,
       devices,
       windowDays,
-      daysWithData: new Set(rows.map((r) => dayOf(r.date))).size,
+      daysWithData: new Set(rows.map((r) => localDay(r.date, zone))).size,
       longestGap: gaps
         ? longestGap(
             rows.map((r) => r.date),
             record.asOf,
             windowDays,
+            zone,
           )
         : null,
       notes,

@@ -80,3 +80,7 @@ Livré : autorisations par source versionnées et appliquées en SQL. Voir [le b
 ## Incrément personnel 0.10 — 18 novembre 2026
 
 Livré : mesures du centre (R01/R03/R05 en juxtaposition descriptive). Ouvert : axe temporel proportionnel des graphiques, masse grasse et lever de chaise (protocoles à définir). Voir [le bilan](docs/personal-sprint-10/BILAN.md).
+
+## Incrément personnel 0.11 — 18 novembre 2026
+
+Livré : C-01 (règle du jour local), axe temporel proportionnel, lever de chaise et masse grasse. Voir [le bilan](docs/personal-sprint-11/BILAN.md).

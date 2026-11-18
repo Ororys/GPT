@@ -1,5 +1,6 @@
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage } from 'pdf-lib';
 import type { ConsultationSummary } from './model';
+import { DEFAULT_TIME_ZONE } from '../observations/time';
 /** Helvetica (WinAnsi) cannot encode a few typographic characters: replace them only. */
 const latin = (s: string) =>
   s
@@ -18,7 +19,7 @@ const day = (iso: string) =>
     day: 'numeric',
     month: 'long',
     year: 'numeric',
-    timeZone: 'UTC',
+    timeZone: DEFAULT_TIME_ZONE,
   });
 const n = (v: number, digits = 2) => v.toLocaleString('fr-FR', { maximumFractionDigits: digits });
 const ink = rgb(0.12, 0.2, 0.24),

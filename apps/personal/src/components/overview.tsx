@@ -23,6 +23,7 @@ import {
   withinPeriod,
 } from '@/modules/observations/selectors';
 import { timeline } from '@/modules/timeline/selectors';
+import { addDays, localDay, zoneOf } from '@/modules/observations/time';
 import { Panel, Pill, SectionHeading, SourceButton, Notice, Empty } from './ui';
 import { DataChart, type ChartSeries } from './chart';
 import { QualityPassportModal } from './quality-passport';
@@ -49,24 +50,23 @@ export function Overview({ record, period, navigate, openDocument, openActivity 
     .slice(0, 3);
   const series = useMemo(() => {
     const days = period === 0 ? 90 : Math.min(period, 90);
-    const allDays = Array.from({ length: days }, (_, i) =>
-      new Date(Date.parse('2026-11-18T00:00:00Z') - (days - i - 1) * 86400000)
-        .toISOString()
-        .slice(0, 10),
-    );
+    const zone = zoneOf(record);
+    const today = localDay(record.asOf, zone);
+    const allDays = Array.from({ length: days }, (_, i) => addDays(today, -(days - i - 1)));
+    const byDay = new Map(record.sleep.map((s) => [localDay(s.date, zone), s]));
     const forMetric = (key: 'restingHeartRate' | 'durationHours'): ChartSeries => ({
       name: key === 'restingHeartRate' ? 'FC au repos' : 'Durée du sommeil',
       unit: key === 'restingHeartRate' ? 'bpm' : 'h',
       color: key === 'restingHeartRate' ? '#88d6bc' : '#b8a0ec',
       points: allDays.map((d) => ({
         date: d,
-        value: record.sleep.find((s) => s.date.startsWith(d))?.[key] ?? null,
+        value: byDay.get(d)?.[key] ?? null,
       })),
     });
     return compare
       ? [forMetric('restingHeartRate'), forMetric('durationHours')]
       : [forMetric(metric)];
-  }, [record.sleep, period, metric, compare]);
+  }, [record, period, metric, compare]);
   if (!record.observations.length && !record.activities.length)
     return (
       <Panel>
@@ -390,7 +390,7 @@ export function Overview({ record, period, navigate, openDocument, openActivity 
           <strong>La qualité commence par la transparence.</strong>
           <p>
             {record.sleep.filter((n) => withinPeriod(n.date, 90, record.asOf)).length} nuits sur 90
-            jours · {new Set(record.observations.map((o) => o.code)).size} biomarqueurs suivis ·
+            jours · {new Set(record.observations.map((o) => o.code)).size} paramètres suivis ·
             références rattachées à chaque bilan.
           </p>
         </div>

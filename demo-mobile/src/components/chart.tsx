@@ -1,6 +1,15 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import { prepareChartData } from '@/modules/observations/chart-data';
+import { DEFAULT_TIME_ZONE } from '@/modules/observations/time';
+/** Calendar-day keys (YYYY-MM-DD) are already local; instants are shown in the dossier zone. */
+const isDayKey = (d: string) => d.length === 10;
+const at = (d: string) => Date.parse(isDayKey(d) ? d + 'T00:00:00Z' : d);
+const label = (d: string, options: Intl.DateTimeFormatOptions) =>
+  new Date(at(d)).toLocaleString('fr-FR', {
+    ...options,
+    timeZone: isDayKey(d) ? 'UTC' : DEFAULT_TIME_ZONE,
+  });
 import * as echarts from 'echarts/core';
 import { LineChart, BarChart } from 'echarts/charts';
 import {
@@ -59,7 +68,19 @@ export function DataChart({
     const text = dark ? '#9eafae' : '#536967';
     const grid = dark ? '#ffffff0b' : '#143c3510';
     const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const multiYear = dates.length > 1 && new Set(dates.map((d) => String(d).slice(0, 4))).size > 1;
+    const multiYear = dates.length > 1 && new Set(dates.map((d) => d.slice(0, 4))).size > 1;
+    const dayKeys = dates.some(isDayKey);
+    // Axis labels: ms from the time axis back to a readable local date or time.
+    const tick = (ms: number) => {
+      const iso = new Date(ms).toISOString();
+      return intraday
+        ? label(iso, { hour: '2-digit', minute: '2-digit' })
+        : label(dayKeys ? iso.slice(0, 10) : iso, {
+            day: 'numeric',
+            month: 'short',
+            ...(multiYear ? { year: '2-digit' as const } : {}),
+          });
+    };
     chart.setOption({
       animation: !reduced,
       animationDuration: 500,
@@ -76,39 +97,28 @@ export function DataChart({
         backgroundColor: dark ? '#1d302e' : '#fff',
         borderColor: dark ? '#3e5753' : '#d1dfda',
         textStyle: { color: dark ? '#eff6f2' : '#1d3330', fontFamily: 'Inter Variable' },
-        valueFormatter: (value: unknown) =>
-          typeof value === 'number'
-            ? value.toLocaleString('fr-FR', { maximumFractionDigits: 2 })
-            : 'Donnée absente',
+        valueFormatter: (value: unknown) => {
+          const v = Array.isArray(value) ? value[1] : value;
+          return typeof v === 'number'
+            ? v.toLocaleString('fr-FR', { maximumFractionDigits: 2 })
+            : 'Donnée absente';
+        },
       },
+      // Time axis: spacing is proportional to elapsed time, so a one-year gap looks like one.
       xAxis: {
-        type: 'category',
-        data: dates,
-        boundaryGap: false,
+        type: 'time',
         axisLine: { show: false },
         axisTick: { show: false },
+        splitLine: { show: false },
+        axisPointer: { label: { formatter: (p: { value: number }) => tick(p.value) } },
         axisLabel: {
           show: !compact,
           color: text,
           fontSize: 10,
           margin: 14,
           hideOverlap: true,
-          formatter: (v: string) =>
-            intraday
-              ? new Date(v).toLocaleTimeString('fr-FR', {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                  timeZone: 'UTC',
-                })
-              : new Date(v).toLocaleDateString('fr-FR', {
-                  day: 'numeric',
-                  month: 'short',
-                  // Without the year, points one year apart read as days apart.
-                  ...(multiYear ? { year: '2-digit' as const } : {}),
-                  timeZone: 'UTC',
-                }),
+          formatter: (ms: number) => tick(ms),
         },
-        splitLine: { show: false },
       },
       yAxis: series.map((s, i) => ({
         type: 'value',
@@ -143,7 +153,7 @@ export function DataChart({
         yAxisIndex: i,
         data: dates.map((date) => {
           const p = lookups[i].get(date);
-          return { value: p?.value ?? null, id: p?.id };
+          return { value: [at(date), p?.value ?? null], id: p?.id };
         }),
         connectNulls: false,
         smooth: 0.25,
@@ -217,7 +227,7 @@ export function DataChart({
         <div key="table" className="chart-table" style={{ height }}>
           <table>
             <caption>
-              Données du graphique, dates UTC. Une case vide indique une donnée absente.
+              Données du graphique, heure de Paris. Une case vide indique une donnée absente.
             </caption>
             <thead>
               <tr>
@@ -232,7 +242,17 @@ export function DataChart({
             <tbody>
               {prepared.dates.slice(0, tableLimit).map((d) => (
                 <tr key={d}>
-                  <td>{d.length > 10 ? d.replace('T', ' ').slice(0, 16) : d}</td>
+                  <td>
+                    {isDayKey(d)
+                      ? d
+                      : label(d, {
+                          year: 'numeric',
+                          month: '2-digit',
+                          day: '2-digit',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                  </td>
                   {series.map((s, i) => (
                     <td key={s.name}>
                       {prepared.lookups[i].get(d)?.value?.toLocaleString('fr-FR') ?? '—'}
@@ -271,7 +291,9 @@ export function DataChart({
               {s.name} <small>{s.unit}</small>
             </span>
           ))}
-          <span className="chart-note">Dates UTC · lacunes conservées</span>
+          <span className="chart-note">
+            Heure de Paris · temps proportionnel · lacunes conservées
+          </span>
         </div>
       )}
     </div>
