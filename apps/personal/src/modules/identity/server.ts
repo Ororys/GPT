@@ -2,6 +2,7 @@ import 'server-only';
 import { randomBytes } from 'node:crypto';
 import { cookies } from 'next/headers';
 import { authorize, verifySession, checkSessionSecret, type DemoIdentity } from './token';
+import { authMode } from './oidc';
 const globalIdentity = globalThis as typeof globalThis & { personalDemoSecret?: string };
 export const sessionSecret = checkSessionSecret(
   (globalIdentity.personalDemoSecret ??=
@@ -9,7 +10,7 @@ export const sessionSecret = checkSessionSecret(
 );
 export const COOKIE = 'hc_personal_demo';
 export async function identity(): Promise<DemoIdentity | null> {
-  return verifySession((await cookies()).get(COOKIE)?.value, sessionSecret);
+  return verifySession((await cookies()).get(COOKIE)?.value, sessionSecret, Date.now(), authMode());
 }
 export async function requireIdentity(personId?: string) {
   const value = await identity();
@@ -25,11 +26,11 @@ export function requireSameOrigin(request: Request) {
 }
 export function apiError(error: unknown) {
   const code = error instanceof Error ? error.message : 'INTERNAL_ERROR';
-  const status = ['DATABASE_UNAVAILABLE', 'UNSAFE_DATABASE_ROLE'].includes(code)
+  const status = ['DATABASE_UNAVAILABLE', 'UNSAFE_DATABASE_ROLE', 'OIDC_UNAVAILABLE'].includes(code)
     ? 503
     : code === 'UNAUTHENTICATED'
       ? 401
-      : code === 'FORBIDDEN' || code === 'CONSENT_REQUIRED'
+      : code === 'FORBIDDEN' || code === 'CONSENT_REQUIRED' || code === 'DEMO_AUTH_DISABLED'
         ? 403
         : code === 'NOT_FOUND'
           ? 404

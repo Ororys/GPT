@@ -4,9 +4,12 @@ import { COOKIE, sessionSecret, requireSameOrigin, apiError } from '@/modules/id
 import { issueSession } from '@/modules/identity/token';
 import { PERSON_ALPHA, PERSON_BETA } from '@/modules/health-records/model';
 import { audit } from '@/modules/audit/server';
+import { authMode } from '@/modules/identity/oidc';
 export async function POST(request: Request) {
   try {
     requireSameOrigin(request);
+    // With real sign-in enabled, fictitious personas can no longer open a session.
+    if (authMode() === 'oidc') throw Error('DEMO_AUTH_DISABLED');
     const text = await request.text();
     if (text.length > 200) throw Error('INVALID_REQUEST');
     let body: unknown;

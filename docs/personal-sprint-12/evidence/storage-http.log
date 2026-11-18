@@ -1,0 +1,14 @@
+
+> @health-convergence/personal@0.12.0 test:storage-http
+> tsx --test tests/storage-http.integration.ts
+
+✔ unavailable PostgreSQL produces 503, never a fixture dossier (1257.507419ms)
+✔ application refuses an administrator connection instead of bypassing RLS (944.616741ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2702.070658

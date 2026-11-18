@@ -11,7 +11,7 @@ Agir de façon autonome sur les corrections ordinaires et tester les changements
 ## Lire en premier
 
 1. `HANDOFF_CLAUDE_CODE.md` — carte du dépôt, commandes et limites.
-2. `docs/personal-sprint-03/BILAN.md`, `docs/personal-sprint-04/BILAN.md` `docs/personal-sprint-05/BILAN.md`, `docs/personal-sprint-06/BILAN.md`, `docs/personal-sprint-07/BILAN.md`, `docs/personal-sprint-08/BILAN.md`, `docs/personal-sprint-09/BILAN.md`, `docs/personal-sprint-10/BILAN.md` puis `docs/personal-sprint-11/BILAN.md` — incréments PDF, correction versionnée, doublons inter-documents, résumé de consultation, passeport de qualité, autorisations, mesures du centre, jour local et preuves.
+2. `docs/personal-sprint-03/BILAN.md`, `docs/personal-sprint-04/BILAN.md` `docs/personal-sprint-05/BILAN.md`, `docs/personal-sprint-06/BILAN.md`, `docs/personal-sprint-07/BILAN.md`, `docs/personal-sprint-08/BILAN.md`, `docs/personal-sprint-09/BILAN.md`, `docs/personal-sprint-10/BILAN.md`, `docs/personal-sprint-11/BILAN.md` puis `docs/personal-sprint-12/BILAN.md` — incréments PDF, correction versionnée, doublons inter-documents, résumé de consultation, passeport de qualité, autorisations, mesures du centre, jour local, connexion réelle et preuves.
 3. `apps/personal/README.md` et `apps/personal/AGENTS.md`.
 4. `SECURITY.md`, `BLOCKERS.md`, `docs/DECISIONS_BLOQUANTS.md`, `ARCHITECTURE.md` et `TEST_REPORT.md`.
 5. `docs/personal-sprint-02/BILAN.md` pour le raccordement PostgreSQL.
@@ -69,7 +69,7 @@ Ne jamais versionner `.env*`, `.local`, `node_modules`, traces de navigateur, cr
 
 Ne pas désactiver RLS, les triggers d'immuabilité, la vérification Host/Origin ou le refus des rôles privilégiés pour faire passer les tests. Le mode fichiers est explicite (`HC_PERSONAL_STORAGE=local`), jamais un fallback à une panne PostgreSQL.
 
-L'identité reste démonstrative ; le rôle API peut choisir le sujet SQL. L'audit en base reste annulable dans une transaction contrôlée par un appelant et n'est pas inviolable face à l'administrateur. Ces points ne sont pas résolus par la présente livraison.
+Depuis le sprint 12, une connexion réelle OIDC (PKCE, `amr` exigé, rattachement contrôlé, `008_oidc_identity.sql`) existe derrière `HC_PERSONAL_AUTH=oidc` ; la démonstration reste le défaut. Ne jamais ajouter de rattachement automatique d'une identité à un dossier. Les redirections utilisent l'origine publique configurée, jamais `request.url`. Le rôle API peut toujours choisir le sujet SQL (S-02). L'audit en base reste annulable dans une transaction contrôlée par un appelant et n'est pas inviolable face à l'administrateur. Ces points ne sont pas résolus par la présente livraison.
 
 ## Prochain travail raisonnable
 

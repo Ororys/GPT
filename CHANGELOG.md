@@ -1,3 +1,7 @@
+# Sprint personnel 12 / 0.12.0 — 18 novembre 2026
+
+Connexion réelle des patients en option (`HC_PERSONAL_AUTH=oidc`) : OIDC code + PKCE, jeton vérifié, double authentification exigée (amr), rattachement contrôlé uniquement (migration additive 008, script opérateur), sujet haché. Fournisseur OpenID local pour les tests. Correction de la redirection de retour (hôte public). Voir docs/personal-sprint-12/BILAN.md.
+
 # Sprint personnel 11 / 0.11.0 — 18 novembre 2026
 
 Règle du jour local (C-01, fuseau du dossier, migration additive 007), axe temporel proportionnel, cinq levers de chaise et masse grasse estimée (protocoles sourcés, aucun seuil). Démo mobile alignée. Voir docs/personal-sprint-11/BILAN.md.

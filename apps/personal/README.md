@@ -1,4 +1,4 @@
-# Convergence Personal 0.11 — PostgreSQL, données synthétiques
+# Convergence Personal 0.12 — PostgreSQL, données synthétiques
 
 Les cinq pages sont raccordées à une base PostgreSQL réelle, sans fallback silencieux. Aucun dossier réel, OCR, LLM ou fournisseur connecté.
 
@@ -79,3 +79,27 @@ Paramètres → « Ce que vous autorisez » : autoriser ou retirer les imports P
 ## Mesures du centre — sprint 10
 
 Biologie → catégorie « Mesures du centre » : tour de taille, pression artérielle, force de préhension, chacune avec son protocole et son compte rendu source, sans plage de référence. Voir `../../docs/personal-sprint-10/BILAN.md`.
+
+## Connexion réelle (OIDC) — sprint 12
+
+Par défaut, la démonstration utilise les profils fictifs. Pour activer une vraie connexion, ajouter dans `.env.local` (fichier privé) :
+
+```
+HC_PERSONAL_AUTH=oidc
+HC_PERSONAL_OIDC_ISSUER=https://<fournisseur>        # HTTPS obligatoire hors machine locale
+HC_PERSONAL_OIDC_CLIENT_ID=<identifiant client>
+HC_PERSONAL_OIDC_CLIENT_SECRET=<secret client>       # jamais versionné
+HC_PERSONAL_OIDC_REDIRECT_URI=https://<application>/api/auth/callback
+HC_PERSONAL_OIDC_REQUIRED_AMR=mfa                    # facteurs acceptés (claim amr, RFC 8176)
+HC_PERSONAL_SECURE_COOKIE=true
+```
+
+Flux : code d'autorisation + PKCE S256, `state` et `nonce`, jeton d'identité vérifié par les clés publiées du fournisseur (émetteur, audience, expiration), double authentification exigée. Les profils fictifs sont alors refusés.
+
+**Aucun rattachement automatique.** Une identité n'ouvre un dossier qu'après rattachement contrôlé par un opérateur :
+
+```bash
+npm run identity:link -- https://<fournisseur> <sub> <personId>
+```
+
+Tests : `npm test` (vérification des jetons), `npm run test:pg`, `npm run test:e2e:oidc` (fournisseur OpenID de test local, aucun compte externe).

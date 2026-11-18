@@ -39,3 +39,7 @@ La limite « nouvel espace sans PostgreSQL » de la version 0.1 est levée. L'id
 C-01 tranché pour l'espace personnel : jour calendaire du fuseau IANA du dossier (Europe/Paris par défaut), valeurs au jour près non décalées. Reste ouvert : décalage par mesure (voyages) quand de vrais connecteurs existeront.
 
 Recommandations sourcées pour B-01, B-02, B-03, B-05 et B-08 (sans engagement ni dépense) : [docs/DECISIONS_BLOQUANTS.md](docs/DECISIONS_BLOQUANTS.md).
+
+## Actualisation 0.12 — 18 novembre 2026
+
+B-01 avancé côté code : connexion OIDC avec double authentification et rattachement contrôlé, testée avec un fournisseur local. Restent : choix et contrat d'un fournisseur réel, déconnexion côté fournisseur, liaison du sujet en base (S-02).

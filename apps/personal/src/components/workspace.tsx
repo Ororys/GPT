@@ -85,6 +85,8 @@ export function Workspace({ view }: { view: View }) {
   const [helpOpen, setHelpOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [summaryPeriod, setSummaryPeriod] = useState(365);
+  const [authMode, setAuthMode] = useState<'demo' | 'oidc'>('demo');
+  const [loginRequired, setLoginRequired] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const refresh = useCallback(
     async (id = personId) => {
@@ -122,16 +124,35 @@ export function Workspace({ view }: { view: View }) {
         document.documentElement.dataset.theme = 'light';
         setTheme('light');
       }
-      const profile =
-        localStorage.getItem('convergence-demo-persona') === PERSON_BETA
-          ? PERSON_BETA
-          : PERSON_ALPHA;
-      const response = await fetch('/api/session', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ personId: profile }),
-      });
-      if (!response.ok) throw Error('Impossible de démarrer la démonstration.');
+      const status = await fetch('/api/auth/status', { cache: 'no-store' });
+      if (!status.ok) throw Error('Le service de connexion ne répond pas.');
+      const auth = (await status.json()) as {
+        mode: 'demo' | 'oidc';
+        authenticated: boolean;
+        personId: string | null;
+      };
+      if (!cancelled) setAuthMode(auth.mode);
+      let profile: string;
+      if (auth.mode === 'oidc') {
+        // Real sign-in: no fictitious persona; the dossier comes from the verified identity.
+        if (!auth.authenticated || !auth.personId) {
+          if (!cancelled)
+            setLoginRequired(new URLSearchParams(location.search).get('auth') || 'start');
+          return;
+        }
+        profile = auth.personId;
+      } else {
+        profile =
+          localStorage.getItem('convergence-demo-persona') === PERSON_BETA
+            ? PERSON_BETA
+            : PERSON_ALPHA;
+        const response = await fetch('/api/session', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ personId: profile }),
+        });
+        if (!response.ok) throw Error('Impossible de démarrer la démonstration.');
+      }
       const res = await fetch(`/api/records/${profile}`);
       if (!res.ok) throw Error('Le dossier synthétique ne peut pas être chargé.');
       const value = (await res.json()) as HealthRecord;
@@ -328,7 +349,33 @@ export function Workspace({ view }: { view: View }) {
               </span>
             </div>
           )}
-          {error ? (
+          {loginRequired ? (
+            <Panel>
+              <div className="empty-state login-state">
+                <ShieldCheck size={28} />
+                <h2>Connexion à votre espace</h2>
+                <p>
+                  Connexion par votre fournisseur d’identité, avec double authentification. Seule
+                  une identité déjà rattachée à un dossier peut l’ouvrir.
+                </p>
+                {loginRequired !== 'start' && (
+                  <p className="feedback error" role="alert">
+                    {loginRequired === 'mfa'
+                      ? 'La double authentification est requise. Aucun accès n’a été ouvert.'
+                      : loginRequired === 'not_enrolled'
+                        ? 'Cette identité n’est rattachée à aucun dossier. Le rattachement passe par une procédure contrôlée.'
+                        : 'La connexion n’a pas pu être vérifiée. Aucun accès n’a été ouvert.'}
+                  </p>
+                )}
+                <button
+                  className="button primary"
+                  onClick={() => location.assign('/api/auth/login')}
+                >
+                  Se connecter
+                </button>
+              </div>
+            </Panel>
+          ) : error ? (
             <Panel>
               <div className="empty-state" role="alert">
                 <Info size={28} />
@@ -353,31 +400,51 @@ export function Workspace({ view }: { view: View }) {
             <Timeline {...props} />
           ) : (
             <div className="settings-grid">
-              <Panel>
-                <h2>Un profil de démonstration</h2>
-                <p>Deux dossiers fictifs pour explorer le produit et ses états vides.</p>
-                {[
-                  [PERSON_ALPHA, 'Alex Martin', 'Historique synthétique complet'],
-                  [PERSON_BETA, 'Camille Durand', 'Dossier volontairement vide'],
-                ].map(([id, name, description]) => (
+              {authMode === 'oidc' ? (
+                <Panel>
+                  <h2>Votre connexion</h2>
+                  <p>
+                    Session ouverte par votre fournisseur d’identité, avec double authentification.
+                    Durée maximale : 1 heure.
+                  </p>
                   <button
-                    className={`profile-choice ${id === personId ? 'selected' : ''}`}
-                    key={id}
-                    onClick={() => void chooseProfile(id).catch((e) => setError(e.message))}
+                    className="button"
+                    onClick={() =>
+                      void fetch('/api/auth/logout', { method: 'POST' }).then(() =>
+                        location.assign('/'),
+                      )
+                    }
                   >
-                    <span className="avatar">{id === PERSON_ALPHA ? 'AM' : 'CD'}</span>
-                    <span>
-                      <strong>{name}</strong>
-                      <small>{description}</small>
-                    </span>
-                    {id === personId && <Check size={18} />}
+                    Se déconnecter
                   </button>
-                ))}
-                <Notice>
-                  La session est une identité de démonstration, pas une authentification destinée à
-                  de vrais patients.
-                </Notice>
-              </Panel>
+                </Panel>
+              ) : (
+                <Panel>
+                  <h2>Un profil de démonstration</h2>
+                  <p>Deux dossiers fictifs pour explorer le produit et ses états vides.</p>
+                  {[
+                    [PERSON_ALPHA, 'Alex Martin', 'Historique synthétique complet'],
+                    [PERSON_BETA, 'Camille Durand', 'Dossier volontairement vide'],
+                  ].map(([id, name, description]) => (
+                    <button
+                      className={`profile-choice ${id === personId ? 'selected' : ''}`}
+                      key={id}
+                      onClick={() => void chooseProfile(id).catch((e) => setError(e.message))}
+                    >
+                      <span className="avatar">{id === PERSON_ALPHA ? 'AM' : 'CD'}</span>
+                      <span>
+                        <strong>{name}</strong>
+                        <small>{description}</small>
+                      </span>
+                      {id === personId && <Check size={18} />}
+                    </button>
+                  ))}
+                  <Notice>
+                    La session est une identité de démonstration, pas une authentification destinée
+                    à de vrais patients.
+                  </Notice>
+                </Panel>
+              )}
               <Panel>
                 <h2>Une apparence à votre rythme</h2>
                 <p>

@@ -195,7 +195,7 @@ test('migrations and seed rerun preserve imports and checksum', async () => {
   assert.equal((await read()).record.observations.length, 49);
   assert.equal(
     (await db.admin.query('SELECT count(*)::int n FROM public.hc_personal_migration')).rows[0].n,
-    7,
+    8,
   );
   const rows = (await db.admin.query('SELECT name,sha256 FROM public.hc_personal_migration')).rows;
   await db.admin.query("UPDATE public.hc_personal_migration SET sha256='changed'");
@@ -710,4 +710,55 @@ test('local day (C-01): instants follow the dossier zone across midnight and DST
     ])
   ).rows[0].r;
   assert.equal(r.timeZone, 'Europe/Paris');
+});
+
+test('OIDC identity: controlled enrolment only, several identities per dossier, revocation, audit', async () => {
+  const { linkIdentity } = await import('../scripts/link-identity');
+  const { subjectFor } = await import('../src/modules/identity/oidc-core');
+  const resolve = (subject: string) =>
+    db.api.query('SELECT personal.api_identity_person($1) r', [subject]).then((x) => x.rows[0].r);
+  const stranger = subjectFor('https://id.example.test', 'stranger');
+  assert.deepEqual(await resolve(stranger), { status: 'not_enrolled' });
+  assert.equal(
+    (await resolve('personal:demo-alpha')).status,
+    'invalid',
+    'demo subjects never resolve',
+  );
+  const subject = await linkIdentity(
+    db.adminUrl,
+    'https://id.example.test/',
+    'alex-real',
+    'demo-alpha',
+  );
+  assert.equal(subject, subjectFor('https://id.example.test', 'alex-real'));
+  assert.deepEqual(await resolve(subject), { status: 'ok', personId: 'demo-alpha' });
+  // The demo identity of the same dossier still works: two identities, one dossier.
+  assert.equal((await read('personal:demo-alpha')).status, 'ok');
+  assert.equal((await read(subject)).status, 'ok');
+  assert.equal((await read(subject, 'demo-beta')).status, 'forbidden');
+  await assert.rejects(
+    linkIdentity(db.adminUrl, 'https://id.example.test', 'alex-real', 'demo-beta'),
+    /IDENTITY_ALREADY_LINKED/,
+  );
+  await assert.rejects(
+    linkIdentity(db.adminUrl, 'https://id.example.test', 'x', 'nobody'),
+    /UNKNOWN_DOSSIER/,
+  );
+  await db.admin.query('UPDATE personal.actor SET active=false WHERE subject=$1', [subject]);
+  try {
+    assert.deepEqual(await resolve(subject), { status: 'not_enrolled' });
+  } finally {
+    await db.admin.query('UPDATE personal.actor SET active=true WHERE subject=$1', [subject]);
+  }
+  const events = (
+    await db.admin.query(
+      "SELECT event,count(*)::int n FROM personal.audit WHERE event IN ('oidc_login','oidc_not_enrolled') GROUP BY event ORDER BY event",
+    )
+  ).rows;
+  assert.deepEqual(events, [
+    { event: 'oidc_login', n: 1 },
+    { event: 'oidc_not_enrolled', n: 2 },
+  ]);
+  await db.api.query('SELECT personal.api_audit($1,$2,$3)', [subject, 'logout', 'demo-alpha']);
+  await assert.rejects(db.api.query('SELECT * FROM personal.actor'), /permission denied/);
 });

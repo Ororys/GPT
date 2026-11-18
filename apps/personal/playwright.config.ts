@@ -4,7 +4,8 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 export default defineConfig({
   testDir: 'tests',
-  testMatch: '*.spec.ts',
+  // Real sign-in runs its own journey against a test OpenID provider (scripts/e2e-oidc.ts).
+  testMatch: process.env.HC_PERSONAL_E2E_AUTH === 'oidc' ? 'oidc.spec.ts' : 'personal.spec.ts',
   fullyParallel: false,
   workers: 1,
   timeout: 45_000,
@@ -31,6 +32,15 @@ export default defineConfig({
         ? { HC_PERSONAL_DATABASE_URL: process.env.HC_PERSONAL_DATABASE_URL }
         : {}),
       HC_PERSONAL_DATA_DIR: mkdtempSync(join(tmpdir(), 'hc-personal-e2e-')),
+      ...(process.env.HC_PERSONAL_E2E_AUTH === 'oidc'
+        ? {
+            HC_PERSONAL_AUTH: 'oidc',
+            HC_PERSONAL_OIDC_ISSUER: process.env.HC_PERSONAL_OIDC_ISSUER!,
+            HC_PERSONAL_OIDC_CLIENT_ID: process.env.HC_PERSONAL_OIDC_CLIENT_ID!,
+            HC_PERSONAL_OIDC_CLIENT_SECRET: process.env.HC_PERSONAL_OIDC_CLIENT_SECRET!,
+            HC_PERSONAL_OIDC_REDIRECT_URI: 'http://127.0.0.1:3100/api/auth/callback',
+          }
+        : {}),
       NEXT_TELEMETRY_DISABLED: '1',
     },
   },
