@@ -540,3 +540,48 @@ test('passeport de qualité : couverture, appareils et limites depuis la vue d�
   await page.keyboard.press('Escape');
   await expect(dialog).toHaveCount(0);
 });
+
+test('autorisations : retrait depuis les paramètres, import PDF refusé par la base, rétablissement versionné', async ({
+  page,
+}) => {
+  test.skip(process.env.HC_PERSONAL_E2E_STORAGE !== 'postgres', 'Consents require PostgreSQL');
+  await open(page, '/settings');
+  const section = page.locator('.consent-settings');
+  await expect(section.getByText('Autorisé', { exact: true })).toHaveCount(2);
+  await section.getByRole('button', { name: 'Retirer : Documents PDF' }).click();
+  await expect(section.getByRole('button', { name: 'Autoriser : Documents PDF' })).toBeVisible();
+  await section
+    .getByText(/^Historique \(\d+\)$/)
+    .first()
+    .click();
+  await expect(section.locator('li', { hasText: 'retiré' }).first()).toContainText(
+    'personal:demo-alpha',
+  );
+  await page.screenshot({ path: `${shots}/14-consents.png`, fullPage: true });
+
+  await page.locator('.sidebar nav a[href="/documents"]').click();
+  await page
+    .locator('.documents-hero')
+    .getByRole('button', { name: 'Importer une démo', exact: true })
+    .click();
+  const dialog = page.getByRole('dialog');
+  await dialog.getByRole('combobox', { name: 'Exemple PDF' }).selectOption('scan');
+  await dialog.getByRole('button', { name: 'Essayer ce PDF' }).click();
+  await expect(dialog.getByRole('alert')).toContainText(
+    'Import de documents PDF désactivé : l’autorisation a été retirée dans Paramètres.',
+  );
+  await page.keyboard.press('Escape');
+
+  await page.locator('.sidebar a[href="/settings"]').click();
+  await page
+    .locator('.consent-settings')
+    .getByRole('button', { name: 'Autoriser : Documents PDF' })
+    .click();
+  await expect(
+    page.locator('.consent-settings').getByRole('button', { name: 'Retirer : Documents PDF' }),
+  ).toBeVisible();
+  const consents = await (await page.request.get('/api/consents')).json();
+  const pdf = consents.find((c: { source: string }) => c.source === 'pdf-documents');
+  expect(pdf.granted).toBe(true);
+  expect(pdf.history.map((h: { granted: boolean }) => h.granted).slice(-2)).toEqual([false, true]);
+});

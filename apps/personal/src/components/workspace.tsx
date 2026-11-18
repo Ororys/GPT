@@ -34,6 +34,7 @@ import { Sport } from './sport';
 import { Documents } from './documents';
 import { Timeline } from './timeline';
 import { EvidenceModal } from './evidence-modal';
+import { ConsentSettings } from './consent-settings';
 import { ActivityModal } from './activity-modal';
 import { ImportModal } from './import-modal';
 import { Panel, Pill, Modal, Skeleton, Notice } from './ui';
@@ -445,7 +446,10 @@ export function Workspace({ view }: { view: View }) {
                   <FileText size={20} />
                   <div>
                     <strong>Bilans biologiques et comptes rendus</strong>
-                    <small>PDF générés à partir des fixtures · aucun OCR ou LLM</small>
+                    <small>
+                      PDF générés depuis les fixtures et PDF synthétiques lus en texte natif · aucun
+                      OCR ou LLM
+                    </small>
                   </div>
                   <Pill tone="teal">Démonstration locale</Pill>
                 </div>
@@ -465,6 +469,9 @@ export function Workspace({ view }: { view: View }) {
                   </div>
                   <Pill>Non configurés</Pill>
                 </div>
+                <ConsentSettings
+                  enabled={record.storage === 'postgresql' && personId === PERSON_ALPHA}
+                />
                 <Notice>
                   Aucune conformité HDS, RGPD ou MDR revendiquée. Le partage professionnel et les
                   organisations ne sont pas activés dans ce sprint.

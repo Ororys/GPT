@@ -19,17 +19,19 @@ import type {
 import { PDF_FIXTURES, type FixtureId } from '@/modules/extraction/corpus';
 import { Pill, Notice } from './ui';
 const message = (code: string) =>
-  code === 'FORBIDDEN'
-    ? 'Le profil du document ne correspond pas au dossier ouvert.'
-    : code === 'INVALID_DEMO_PDF'
-      ? 'Seuls les PDF synthétiques fournis sont acceptés. Aucun document personnel ne doit être envoyé.'
-      : code === 'PAYLOAD_TOO_LARGE'
-        ? 'PDF trop volumineux : 500 Ko maximum.'
-        : code === 'PDF_REQUIRES_POSTGRES'
-          ? 'Ce parcours PDF nécessite le mode PostgreSQL de l’application.'
-          : code === 'REVIEW_CONFLICT'
-            ? 'Ce document a déjà été revu avec une autre sélection.'
-            : 'Le PDF n’a pas pu être traité. Aucun résultat n’a été ajouté.';
+  code === 'CONSENT_REQUIRED'
+    ? 'Import de documents PDF désactivé : l’autorisation a été retirée dans Paramètres. Rien n’a été enregistré.'
+    : code === 'FORBIDDEN'
+      ? 'Le profil du document ne correspond pas au dossier ouvert.'
+      : code === 'INVALID_DEMO_PDF'
+        ? 'Seuls les PDF synthétiques fournis sont acceptés. Aucun document personnel ne doit être envoyé.'
+        : code === 'PAYLOAD_TOO_LARGE'
+          ? 'PDF trop volumineux : 500 Ko maximum.'
+          : code === 'PDF_REQUIRES_POSTGRES'
+            ? 'Ce parcours PDF nécessite le mode PostgreSQL de l’application.'
+            : code === 'REVIEW_CONFLICT'
+              ? 'Ce document a déjà été revu avec une autre sélection.'
+              : 'Le PDF n’a pas pu être traité. Aucun résultat n’a été ajouté.';
 const issueLabel: Record<CandidateIssue, string> = {
   UNIT_MISMATCH_NO_CONVERSION: 'unité incompatible, non convertie',
   MEASUREMENT_DATE_MISSING: 'date de prélèvement absente',

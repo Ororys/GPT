@@ -37,6 +37,8 @@ export async function databaseCall<T>(sql: string, parameters: unknown[]): Promi
     return result.rows[0].result as T;
   } catch (e) {
     if (e instanceof Error && e.message === 'UNSAFE_DATABASE_ROLE') throw e;
+    // Business refusal raised by a SQL trigger (permission withdrawn): surfaced as such.
+    if (e instanceof Error && e.message === 'CONSENT_REQUIRED') throw Error('CONSENT_REQUIRED');
     throw Error('DATABASE_UNAVAILABLE');
   }
 }

@@ -72,3 +72,7 @@ Livré : U-02 (export PDF) sous forme de résumé factuel pour consultation. Sui
 ## Incrément personnel 0.8 — 18 novembre 2026
 
 Livré : passeport de qualité (R12). Voir [le bilan](docs/personal-sprint-08/BILAN.md).
+
+## Incrément personnel 0.9 — 18 novembre 2026
+
+Livré : autorisations par source versionnées et appliquées en SQL. Voir [le bilan](docs/personal-sprint-09/BILAN.md).

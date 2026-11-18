@@ -1,3 +1,7 @@
+# Sprint personnel 09 / 0.9.0 — 18 novembre 2026
+
+Autorisations par entrée de données (PDF, import structuré), versionnées, révocables et appliquées par la base (triggers au point d'entrée, transaction annulée). Migration additive 006, API et bloc dans Paramètres. Voir docs/personal-sprint-09/BILAN.md.
+
 # Sprint personnel 08 / 0.8.0 — 18 novembre 2026
 
 Passeport de qualité (R12) depuis la vue d'ensemble : provenance, unités, laboratoires, obtention, couverture sur 90 jours, plus longue période sans donnée, appareils et notes de comparabilité, sans lecture médicale. Bandeau de qualité corrigé (valeurs calculées). Voir docs/personal-sprint-08/BILAN.md.

@@ -1,4 +1,4 @@
-# Convergence Personal 0.8 — PostgreSQL, données synthétiques
+# Convergence Personal 0.9 — PostgreSQL, données synthétiques
 
 Les cinq pages sont raccordées à une base PostgreSQL réelle, sans fallback silencieux. Aucun dossier réel, OCR, LLM ou fournisseur connecté.
 
@@ -71,3 +71,7 @@ Paramètres → « Préparer une consultation » : PDF factuel (valeurs, dates, 
 ## Passeport de qualité — sprint 08
 
 Vue d'ensemble → « Passeport de qualité » : provenance, couverture, périodes sans donnée et comparabilité de chaque série. Voir `../../docs/personal-sprint-08/BILAN.md`.
+
+## Autorisations — sprint 09
+
+Paramètres → « Ce que vous autorisez » : autoriser ou retirer les imports PDF et structurés. Le refus est appliqué par PostgreSQL ; chaque décision est versionnée et journalisée. Voir `../../docs/personal-sprint-09/BILAN.md`.

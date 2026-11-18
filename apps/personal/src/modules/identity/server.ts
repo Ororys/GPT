@@ -29,7 +29,7 @@ export function apiError(error: unknown) {
     ? 503
     : code === 'UNAUTHENTICATED'
       ? 401
-      : code === 'FORBIDDEN'
+      : code === 'FORBIDDEN' || code === 'CONSENT_REQUIRED'
         ? 403
         : code === 'NOT_FOUND'
           ? 404

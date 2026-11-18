@@ -37,7 +37,7 @@ test('fresh migrations, stored entities and snapshot provenance', async () => {
   const tables = (
     await db.admin.query("SELECT tablename FROM pg_tables WHERE schemaname='personal'")
   ).rows;
-  assert.equal(tables.length, 15);
+  assert.equal(tables.length, 16);
 });
 test('SQL role has no direct data or internal function privileges, cannot become owner', async () => {
   for (const t of [
@@ -195,7 +195,7 @@ test('migrations and seed rerun preserve imports and checksum', async () => {
   assert.equal((await read()).record.observations.length, 37);
   assert.equal(
     (await db.admin.query('SELECT count(*)::int n FROM public.hc_personal_migration')).rows[0].n,
-    5,
+    6,
   );
   const rows = (await db.admin.query('SELECT name,sha256 FROM public.hc_personal_migration')).rows;
   await db.admin.query("UPDATE public.hc_personal_migration SET sha256='changed'");
@@ -558,4 +558,132 @@ test('audit: summary export accepted, unknown events still refused', async () =>
     db.api.query('SELECT personal.api_audit($1,$2,$3)', ['personal:demo-alpha', 'anything', 'x']),
     /INVALID_AUDIT/,
   );
+});
+
+test('consents: revocation stops PDF staging, confirmation and import in SQL; history kept', async () => {
+  const { fixturePdf } = await import('../src/modules/extraction/corpus');
+  const { extractSyntheticPdf } = await import('../src/modules/extraction/native');
+  const call = (sql: string, args: unknown[]) => db.api.query(sql, args).then((x) => x.rows[0].r);
+  const consents = (subject = 'personal:demo-alpha', person = 'demo-alpha') =>
+    call('SELECT personal.api_consents($1,$2) r', [subject, person]);
+  const set = (
+    source: string,
+    expected: number,
+    granted: boolean,
+    subject = 'personal:demo-alpha',
+  ) =>
+    call('SELECT personal.api_set_consent($1,$2,$3,$4,$5) r', [
+      subject,
+      'demo-alpha',
+      source,
+      expected,
+      granted,
+    ]);
+  const initial = await consents();
+  assert.deepEqual(
+    initial.consents.map((c: { source: string; granted: boolean; version: number }) => [
+      c.source,
+      c.granted,
+      c.version,
+    ]),
+    [
+      ['pdf-documents', true, 1],
+      ['structured-import', true, 1],
+    ],
+  );
+  assert.equal(initial.consents[0].history[0].decidedBy, 'seed:demo-setup');
+  assert.equal((await consents('personal:demo-beta', 'demo-alpha')).status, 'forbidden');
+  assert.equal((await set('pdf-documents', 1, true)).status, 'invalid', 'no-op refused');
+  assert.equal((await set('other', 1, false)).status, 'invalid');
+  assert.equal((await set('pdf-documents', 0, false)).status, 'conflict');
+  assert.equal((await set('pdf-documents', 1, false, 'personal:demo-beta')).status, 'forbidden');
+
+  // Stage before revocation, then revoke: confirmation must fail and roll back.
+  const bytes = await fixturePdf('colonnes');
+  const staged = await extractSyntheticPdf(bytes, 'demo-alpha');
+  const ambiguousBytes = await fixturePdf('dates');
+  const pending = await extractSyntheticPdf(ambiguousBytes, 'demo-alpha');
+  assert.deepEqual(await set('pdf-documents', 1, false), {
+    status: 'ok',
+    version: 2,
+    granted: false,
+  });
+  await assert.rejects(
+    stageProposal(staged, bytes),
+    /CONSENT_REQUIRED/,
+    'existing intake re-stage refused',
+  );
+  const fresh = await extractSyntheticPdf(await fixturePdf('scan'), 'demo-alpha');
+  await assert.rejects(stageProposal(fresh, await fixturePdf('scan')), /CONSENT_REQUIRED/);
+  assert.equal(
+    (
+      await db.admin.query('SELECT count(*)::int n FROM personal.pdf_intake WHERE sha256=$1', [
+        fresh.sha256,
+      ])
+    ).rows[0].n,
+    0,
+  );
+  const before = (await read()).record.observations.length;
+  const eligible = pending.candidates.filter((c) => c.eligible).map((c) => c.id);
+  assert.equal(eligible.length, 0);
+  // Re-grant, stage a fresh eligible PDF, revoke, then confirm: refused atomically.
+  assert.equal((await set('pdf-documents', 2, true)).version, 3);
+  const unitsBytes = await fixturePdf('unites');
+  const units = await extractSyntheticPdf(unitsBytes, 'demo-alpha');
+  assert.equal((await stageProposal(units, unitsBytes)).status, 'ok');
+  assert.equal((await set('pdf-documents', 3, false)).version, 4);
+  const ok = units.candidates.find((c) => c.eligible)!.id;
+  await assert.rejects(confirmProposal(units, [ok]), /CONSENT_REQUIRED/);
+  assert.equal((await read()).record.observations.length, before);
+  assert.equal(
+    (await db.admin.query('SELECT count(*)::int n FROM personal.document WHERE id=$1', [units.id]))
+      .rows[0].n,
+    0,
+  );
+  // Structured import gated independently.
+  assert.equal((await set('structured-import', 1, false)).version, 2);
+  // The demo file was imported by an earlier test (duplicate path writes no receipt), so the
+  // trigger is exercised directly, in a transaction that is rolled back.
+  const client = await import('pg').then(
+    (pg) => new pg.default.Client({ connectionString: db.adminUrl }),
+  );
+  await client.connect();
+  try {
+    await client.query('BEGIN');
+    await assert.rejects(
+      client.query(
+        "INSERT INTO personal.import_receipt(person_id,batch_id,sha256) VALUES('demo-alpha','consent-test',repeat('a',64))",
+      ),
+      /CONSENT_REQUIRED/,
+    );
+  } finally {
+    await client.query('ROLLBACK');
+    await client.end();
+  }
+  const history = (await consents()).consents[0].history;
+  assert.deepEqual(
+    history.map((h: { version: number; granted: boolean }) => [h.version, h.granted]),
+    [
+      [1, true],
+      [2, false],
+      [3, true],
+      [4, false],
+    ],
+  );
+  await assert.rejects(db.api.query('SELECT * FROM personal.source_consent'), /permission denied/);
+  await assert.rejects(
+    db.admin.query('DELETE FROM personal.source_consent'),
+    /IMMUTABLE_PERSONAL_RECORD/,
+  );
+  assert.equal(
+    (
+      await db.admin.query(
+        "SELECT count(*)::int n FROM personal.audit WHERE event IN ('consent_granted','consent_revoked')",
+      )
+    ).rows[0].n,
+    4,
+  );
+  // Restore for any later test.
+  await set('pdf-documents', 4, true);
+  await set('structured-import', 2, true);
 });

@@ -1,0 +1,32 @@
+
+> @health-convergence/personal@0.8.0 test:pg
+> tsx --test tests/postgres.integration.ts
+
+✔ fresh migrations, stored entities and snapshot provenance (374.964496ms)
+✔ SQL role has no direct data or internal function privileges, cannot become owner (79.414209ms)
+✔ patient isolation, invalid subjects and durable denied audit (15.714007ms)
+✔ RLS: owner sees no dossier without authorized scope, no caller-controlled scope bypass (4.755247ms)
+✔ database identity revocation takes effect on next read and import (5.319027ms)
+✔ unknown fixture and cross-user import insert nothing (24.455569ms)
+✔ atomicity: database insert failure rolls back document, observation, receipt and success audit (7.723306ms)
+✔ six concurrent clients: imported once, persistent receipt, identical retry (72.905866ms)
+✔ immutable results, documents, receipts and audit; bad units rejected (42.583134ms)
+✔ migrations and seed rerun preserve imports and checksum (181.578535ms)
+✔ PDF: native candidates staged with original bytes, no automatic observation insertion (188.927592ms)
+✔ PDF: cross-user intake and direct table access refused (5.275654ms)
+✔ PDF: incompatible unit and forged selection cannot become observations (15.489949ms)
+✔ PDF: failure during confirmation rolls back document, observations and review event (7.454374ms)
+✔ PDF: six concurrent confirmations insert each selected value once and preserve original units (82.760243ms)
+✔ PDF sprint 04: new fixtures whitelisted, ambiguous candidates refused by SQL, unreferenced value kept honest (74.789536ms)
+✔ corrections: versioned, original kept, stale version refused, concurrent writers serialized (68.397214ms)
+✔ PDF overlaps: same parameter and day from another document signalled, never merged (86.539003ms)
+✔ audit: summary export accepted, unknown events still refused (2.817238ms)
+✔ consents: revocation stops PDF staging, confirmation and import in SQL; history kept (189.978746ms)
+ℹ tests 20
+ℹ suites 0
+ℹ pass 20
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2003.502738

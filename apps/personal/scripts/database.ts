@@ -89,6 +89,14 @@ export async function prepareDatabase(adminUrl: string, apiUrl: string) {
           'INSERT INTO personal.actor(subject,person_id) VALUES($1,$2) ON CONFLICT DO NOTHING',
           [`personal:${personId}`, personId],
         );
+        // Demo profile prepared with both entry points allowed; visible in the consent history
+        // as decided by the setup, and revocable from the settings.
+        if (personId === PERSON_ALPHA)
+          for (const source of ['pdf-documents', 'structured-import'])
+            await c.query(
+              "INSERT INTO personal.source_consent VALUES($1,$2,1,true,'seed:demo-setup',$3) ON CONFLICT DO NOTHING",
+              [personId, source, '2026-11-18T09:00:00Z'],
+            );
         for (const d of documents)
           await c.query(
             'INSERT INTO personal.document VALUES($1,$2,$3,$4,$5::jsonb) ON CONFLICT DO NOTHING',

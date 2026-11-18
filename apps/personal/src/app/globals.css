@@ -4922,3 +4922,32 @@ tbody tr:last-child td {
   color: var(--muted);
   margin-top: 10px;
 }
+
+.consent-settings {
+  margin: 8px 0 14px;
+}
+.consent-settings h3 {
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+.consent-settings > p,
+.consent-note {
+  font-size: 10px;
+  line-height: 1.8;
+  color: var(--muted);
+  margin-top: 8px;
+}
+.consent-settings details {
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+.consent-settings summary {
+  cursor: pointer;
+  color: var(--accent);
+}
+.consent-settings ol {
+  margin: 4px 0 0 18px;
+  line-height: 1.8;
+}
