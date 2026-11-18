@@ -54,3 +54,15 @@ Sources : [Clever Cloud — HDS](https://www.clever.cloud/health-hds/), [Clever 
 - **FranceConnect** : son ouverture au privé est limitée aux cas où une loi impose de vérifier l'identité ([Le Monde Informatique](https://www.lemondeinformatique.fr/actualites/lire-franceconnect-s-ouvre-timidement-au-secteur-prive-79204.html), [CGU fournisseurs de service](https://partenaires.franceconnect.gouv.fr/files/CGU_FS_v3.9.pdf)), ce qui ne semble pas notre cas. À confirmer auprès de la DINUM.
 - **Pro Santé Connect** : réservé aux professionnels de santé, à garder pour un futur accès soignant.
 - **Services américains** (Auth0, Firebase…) : identités hors de l'hébergement de santé.
+
+## Peut-on faire moins cher ? (18 novembre 2026)
+
+**Un serveur « classique » à 5 €/mois est interdit** pour de vraies données de santé : l'article L.1111-8 du Code de la santé publique impose un hébergeur certifié HDS. Les VPS d'entrée de gamme ne figurent généralement pas dans les périmètres HDS publiés ; chez OVHcloud et Scaleway, le HDS impose aussi un support Business, facturé 10 % de la facture avec un minimum annoncé d'environ 250 €/mois. Ces options ne sont donc **pas** moins chères que Clever Cloud ([comparatif 2026](https://kolonell.com/fr/blog/hebergement-hds-site-etablissement-sante-ovh-scaleway-comparatif-2026), [support Business OVHcloud](https://www.ovhcloud.com/fr/support-levels/business/), [fiche des niveaux de support](https://us.ovhcloud.com/sites/default/files/external_files/ovhcloud-support-levels-data-sheet.pdf)).
+
+Leviers réels, du plus simple au plus structurant :
+
+1. **Ne rien payer avant le lancement.** Tant que seules des données fictives sont utilisées, aucun hébergement HDS n'est nécessaire. L'abonnement ne commence qu'avec les premiers vrais utilisateurs.
+2. **Faire confirmer le forfait de 200 € par Clever Cloud.** Leur article d'avril 2026 annonce le HDS inclus sans surcoût pour les bases. Si c'est vrai pour notre cas, le total pourrait tomber vers **50 à 150 €/mois**.
+3. **Faire tourner Keycloak nous-mêmes** sur une instance du même hébergeur plutôt que l'offre gérée : environ 47 €/mois économisés, mais les mises à jour de sécurité deviennent notre charge. C'est déconseillé sans personne pour l'exploitation.
+4. **Coder notre propre connexion** (e-mail, mot de passe, code à usage unique) : aucun abonnement, mais plus de code sensible à sécuriser et à auditer. **Déconseillé** : c'est la partie la plus attaquée d'une application.
+5. **Option structurante : tout garder sur le téléphone.** Les données de santé resteraient sur l'appareil, sans serveur qui les héberge, donc sans HDS ni abonnement. En contrepartie, la version web et la synchronisation entre appareils seraient perdues, et la sauvegarde dépendrait du téléphone. Cela **contredit la décision « web + mobile »** et changerait l'architecture : c'est une **décision du fondateur**, rien n'a été engagé.
