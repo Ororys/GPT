@@ -1,6 +1,7 @@
 import type { HealthRecord, Observation } from '../health-records/model';
 import { mean, withinPeriod } from '../observations/selectors';
 import { localDay, zoneOf } from '../observations/time';
+import type { DayValue } from '../device/daily';
 /**
  * Factual, sourced summary to prepare a consultation. Selection and counting only:
  * no trend wording, no thresholds, no interpretation, no score.
@@ -45,6 +46,11 @@ export interface ConsultationSummary {
   activities: { count: number; distanceKm: number; durationMinutes: number; devices: string[] };
   events: { date: string; title: string; kind: string }[];
   quality: { needsReview: number; corrected: number; documents: number };
+  /** Phone data (Santé / Health Connect), kept apart from the wearable demo series. */
+  phone: {
+    platforms: string[];
+    series: { label: string; unit: string; days: number; mean: number | null; note?: string }[];
+  } | null;
 }
 export const SUMMARY_PERIODS = [90, 365, 730] as const;
 const DAY = 86_400_000;
@@ -125,5 +131,40 @@ export function consultationSummary(record: HealthRecord, periodDays: number): C
       corrected: observations.filter((o) => o.corrections?.length).length,
       documents: usedDocuments.size,
     },
+    phone: phoneSummary(record, from),
   };
+}
+/** Days with a value and mean of those days only; missing days are never filled. */
+function phoneSummary(record: HealthRecord, from: string): ConsultationSummary['phone'] {
+  const d = record.device;
+  if (!d) return null;
+  const start = localDay(from, zoneOf(record));
+  const keep = (v: DayValue[]) => v.filter((x) => x.day >= start);
+  const serie = (label: string, unit: string, v: DayValue[], note?: string) => {
+    const rows = keep(v);
+    return {
+      label,
+      unit,
+      days: rows.length,
+      mean: rows.length
+        ? Math.round((rows.reduce((s, x) => s + x.value, 0) / rows.length) * 10) / 10
+        : null,
+      ...(note ? { note } : {}),
+    };
+  };
+  const series = [
+    serie('Temps endormi', 'h', d.sleepHours, 'au lit et éveils exclus, chevauchements fusionnés'),
+    serie('FC au repos', 'bpm', d.restingHeartRate),
+    ...d.hrv.map((h) => serie(`VFC ${h.method}`, 'ms', h.values, 'méthode propre à la plateforme')),
+    serie('Pas par jour', 'pas', d.steps, 'total quotidien de la plateforme'),
+    serie('Distance par jour', 'km', d.distanceKm, 'total quotidien de la plateforme'),
+  ].filter((x) => x.days > 0);
+  return series.length
+    ? {
+        platforms: d.platforms.map((p) =>
+          p === 'healthkit' ? 'Santé (iPhone)' : 'Health Connect',
+        ),
+        series,
+      }
+    : null;
 }

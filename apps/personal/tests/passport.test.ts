@@ -93,3 +93,28 @@ test('passeport : mesures du centre avec protocole déclaré, changement de prot
   const after = qualityPassport(changed).biology.find((b) => b.code === 'WAIST')!;
   assert.ok(after.notes.includes('SEVERAL_PROTOCOLS'));
 });
+
+test('passeport : séries du téléphone avec couverture locale et notes de méthode', () => {
+  const record = baseRecord('demo-alpha');
+  record.device = {
+    steps: [
+      { day: '2026-11-16', value: 8000 },
+      { day: '2026-11-18', value: 9000 },
+    ],
+    distanceKm: [],
+    sleepHours: [],
+    restingHeartRate: [],
+    hrv: [{ method: 'SDNN', values: [{ day: '2026-11-18', value: 40 }] }],
+    platforms: ['healthkit'],
+    sources: [],
+  };
+  const p = qualityPassport(record, 3);
+  const steps = p.phone.find((x) => x.label === 'Pas (téléphone)')!;
+  assert.equal(steps.daysWithData, 2);
+  assert.deepEqual(steps.longestGap, { from: '2026-11-17', to: '2026-11-17', days: 1 });
+  assert.ok(steps.notes.includes('PLATFORM_DAILY_TOTAL'));
+  assert.ok(
+    p.phone.find((x) => x.label === 'VFC SDNN (téléphone)')!.notes.includes('HRV_METHOD_SPECIFIC'),
+  );
+  assert.deepEqual(qualityPassport(baseRecord('demo-alpha')).phone, []);
+});

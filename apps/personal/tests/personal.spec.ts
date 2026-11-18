@@ -783,6 +783,16 @@ test('données du téléphone affichées : nuits et cœur en vue d’ensemble, p
   await rest.scrollIntoViewIfNeeded();
   await page.waitForTimeout(800);
   await rest.screenshot({ path: `${shots}/17-phone-overview.png` });
+  await page.getByRole('button', { name: 'Passeport de qualité' }).click();
+  const passport = page.getByRole('dialog', { name: 'Passeport de qualité' });
+  await expect(
+    passport.getByRole('heading', { name: /Téléphone · 90 derniers jours/ }),
+  ).toBeVisible();
+  await expect(passport.locator('tr', { hasText: 'Pas (téléphone)' })).toContainText(
+    'Total quotidien calculé par la plateforme',
+  );
+  await page.keyboard.press('Escape');
+  expect((await page.request.get('/api/summary?period=90')).status()).toBe(200);
   await page.locator('.sidebar nav a[href="/sport"]').click();
   await expect(
     page.locator('.phone-panel', { hasText: 'Pas et distance au quotidien' }),

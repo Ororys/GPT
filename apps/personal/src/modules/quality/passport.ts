@@ -13,7 +13,9 @@ export type ComparabilityNote =
   | 'HRV_METHOD_SPECIFIC'
   | 'ANALYTICAL_METHOD_NOT_REPORTED'
   | 'SEVERAL_PROTOCOLS'
-  | 'DEVICE_ESTIMATE_BIA';
+  | 'DEVICE_ESTIMATE_BIA'
+  | 'PLATFORM_DAILY_TOTAL'
+  | 'ASLEEP_ONLY';
 export interface Gap {
   from: string;
   to: string;
@@ -48,10 +50,19 @@ export interface DailyPassport {
   longestGap: Gap | null;
   notes: ComparabilityNote[];
 }
+export interface PhonePassport {
+  label: string;
+  platforms: string[];
+  windowDays: number;
+  daysWithData: number;
+  longestGap: Gap | null;
+  notes: ComparabilityNote[];
+}
 export interface QualityPassport {
   asOf: string;
   biology: BiologyPassport[];
   daily: DailyPassport[];
+  phone: PhonePassport[];
 }
 /** Longest run of local calendar days without data, window ending on the local day of asOf. */
 export function longestGap(
@@ -172,8 +183,56 @@ export function qualityPassport(record: HealthRecord, windowDays = 90): QualityP
       notes,
     };
   };
+  const d = record.device;
+  const phone: PhonePassport[] = [];
+  if (d) {
+    const platforms = d.platforms.map((p) =>
+      p === 'healthkit' ? 'Santé (iPhone)' : 'Health Connect',
+    );
+    const end = localDay(record.asOf, zone);
+    const add = (label: string, days: string[], notes: ComparabilityNote[]) => {
+      const inWindow = days.filter((x) => x > addDays(end, -windowDays) && x <= end);
+      if (!inWindow.length) return;
+      phone.push({
+        label,
+        platforms,
+        windowDays,
+        daysWithData: new Set(inWindow).size,
+        // Day keys are already local calendar days: compare them in UTC to avoid any shift.
+        longestGap: longestGap(
+          inWindow.map((x) => x + 'T12:00:00Z'),
+          end + 'T12:00:00Z',
+          windowDays,
+          'UTC',
+        ),
+        notes: ['MANUFACTURER_ESTIMATE', ...notes],
+      });
+    };
+    add(
+      'Temps endormi (téléphone)',
+      d.sleepHours.map((x) => x.day),
+      ['ASLEEP_ONLY'],
+    );
+    add(
+      'FC au repos (téléphone)',
+      d.restingHeartRate.map((x) => x.day),
+      [],
+    );
+    for (const h of d.hrv)
+      add(
+        `VFC ${h.method} (téléphone)`,
+        h.values.map((x) => x.day),
+        ['HRV_METHOD_SPECIFIC'],
+      );
+    add(
+      'Pas (téléphone)',
+      d.steps.map((x) => x.day),
+      ['PLATFORM_DAILY_TOTAL'],
+    );
+  }
   return {
     asOf: record.asOf,
+    phone,
     biology,
     daily: [
       series('resting-heart-rate', 'FC au repos', 'bpm', nights),

@@ -12,6 +12,9 @@ const noteLabel: Record<ComparabilityNote, string> = {
   HRV_METHOD_SPECIFIC: 'VFC propre à sa méthode de calcul : non comparable à une autre méthode.',
   ANALYTICAL_METHOD_NOT_REPORTED: 'Méthode analytique non indiquée par le document.',
   SEVERAL_PROTOCOLS: 'Plusieurs méthodes ou protocoles : valeurs non directement comparables.',
+  PLATFORM_DAILY_TOTAL:
+    'Total quotidien calculé par la plateforme, qui dédoublonne téléphone et montre.',
+  ASLEEP_ONLY: 'Temps endormi seulement : au lit et éveils exclus, chevauchements fusionnés.',
   DEVICE_ESTIMATE_BIA:
     'Estimation par impédancemétrie : sensible à l’hydratation et non validée aux IMC extrêmes (ESPEN 2004).',
 };
@@ -75,6 +78,44 @@ export function QualityPassportModal({
           </table>
         </div>
       </section>
+      {passport.phone.length > 0 && (
+        <section className="passport-section" aria-labelledby="passport-phone">
+          <h3 id="passport-phone">Téléphone · {passport.phone[0].windowDays} derniers jours</h3>
+          <div className="passport-table">
+            <table>
+              <thead>
+                <tr>
+                  <th>Série</th>
+                  <th>Couverture</th>
+                  <th>Plus longue période sans donnée</th>
+                  <th>Source</th>
+                </tr>
+              </thead>
+              <tbody>
+                {passport.phone.map((p) => (
+                  <tr key={p.label}>
+                    <td>
+                      <strong>{p.label}</strong>
+                      {p.notes.map((n) => (
+                        <small key={n}>{noteLabel[n]}</small>
+                      ))}
+                    </td>
+                    <td>
+                      {p.daysWithData} / {p.windowDays} jours
+                    </td>
+                    <td>
+                      {p.longestGap
+                        ? `${p.longestGap.days} jour(s) · ${day(p.longestGap.from + 'T12:00:00Z')} → ${day(p.longestGap.to + 'T12:00:00Z')}`
+                        : 'Aucune'}
+                    </td>
+                    <td>{p.platforms.join(', ')}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
       <section className="passport-section" aria-labelledby="passport-biology">
         <h3 id="passport-biology">Biologie et mesures du centre · tout l’historique</h3>
         {measured.length === 0 && <p>Aucun résultat biologique dans ce dossier.</p>}

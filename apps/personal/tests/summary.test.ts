@@ -133,3 +133,35 @@ test('PDF du résumé : texte réel, sources et limites présentes, vocabulaire 
   assert.ok(empty.includes('Aucun résultat biologique sur la période.'));
   assert.ok(empty.includes('Aucune mesure sur la période pour'));
 });
+
+test('résumé : données du téléphone à part, jours mesurés et moyenne des seuls jours présents', async () => {
+  const record = baseRecord('demo-alpha');
+  record.device = {
+    steps: [
+      { day: '2026-11-10', value: 8000 },
+      { day: '2026-11-12', value: 10000 },
+    ],
+    distanceKm: [],
+    sleepHours: [{ day: '2026-11-17', value: 6.5 }],
+    restingHeartRate: [],
+    hrv: [{ method: 'RMSSD', values: [{ day: '2026-11-17', value: 31 }] }],
+    platforms: ['health-connect'],
+    sources: [],
+  };
+  const s = consultationSummary(record, 90);
+  assert.deepEqual(s.phone?.platforms, ['Health Connect']);
+  assert.deepEqual(
+    s.phone?.series.map((x) => [x.label, x.days, x.mean]),
+    [
+      ['Temps endormi', 1, 6.5],
+      ['VFC RMSSD', 1, 31],
+      ['Pas par jour', 2, 9000],
+    ],
+  );
+  const text = await pdfText(
+    await consultationSummaryPdf(s, { name: 'Alex', personId: 'demo-alpha' }),
+  );
+  assert.ok(text.includes('Données du téléphone'));
+  assert.ok(text.includes('Pas par jour : 2 jour(s) mesuré(s) - moyenne 9'));
+  assert.equal(consultationSummary(baseRecord('demo-alpha'), 90).phone, null);
+});

@@ -17,6 +17,6 @@ export async function readPersonalRecord(personId: string) {
   }
   const record = await getRecord(personId, user!.subject);
   if (storageMode() === 'local') await audit(user!.subject, 'read_record', personId);
-  else record.device = deviceDaily(await deviceRows(personId, user!.subject), zoneOf(record));
+  else record.device = deviceDaily(await deviceRows(personId, user!.subject, 400), zoneOf(record));
   return record;
 }

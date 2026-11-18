@@ -178,6 +178,22 @@ export async function consultationSummaryPdf(
     `Activités : ${a.count} · ${n(a.distanceKm, 1)} km · ${Math.floor(a.durationMinutes / 60)} h ${String(a.durationMinutes % 60).padStart(2, '0')}${a.devices.length ? ' · ' + a.devices.join(', ') : ''}.`,
   );
 
+  if (s.phone) {
+    heading('Données du téléphone');
+    para(
+      `Source : ${s.phone.platforms.join(', ')}. Moyennes des seuls jours mesurés ; aucun jour complété.`,
+      {
+        color: muted,
+        size: 9,
+      },
+    );
+    for (const x of s.phone.series)
+      para(
+        `${x.label} : ${x.days} jour(s) mesuré(s) · moyenne ${n(x.mean!, 1)} ${x.unit}${x.note ? ' (' + x.note + ')' : ''}.`,
+        { size: 9, gap: 1 },
+      );
+  }
+
   heading('Événements notés dans le dossier');
   if (!s.events.length) para('Aucun événement sur la période.', { color: muted });
   for (const e of s.events)
