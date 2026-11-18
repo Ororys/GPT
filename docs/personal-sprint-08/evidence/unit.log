@@ -1,0 +1,46 @@
+
+> @health-convergence/personal@0.7.0 test
+> tsx --test tests/*.test.ts
+
+✔ correction : virgule française, motif obligatoire, aucune unité ni conversion acceptée (5.73396ms)
+✔ Time Machine : une correction n’apparaît qu’à partir du moment où elle est connue (5.659957ms)
+✔ jeu synthétique : schémas stricts, patient et unités cohérents (14.894215ms)
+✔ provenance : chaque mesure retrouve son document et le même événement timeline (11.490275ms)
+✔ calcul sportif : somme des seules activités filtrées, aucune moyenne fictive (4.515966ms)
+✔ sommeil : lacunes conservées, moyenne sur les seules mesures disponibles (4.53872ms)
+✔ Time Machine : un événement ancien mais connu plus tard reste absent (4.738802ms)
+✔ dernière valeur indépendante de l’ordre et d’une autre catégorie (3.923819ms)
+✔ isolation des fixtures : une copie ne modifie jamais une autre et bêta reste vide (7.144601ms)
+✔ import : contrat synthétique, valeurs originales et provenance conservés (3.167323ms)
+✔ session : signature, expiration, sujets connus et refus inter-dossier (2.3798ms)
+✔ limites du périmètre : pas de score médical, plages attachées au laboratoire (5.17889ms)
+✔ échantillons sportifs : distance intégrée et FC moyenne cohérentes avec le résumé (3.334114ms)
+✔ préparation graphique : 10 000 points, trous non remplacés et index exact (22.759257ms)
+✔ PDF synthétique : une vraie page, empreinte déterministe et métadonnées explicites (416.726852ms)
+✔ période sans donnée : jours calendaires, bornes incluses, fin de fenêtre comptée (2.297052ms)
+✔ passeport : provenance, couverture et notes techniques sans lecture médicale (8.325387ms)
+✔ passeport : unités, laboratoires et appareils multiples signalés ; dossier vide honnête (6.089482ms)
+✔ PDF natif : six valeurs extraites, page, texte, coordonnées et absence de confiance inventée (251.602657ms)
+✔ deux pages et virgules françaises : attribution de page et dates exactes (32.003214ms)
+✔ unités : seulement équivalence typographique micro, aucune conversion mmol/L (14.940686ms)
+✔ sans texte : OCR requis, aucun résultat inventé (8.107478ms)
+✔ sécurité : empreinte, taille, faux PDF et autre dossier (35.748701ms)
+✔ revue : aucune observation sans sélection explicite, uniquement candidats compatibles (9.469922ms)
+✔ upload Node : empreinte limitée à la vue Buffer, sans octets voisins ni mutation (16.541064ms)
+✔ corpus : empreintes des PDF du sprint 03 inchangées (liste blanche des bases existantes) (7.467682ms)
+✔ colonnes : lignes reconstituées par coordonnées, référence unilatérale non structurée (9.91311ms)
+✔ ambigus : doublon intra-document et signe « < » bloqués, ligne inconnue exposée (8.933423ms)
+✔ dates : deux prélèvements contradictoires, aucune date choisie ni résultat ajoutable (9.149238ms)
+✔ date de prélèvement : jour calendaire réel, accord de toutes les occurrences (0.373536ms)
+✔ reconstitution : regroupement par ligne de base, ordre haut-bas puis gauche-droite (0.343715ms)
+✔ résumé : sélection par période, sources et lacunes, sans calcul d’évolution (9.667772ms)
+✔ résumé : correction et unités multiples signalées, jamais converties (5.191129ms)
+✔ PDF du résumé : texte réel, sources et limites présentes, vocabulaire interprétatif absent (376.188309ms)
+ℹ tests 34
+ℹ suites 0
+ℹ pass 34
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1508.194328

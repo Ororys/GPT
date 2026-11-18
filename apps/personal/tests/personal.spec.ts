@@ -511,3 +511,32 @@ test('résumé de consultation : téléchargement PDF depuis les paramètres, p�
   ).toBe(401);
   await anonymous.close();
 });
+
+test('passeport de qualité : couverture, appareils et limites depuis la vue d’ensemble, accessible', async ({
+  page,
+}) => {
+  await open(page, '/');
+  await expect(page.locator('.quality-strip p')).toContainText('biomarqueurs suivis');
+  await page.getByRole('button', { name: 'Passeport de qualité' }).click();
+  const dialog = page.getByRole('dialog', { name: 'Passeport de qualité' });
+  await expect(
+    dialog.getByRole('heading', { name: /Quotidien · 90 derniers jours/ }),
+  ).toBeVisible();
+  await expect(dialog.locator('.passport-table tbody tr')).toHaveCount(4);
+  await expect(dialog.getByText(/VFC \(SDNN\)/)).toBeVisible();
+  await expect(dialog.getByText(/\d+ \/ 90 jours/).first()).toBeVisible();
+  await expect(dialog.locator('.passport-card').first()).toContainText('Laboratoire(s)');
+  await expect(
+    dialog
+      .getByText('Plusieurs laboratoires : références propres à chacun, non interchangeables.')
+      .first(),
+  ).toBeVisible();
+  const result = await new AxeBuilder({ page })
+    .include('[role=dialog]')
+    .withTags(['wcag2a', 'wcag2aa'])
+    .analyze();
+  expect(result.violations).toEqual([]);
+  await page.screenshot({ path: `${shots}/13-passport.png`, fullPage: true });
+  await page.keyboard.press('Escape');
+  await expect(dialog).toHaveCount(0);
+});

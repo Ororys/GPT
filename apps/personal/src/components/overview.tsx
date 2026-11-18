@@ -25,6 +25,7 @@ import {
 import { timeline } from '@/modules/timeline/selectors';
 import { Panel, Pill, SectionHeading, SourceButton, Notice, Empty } from './ui';
 import { DataChart, type ChartSeries } from './chart';
+import { QualityPassportModal } from './quality-passport';
 import { number, hours, duration } from './format';
 export interface PageProps {
   record: HealthRecord;
@@ -36,6 +37,7 @@ export interface PageProps {
 export function Overview({ record, period, navigate, openDocument, openActivity }: PageProps) {
   const [metric, setMetric] = useState<'restingHeartRate' | 'durationHours'>('restingHeartRate');
   const [compare, setCompare] = useState(false);
+  const [passportOpen, setPassportOpen] = useState(false);
   const sport = activitySummary(record, 30);
   const sleep = sleepSummary(record, 7);
   const lastSleep = record.sleep.toSorted((a, b) => b.date.localeCompare(a.date))[0];
@@ -387,14 +389,23 @@ export function Overview({ record, period, navigate, openDocument, openActivity 
         <div>
           <strong>La qualité commence par la transparence.</strong>
           <p>
-            {record.sleep.length} nuits sur 90 jours · 6 biomarqueurs suivis · références rattachées
-            à chaque bilan.
+            {record.sleep.filter((n) => withinPeriod(n.date, 90, record.asOf)).length} nuits sur 90
+            jours · {new Set(record.observations.map((o) => o.code)).size} biomarqueurs suivis ·
+            références rattachées à chaque bilan.
           </p>
         </div>
+        <button className="text-button" onClick={() => setPassportOpen(true)}>
+          Passeport de qualité <ArrowUpRight size={15} />
+        </button>
         <button className="text-button" onClick={() => navigate('documents')}>
           Explorer les sources <ArrowUpRight size={15} />
         </button>
       </div>
+      <QualityPassportModal
+        record={record}
+        open={passportOpen}
+        onClose={() => setPassportOpen(false)}
+      />
     </>
   );
 }

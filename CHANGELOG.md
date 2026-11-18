@@ -1,3 +1,7 @@
+# Sprint personnel 08 / 0.8.0 — 18 novembre 2026
+
+Passeport de qualité (R12) depuis la vue d'ensemble : provenance, unités, laboratoires, obtention, couverture sur 90 jours, plus longue période sans donnée, appareils et notes de comparabilité, sans lecture médicale. Bandeau de qualité corrigé (valeurs calculées). Voir docs/personal-sprint-08/BILAN.md.
+
 # Sprint personnel 07 / 0.7.0 — 18 novembre 2026
 
 Résumé factuel pour consultation en PDF (90 j, 12 ou 24 mois) : valeurs datées et sourcées (document, page, référence du laboratoire, correction), lacunes, couverture de la montre, événements et limites, sans interprétation. Route auditée ; migration additive 005 pour l'événement d'audit. Voir docs/personal-sprint-07/BILAN.md.

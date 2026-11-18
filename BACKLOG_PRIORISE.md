@@ -68,3 +68,7 @@ Livré : signalement non bloquant des doublons inter-documents en revue PDF (D-0
 ## Incrément personnel 0.7 — 18 novembre 2026
 
 Livré : U-02 (export PDF) sous forme de résumé factuel pour consultation. Suivant : passeport de qualité des séries (R12). Voir [le bilan](docs/personal-sprint-07/BILAN.md).
+
+## Incrément personnel 0.8 — 18 novembre 2026
+
+Livré : passeport de qualité (R12). Voir [le bilan](docs/personal-sprint-08/BILAN.md).

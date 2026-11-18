@@ -1,4 +1,4 @@
-# Convergence Personal 0.7 — PostgreSQL, données synthétiques
+# Convergence Personal 0.8 — PostgreSQL, données synthétiques
 
 Les cinq pages sont raccordées à une base PostgreSQL réelle, sans fallback silencieux. Aucun dossier réel, OCR, LLM ou fournisseur connecté.
 
@@ -67,3 +67,7 @@ Lors de la revue d'un PDF, un résultat dont le paramètre a déjà une valeur l
 ## Résumé pour consultation — sprint 07
 
 Paramètres → « Préparer une consultation » : PDF factuel (valeurs, dates, sources, pages, lacunes, limites), sans interprétation ni score. `GET /api/summary?period=90|365|730`. Voir `../../docs/personal-sprint-07/BILAN.md`.
+
+## Passeport de qualité — sprint 08
+
+Vue d'ensemble → « Passeport de qualité » : provenance, couverture, périodes sans donnée et comparabilité de chaque série. Voir `../../docs/personal-sprint-08/BILAN.md`.

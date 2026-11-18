@@ -4847,3 +4847,78 @@ tbody tr:last-child td {
   border-radius: 8px;
   padding: 9px 10px;
 }
+.quality-strip .text-button + .text-button {
+  margin-left: 0;
+}
+.passport-section {
+  margin-bottom: 20px;
+}
+.passport-section h3 {
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 10px;
+}
+.passport-table {
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.passport-table table {
+  min-width: 560px;
+}
+.passport-table td {
+  white-space: normal;
+  vertical-align: top;
+  font-size: 11px;
+}
+.passport-table td small,
+.passport-card small {
+  display: block;
+  font-size: 9px;
+  color: var(--muted);
+  line-height: 1.7;
+  margin-top: 3px;
+}
+.passport-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 10px;
+}
+.passport-card {
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  padding: 13px 15px;
+}
+.passport-card header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.passport-card strong {
+  font-size: 12px;
+}
+.passport-card dl {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: 6px;
+}
+.passport-card dl div {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 10px;
+}
+.passport-card dt {
+  color: var(--muted);
+}
+.passport-card dd {
+  text-align: right;
+}
+.passport-missing {
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 10px;
+}
