@@ -64,3 +64,7 @@ Livré : correction versionnée des résultats PDF (D-01 pour l'espace personnel
 ## Incrément personnel 0.6 — 18 novembre 2026
 
 Livré : signalement non bloquant des doublons inter-documents en revue PDF (D-02 partiel, limité aux PDF et au jour UTC). Voir [le bilan](docs/personal-sprint-06/BILAN.md).
+
+## Incrément personnel 0.7 — 18 novembre 2026
+
+Livré : U-02 (export PDF) sous forme de résumé factuel pour consultation. Suivant : passeport de qualité des séries (R12). Voir [le bilan](docs/personal-sprint-07/BILAN.md).

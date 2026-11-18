@@ -195,7 +195,7 @@ test('migrations and seed rerun preserve imports and checksum', async () => {
   assert.equal((await read()).record.observations.length, 37);
   assert.equal(
     (await db.admin.query('SELECT count(*)::int n FROM public.hc_personal_migration')).rows[0].n,
-    4,
+    5,
   );
   const rows = (await db.admin.query('SELECT name,sha256 FROM public.hc_personal_migration')).rows;
   await db.admin.query("UPDATE public.hc_personal_migration SET sha256='changed'");
@@ -538,4 +538,24 @@ test('PDF overlaps: same parameter and day from another document signalled, neve
   assert.equal((await overlaps(p.sha256, 'personal:demo-beta', 'demo-alpha')).status, 'forbidden');
   assert.equal((await overlaps(p.sha256, 'personal:demo-beta', 'demo-beta')).status, 'not_found');
   assert.equal((await overlaps('0'.repeat(64))).status, 'not_found');
+});
+
+test('audit: summary export accepted, unknown events still refused', async () => {
+  await db.api.query('SELECT personal.api_audit($1,$2,$3)', [
+    'personal:demo-alpha',
+    'export_summary',
+    'demo-alpha',
+  ]);
+  assert.equal(
+    (
+      await db.admin.query(
+        "SELECT count(*)::int n FROM personal.audit WHERE event='export_summary' AND person_id='demo-alpha'",
+      )
+    ).rows[0].n,
+    1,
+  );
+  await assert.rejects(
+    db.api.query('SELECT personal.api_audit($1,$2,$3)', ['personal:demo-alpha', 'anything', 'x']),
+    /INVALID_AUDIT/,
+  );
 });

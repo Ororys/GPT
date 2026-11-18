@@ -11,7 +11,7 @@ Agir de façon autonome sur les corrections ordinaires et tester les changements
 ## Lire en premier
 
 1. `HANDOFF_CLAUDE_CODE.md` — carte du dépôt, commandes et limites.
-2. `docs/personal-sprint-03/BILAN.md`, `docs/personal-sprint-04/BILAN.md` `docs/personal-sprint-05/BILAN.md` puis `docs/personal-sprint-06/BILAN.md` — incréments PDF, correction versionnée, doublons inter-documents et preuves.
+2. `docs/personal-sprint-03/BILAN.md`, `docs/personal-sprint-04/BILAN.md` `docs/personal-sprint-05/BILAN.md`, `docs/personal-sprint-06/BILAN.md` puis `docs/personal-sprint-07/BILAN.md` — incréments PDF, correction versionnée, doublons inter-documents, résumé de consultation et preuves.
 3. `apps/personal/README.md` et `apps/personal/AGENTS.md`.
 4. `SECURITY.md`, `BLOCKERS.md`, `ARCHITECTURE.md` et `TEST_REPORT.md`.
 5. `docs/personal-sprint-02/BILAN.md` pour le raccordement PostgreSQL.
@@ -40,6 +40,10 @@ Lecture réelle du texte natif avec unpdf/PDF.js, uniquement sur un corpus PDF s
 - Depuis le sprint 04 : lignes non reprises listées, valeurs « < », doublons intra-document et dates multiples/invalides bloqués ; jamais de choix automatique entre deux valeurs ou deux dates. Les empreintes des PDF existants sont verrouillées par test : ne pas modifier leur générateur.
 - Depuis le sprint 05 : correction versionnée (`003_observation_correction.sql`) des seuls résultats `native-pdf`, même unité, motif obligatoire, version attendue contrôlée. La table `observation` n'est jamais modifiée ; `api_get_record` superpose la dernière version et joint l'historique ; `valueKnownAt` applique la Time Machine. Ne pas réécrire la migration appliquée : toute évolution passe par une nouvelle migration.
 - Depuis le sprint 06 : `api_pdf_overlaps` (`004_pdf_overlap.sql`) signale à la lecture, sans rien stocker ni fusionner, un même paramètre le même jour UTC dans un autre document ; le candidat est décoché par défaut.
+
+## Résumé de consultation (sprint 07)
+
+`modules/summary` sélectionne et compte, sans calcul d'évolution, seuil, score ni vocabulaire interprétatif (un test extrait le texte du PDF et vérifie l'absence de mots comme « hausse », « risque », « anormal »). Tout nouvel événement d'audit doit être ajouté à la liste blanche SQL de `api_audit` par une nouvelle migration.
 
 ## Discipline technique
 

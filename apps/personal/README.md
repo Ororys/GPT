@@ -1,4 +1,4 @@
-# Convergence Personal 0.6 — PostgreSQL, données synthétiques
+# Convergence Personal 0.7 — PostgreSQL, données synthétiques
 
 Les cinq pages sont raccordées à une base PostgreSQL réelle, sans fallback silencieux. Aucun dossier réel, OCR, LLM ou fournisseur connecté.
 
@@ -63,3 +63,7 @@ Un résultat lu dans un PDF peut être corrigé depuis la fenêtre source (mode 
 ## Doublons entre documents — sprint 06
 
 Lors de la revue d'un PDF, un résultat dont le paramètre a déjà une valeur le même jour (UTC) dans un autre document est signalé et décoché par défaut ; rien n'est fusionné. Voir `../../docs/personal-sprint-06/BILAN.md`.
+
+## Résumé pour consultation — sprint 07
+
+Paramètres → « Préparer une consultation » : PDF factuel (valeurs, dates, sources, pages, lacunes, limites), sans interprétation ni score. `GET /api/summary?period=90|365|730`. Voir `../../docs/personal-sprint-07/BILAN.md`.

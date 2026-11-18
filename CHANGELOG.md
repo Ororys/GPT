@@ -1,3 +1,7 @@
+# Sprint personnel 07 / 0.7.0 — 18 novembre 2026
+
+Résumé factuel pour consultation en PDF (90 j, 12 ou 24 mois) : valeurs datées et sourcées (document, page, référence du laboratoire, correction), lacunes, couverture de la montre, événements et limites, sans interprétation. Route auditée ; migration additive 005 pour l'événement d'audit. Voir docs/personal-sprint-07/BILAN.md.
+
 # Sprint personnel 06 / 0.6.0 — 18 novembre 2026
 
 Signalement non bloquant des doublons entre documents lors de la revue PDF (même paramètre, même jour UTC, autre document) : migration additive 004, calcul à la lecture, résultat décoché par défaut, rien de fusionné. Voir docs/personal-sprint-06/BILAN.md.

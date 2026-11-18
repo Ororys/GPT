@@ -1,0 +1,15 @@
+v24.22.3
+
+> @health-convergence/personal@0.6.0 typecheck
+> tsc --noEmit
+
+
+> @health-convergence/personal@0.6.0 lint
+> oxlint .
+
+
+> @health-convergence/personal@0.6.0 format:check
+> prettier --check .
+
+Checking formatting...
+All matched files use Prettier code style!

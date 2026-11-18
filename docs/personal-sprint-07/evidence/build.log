@@ -1,0 +1,39 @@
+
+> @health-convergence/personal@0.6.0 build
+> next build
+
+▲ Next.js 16.4.6 (Turbopack)
+✓ Running next.config.ts took 45ms
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 713ms
+  Running TypeScript ...
+  Finished TypeScript in 2.7s ...
+  Collecting page data using 3 workers ...
+  Generating static pages using 3 workers (0/9) ...
+  Generating static pages using 3 workers (2/9) 
+  Generating static pages using 3 workers (4/9) 
+  Generating static pages using 3 workers (6/9) 
+✓ Generating static pages using 3 workers (9/9) in 103ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ƒ /_not-found
+├ ƒ /[[...section]]
+├ ƒ /api/documents/[documentId]
+├ ƒ /api/export
+├ ƒ /api/imports
+├ ƒ /api/observations/correct
+├ ƒ /api/pdf/analyze
+├ ƒ /api/pdf/confirm
+├ ƒ /api/pdf/fixtures
+├ ƒ /api/records/[personId]
+├ ƒ /api/session
+├ ƒ /api/summary
+└ ƒ /lab/chart
+
+
+ƒ Proxy (Middleware)
+
+ƒ  (Dynamic)  server-rendered on demand
+

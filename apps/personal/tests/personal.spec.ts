@@ -489,3 +489,25 @@ test('doublon inter-documents : même paramètre le même jour signalé et déco
     dialog.getByRole('button', { name: 'Ajouter 1 résultat(s) sélectionné(s)' }),
   ).toBeEnabled();
 });
+
+test('résumé de consultation : téléchargement PDF depuis les paramètres, période contrôlée, session requise', async ({
+  page,
+}) => {
+  await open(page, '/settings');
+  await page.getByRole('combobox', { name: 'Période du résumé' }).selectOption('90');
+  const link = page.getByRole('link', { name: 'Télécharger le résumé' });
+  await expect(link).toHaveAttribute('href', '/api/summary?period=90');
+  const download = page.waitForEvent('download');
+  await link.click();
+  expect((await download).suggestedFilename()).toBe('convergence-resume-90j.pdf');
+  const response = await page.request.get('/api/summary?period=365');
+  expect(response.status()).toBe(200);
+  expect(response.headers()['content-type']).toBe('application/pdf');
+  expect((await response.body()).subarray(0, 5).toString()).toBe('%PDF-');
+  expect((await page.request.get('/api/summary?period=7')).status()).toBe(422);
+  const anonymous = await page.context().browser()!.newContext();
+  expect(
+    (await anonymous.request.get(page.url().replace('/settings', '/api/summary'))).status(),
+  ).toBe(401);
+  await anonymous.close();
+});

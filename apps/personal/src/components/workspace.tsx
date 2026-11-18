@@ -83,6 +83,7 @@ export function Workspace({ view }: { view: View }) {
   const [activityId, setActivityId] = useState<string | null>(null);
   const [helpOpen, setHelpOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [summaryPeriod, setSummaryPeriod] = useState(365);
   const [search, setSearch] = useState('');
   const refresh = useCallback(
     async (id = personId) => {
@@ -403,6 +404,26 @@ export function Workspace({ view }: { view: View }) {
                   <Download size={16} />
                   Exporter mon dossier synthétique
                 </a>
+                <h3>Préparer une consultation</h3>
+                <p>
+                  Résumé PDF factuel : chaque valeur avec sa date, son document et sa page, les
+                  lacunes et les limites. Sans interprétation ni score.
+                </p>
+                <div className="summary-export">
+                  <select
+                    aria-label="Période du résumé"
+                    value={summaryPeriod}
+                    onChange={(e) => setSummaryPeriod(Number(e.target.value))}
+                  >
+                    <option value={90}>90 derniers jours</option>
+                    <option value={365}>12 derniers mois</option>
+                    <option value={730}>24 derniers mois</option>
+                  </select>
+                  <a className="button" href={`/api/summary?period=${summaryPeriod}`} download>
+                    <FileText size={16} />
+                    Télécharger le résumé
+                  </a>
+                </div>
               </Panel>
               <Panel className="settings-sources">
                 <h2>Des sources indépendantes, des limites visibles.</h2>
