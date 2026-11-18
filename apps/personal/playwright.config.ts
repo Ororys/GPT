@@ -31,6 +31,9 @@ export default defineConfig({
       ...(process.env.HC_PERSONAL_DATABASE_URL
         ? { HC_PERSONAL_DATABASE_URL: process.env.HC_PERSONAL_DATABASE_URL }
         : {}),
+      ...(process.env.HC_PERSONAL_SESSION_SECRET
+        ? { HC_PERSONAL_SESSION_SECRET: process.env.HC_PERSONAL_SESSION_SECRET }
+        : {}),
       HC_PERSONAL_DATA_DIR: mkdtempSync(join(tmpdir(), 'hc-personal-e2e-')),
       ...(process.env.HC_PERSONAL_E2E_AUTH === 'oidc'
         ? {

@@ -1,0 +1,15 @@
+
+> @health-convergence/personal@0.20.0 test:e2e:oidc
+> tsx scripts/e2e-oidc.ts --trace off --reporter=list
+
+
+Running 6 tests using 1 worker
+
+  ✓  1 tests/oidc.spec.ts:6:1 › connexion réelle : écran de connexion, profils fictifs désactivés, accès protégé (739ms)
+  ✓  2 tests/oidc.spec.ts:21:1 › sans double authentification : aucun accès ouvert (1.0s)
+  ✓  3 tests/oidc.spec.ts:31:1 › identité valide mais non rattachée : refus, aucun dossier créé (1.1s)
+  ✓  4 tests/oidc.spec.ts:41:1 › jeton émis pour une autre application : refusé (959ms)
+  ✓  5 tests/oidc.spec.ts:48:1 › état falsifié au retour : refusé sans session (562ms)
+  ✓  6 tests/oidc.spec.ts:54:1 › connexion avec double authentification : dossier rattaché ouvert, puis déconnexion (1.6s)
+
+  6 passed (7.6s)

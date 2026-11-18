@@ -84,3 +84,7 @@ Livré : mesures du centre (R01/R03/R05 en juxtaposition descriptive). Ouvert : 
 ## Incrément personnel 0.11 — 18 novembre 2026
 
 Livré : C-01 (règle du jour local), axe temporel proportionnel, lever de chaise et masse grasse. Voir [le bilan](docs/personal-sprint-11/BILAN.md).
+
+## Sprints 15 à 21 — 18 novembre 2026
+
+Livrés : données du téléphone dans le résumé et le passeport (15), audit d'accessibilité automatisé complet (16, U-01 partiel), zones sûres de l'application native (17), export complet (18), PDF : colonnes, milliers, dates (19), en-têtes de sécurité et exercice de sauvegarde/restauration (20, S-03 partiel), **S-02** preuve de session vérifiée en base (21).

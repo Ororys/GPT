@@ -1,3 +1,7 @@
+# Sprint 21 / 0.21.0 — 18 novembre 2026
+
+S-02 : la base vérifie elle-même la signature de la session (HMAC, expiration, sujet et dossier) avant tout accès ; migration additive 012 ; activée par db:prepare ; E2E exécutés avec preuve exigée ; contre-épreuve 200/403. Voir docs/personal-sprint-21/BILAN.md.
+
 # Sprint 20 / 0.20.0 — 18 novembre 2026
 
 En-têtes de sécurité (Permissions-Policy, COOP, HSTS en HTTPS seulement) ; exercice automatisé de sauvegarde/restauration (copie identique, RLS et immuabilité conservées) en CI. Voir docs/personal-sprint-20/BILAN.md.

@@ -1,5 +1,6 @@
 import 'server-only';
 import pg from 'pg';
+import { COOKIE } from '../identity/token';
 const state = globalThis as typeof globalThis & {
   personalPool?: pg.Pool;
   personalRoleChecked?: Promise<void>;
@@ -30,11 +31,37 @@ async function pool() {
   await state.personalRoleChecked;
   return p;
 }
+/** The signed session cookie of the current request, if any (null outside a request). */
+async function sessionProof() {
+  try {
+    const { cookies } = await import('next/headers');
+    return (await cookies()).get(COOKIE)?.value ?? null;
+  } catch {
+    return null;
+  }
+}
+/**
+ * One transaction per call: the session token is set as hc.session_proof so that, when the
+ * database requires it (migration 012), it verifies the signature itself instead of trusting
+ * the subject passed by this role.
+ */
 export async function databaseCall<T>(sql: string, parameters: unknown[]): Promise<T> {
   try {
     const p = await pool();
-    const result = await p.query(sql, parameters);
-    return result.rows[0].result as T;
+    const proof = await sessionProof();
+    const client = await p.connect();
+    try {
+      await client.query('BEGIN');
+      if (proof) await client.query("SELECT set_config('hc.session_proof', $1, true)", [proof]);
+      const result = await client.query(sql, parameters);
+      await client.query('COMMIT');
+      return result.rows[0].result as T;
+    } catch (e) {
+      await client.query('ROLLBACK').catch(() => undefined);
+      throw e;
+    } finally {
+      client.release();
+    }
   } catch (e) {
     if (e instanceof Error && e.message === 'UNSAFE_DATABASE_ROLE') throw e;
     // Business refusal raised by a SQL trigger (permission withdrawn): surfaced as such.

@@ -9,6 +9,8 @@ export type DemoIdentity = {
   auth?: 'demo' | 'oidc';
 };
 const SESSION_MS = 60 * 60 * 1000;
+/** Session cookie name (HttpOnly, signed); its value doubles as the database proof (S-02). */
+export const COOKIE = 'hc_personal_demo';
 const sign = (payload: string, secret: string) =>
   createHmac('sha256', secret).update(payload).digest('base64url');
 /** Signed, expiring JSON value (session or short-lived login transaction). */

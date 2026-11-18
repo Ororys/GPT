@@ -1,6 +1,6 @@
 {
   "name": "@health-convergence/personal",
-  "version": "0.20.0",
+  "version": "0.21.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -16,7 +16,7 @@
     "env:init": "node scripts/env-init.mjs",
     "db:up": "docker compose --env-file .env.database up -d --wait",
     "db:prepare": "node --env-file=.env.database --env-file=.env.local --import tsx scripts/database.ts",
-    "test:pg": "tsx --test tests/postgres.integration.ts",
+    "test:pg": "tsx --test tests/postgres.integration.ts tests/session-proof.integration.ts",
     "test:e2e:pg": "tsx scripts/e2e-postgres.ts",
     "test:storage-http": "tsx --test tests/storage-http.integration.ts",
     "identity:link": "node --env-file=.env.database --import tsx scripts/link-identity.ts",

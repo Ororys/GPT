@@ -1,0 +1,13 @@
+
+> @health-convergence/personal@0.20.0 test:backup
+> tsx --test tests/backup.integration.ts
+
+✔ sauvegarde et restauration : copie identique, migrations, RLS et immuabilité conservées (1139.907306ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1563.063531

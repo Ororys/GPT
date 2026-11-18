@@ -15,7 +15,7 @@ import {
   TEMPLATE_TEXT,
   ImportSchema,
 } from '../src/modules/documents/import-contract';
-export async function prepareDatabase(adminUrl: string, apiUrl: string) {
+export async function prepareDatabase(adminUrl: string, apiUrl: string, sessionSecret?: string) {
   const api = new URL(apiUrl);
   if (!/^hc_personal_(test_)?login$/.test(api.username) || api.password.length < 32)
     throw Error('INVALID_PERSONAL_DATABASE_LOGIN');
@@ -57,6 +57,14 @@ export async function prepareDatabase(adminUrl: string, apiUrl: string) {
       `${exists ? 'ALTER' : 'CREATE'} ROLE ${ident} LOGIN INHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOBYPASSRLS NOREPLICATION PASSWORD ${pg.escapeLiteral(decodeURIComponent(api.password))}`,
     );
     await c.query(`GRANT hc_personal_api TO ${ident}`);
+    // S-02: same key as the application's session signature; the API role cannot read it.
+    if (sessionSecret) {
+      if (Buffer.byteLength(sessionSecret) < 32) throw Error('SESSION_SECRET_TOO_SHORT');
+      await c.query(
+        "INSERT INTO personal.session_key VALUES(1,convert_to($1,'UTF8'),true) ON CONFLICT (id) DO UPDATE SET key=EXCLUDED.key,require_proof=true",
+        [sessionSecret],
+      );
+    }
     await c.query('BEGIN');
     try {
       for (const id of [...PDF_FIXTURES.map((f) => f.id), 'autre-profil'] as FixtureId[])
@@ -168,6 +176,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   await prepareDatabase(
     process.env.HC_PERSONAL_ADMIN_DATABASE_URL,
     process.env.HC_PERSONAL_DATABASE_URL,
+    process.env.HC_PERSONAL_SESSION_SECRET,
   );
   console.log('Personal schema migrated and synthetic seed ready.');
 }

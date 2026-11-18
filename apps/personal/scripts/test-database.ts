@@ -1,7 +1,7 @@
 import pg from 'pg';
 import { randomBytes } from 'node:crypto';
 import { prepareDatabase } from './database';
-export async function createPersonalTestDatabase() {
+export async function createPersonalTestDatabase(options: { sessionSecret?: string } = {}) {
   const rootUrl = process.env.HC_TEST_ADMIN_URL || process.env.HC_PERSONAL_ADMIN_DATABASE_URL;
   if (!rootUrl)
     throw Error(
@@ -28,7 +28,7 @@ export async function createPersonalTestDatabase() {
     await c.end();
   };
   try {
-    await prepareDatabase(admin.href, api.href);
+    await prepareDatabase(admin.href, api.href, options.sessionSecret);
     adminPool = new pg.Pool({ connectionString: admin.href, max: 3 });
     apiPool = new pg.Pool({ connectionString: api.href, max: 8 });
     return { adminUrl: admin.href, apiUrl: api.href, admin: adminPool, api: apiPool, drop };

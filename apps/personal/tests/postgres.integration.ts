@@ -37,7 +37,7 @@ test('fresh migrations, stored entities and snapshot provenance', async () => {
   const tables = (
     await db.admin.query("SELECT tablename FROM pg_tables WHERE schemaname='personal'")
   ).rows;
-  assert.equal(tables.length, 17);
+  assert.equal(tables.length, 18);
 });
 test('SQL role has no direct data or internal function privileges, cannot become owner', async () => {
   for (const t of [
@@ -195,7 +195,7 @@ test('migrations and seed rerun preserve imports and checksum', async () => {
   assert.equal((await read()).record.observations.length, 49);
   assert.equal(
     (await db.admin.query('SELECT count(*)::int n FROM public.hc_personal_migration')).rows[0].n,
-    11,
+    12,
   );
   const rows = (await db.admin.query('SELECT name,sha256 FROM public.hc_personal_migration')).rows;
   await db.admin.query("UPDATE public.hc_personal_migration SET sha256='changed'");

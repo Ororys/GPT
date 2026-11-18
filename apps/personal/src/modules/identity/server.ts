@@ -1,14 +1,14 @@
 import 'server-only';
 import { randomBytes } from 'node:crypto';
 import { cookies } from 'next/headers';
-import { authorize, verifySession, checkSessionSecret, type DemoIdentity } from './token';
+import { authorize, verifySession, checkSessionSecret, COOKIE, type DemoIdentity } from './token';
 import { authMode } from './oidc';
 const globalIdentity = globalThis as typeof globalThis & { personalDemoSecret?: string };
 export const sessionSecret = checkSessionSecret(
   (globalIdentity.personalDemoSecret ??=
     process.env.HC_PERSONAL_SESSION_SECRET || randomBytes(32).toString('hex')),
 );
-export const COOKIE = 'hc_personal_demo';
+export { COOKIE } from './token';
 export async function identity(): Promise<DemoIdentity | null> {
   return verifySession((await cookies()).get(COOKIE)?.value, sessionSecret, Date.now(), authMode());
 }
