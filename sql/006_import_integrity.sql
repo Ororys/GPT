@@ -1,0 +1,130 @@
+-- v3.1 : précision temporelle, valeurs absentes, révocation sérialisée.
+BEGIN;
+CREATE OR REPLACE FUNCTION hc.iso_utc(t timestamptz) RETURNS text LANGUAGE sql IMMUTABLE
+AS $$ SELECT CASE WHEN date_trunc('second',t)=t THEN to_char(t AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS"Z"') ELSE to_char(t AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US"Z"') END $$;
+CREATE OR REPLACE FUNCTION hc.api_import_batch(p_subject text,p_person uuid,p_namespace text,p_version text,p_records jsonb) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,hc,pg_temp AS $$
+DECLARE v_ns hc.source_namespace_def; v_kind text; v_action text; v_rec jsonb; v_i int:=0; v_errors jsonb:='[]'::jsonb;
+ v_metric text; v_method text; v_unit text; v_srid text; v_dev text; v_ts text; v_end text; v_value numeric; v_time timestamptz; v_endt timestamptz;
+ v_def hc.metric_definition; v_digest text; v_existing text; v_reason text; v_id uuid; v_inserted int:=0; v_dup int:=0; v_conflict boolean:=false;
+ v_seen jsonb:='{}'::jsonb; v_todo jsonb:='[]'::jsonb; v_item jsonb; v_canon jsonb;
+ c_ts CONSTANT text:='^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,6})?(Z|[+-]\d{2}:\d{2})$';
+BEGIN
+ SELECT * INTO v_ns FROM hc.source_namespace_def WHERE namespace=p_namespace;
+ SELECT actor_kind INTO v_kind FROM hc.actor WHERE external_subject=p_subject AND active;
+ v_action:=CASE WHEN v_kind='patient' THEN 'import_wearable' ELSE 'write_measurement' END;
+ IF v_ns.namespace IS NULL OR v_kind IS NULL OR NOT (v_kind=ANY(v_ns.importer_kinds)) THEN
+  PERFORM set_config('hc.person_scope','',true);
+  PERFORM hc.audit(p_subject,p_person,'denied_import',jsonb_build_object('namespace',left(coalesce(p_namespace,''),48)));
+  RETURN jsonb_build_object('status','forbidden');
+ END IF;
+ IF NOT hc.guard(p_subject,p_person,v_action) THEN RETURN jsonb_build_object('status','forbidden'); END IF;
+ -- Consentement / connexion active exigée pour ce fournisseur (retrait = arrêt des imports, T09).
+ PERFORM 1 FROM hc.source_connection c WHERE c.provider=v_ns.provider AND c.status='active' FOR UPDATE;
+ IF NOT FOUND THEN
+  PERFORM hc.audit(p_subject,p_person,'denied_import',jsonb_build_object('namespace',p_namespace,'reason','connection_inactive'));
+  RETURN jsonb_build_object('status','connection_inactive','provider',v_ns.provider);
+ END IF;
+ IF length(coalesce(p_version,'')) NOT BETWEEN 1 AND 40 OR jsonb_typeof(p_records) IS DISTINCT FROM 'array' OR jsonb_array_length(p_records) NOT BETWEEN 1 AND 5000 THEN
+  RETURN jsonb_build_object('status','invalid','errors',jsonb_build_array(jsonb_build_object('index',NULL,'reason','BATCH_SHAPE')));
+ END IF;
+ -- Sérialise les imports concurrents d'une même personne et d'une même source.
+ PERFORM pg_advisory_xact_lock(hashtextextended(p_person::text||'|'||p_namespace,0));
+
+ FOR v_rec IN SELECT * FROM jsonb_array_elements(p_records) LOOP
+  v_reason:=NULL; v_srid:=NULL;
+  IF jsonb_typeof(v_rec) IS DISTINCT FROM 'object' THEN v_reason:='RECORD_SHAPE';
+  ELSE
+   v_srid:=v_rec->>'source_record_id'; v_metric:=v_rec->>'metric_code'; v_method:=v_rec->>'method_code'; v_unit:=v_rec->>'unit';
+   v_dev:=btrim(coalesce(v_rec->>'source_device','')); v_ts:=v_rec->>'measured_at'; v_end:=v_rec->>'interval_end_at';
+   SELECT * INTO v_def FROM hc.metric_definition WHERE metric_code=v_metric;
+   IF v_srid IS NULL OR length(v_srid) NOT BETWEEN 1 AND 200 THEN v_reason:='SOURCE_RECORD_ID';
+   ELSIF v_def.metric_code IS NULL THEN v_reason:='UNKNOWN_METRIC';
+   ELSIF NOT EXISTS(SELECT 1 FROM hc.metric_method m WHERE m.metric_code=v_metric AND m.method_code=v_method) THEN v_reason:='UNAPPROVED_METHOD';
+   ELSIF v_unit IS DISTINCT FROM v_def.canonical_unit THEN v_reason:='UNIT_MISMATCH_NO_SILENT_CONVERSION';
+   ELSIF jsonb_typeof(v_rec->'value') IS DISTINCT FROM 'number' THEN v_reason:='VALUE_NOT_NUMERIC';
+   ELSIF length(v_dev) NOT BETWEEN 1 AND 160 THEN v_reason:='MISSING_DEVICE_PROVENANCE';
+   ELSIF v_ts IS NULL OR v_ts !~ c_ts OR (v_end IS NOT NULL AND v_end !~ c_ts) THEN v_reason:='TIMESTAMP_REQUIRES_EXPLICIT_OFFSET';
+   ELSE
+    BEGIN
+     v_value:=trim_scale((v_rec->>'value')::numeric); v_time:=v_ts::timestamptz; v_endt:=v_end::timestamptz;
+    EXCEPTION WHEN others THEN v_reason:='UNPARSEABLE_VALUE_OR_TIMESTAMP'; END;
+    IF v_reason IS NULL THEN
+     IF v_value<v_def.plausible_min OR v_value>v_def.plausible_max THEN v_reason:='VALUE_OUT_OF_PLAUSIBLE_RANGE';
+     ELSIF v_def.integer_only AND v_value<>trunc(v_value) THEN v_reason:='INTEGER_REQUIRED';
+     ELSIF v_endt IS NOT NULL AND v_endt<=v_time THEN v_reason:='INTERVAL_END_BEFORE_START';
+     ELSIF v_time>now()+interval '1 day' THEN v_reason:='TIMESTAMP_IN_FUTURE';
+     END IF;
+    END IF;
+   END IF;
+  END IF;
+  IF v_reason IS NULL THEN
+   v_canon:=jsonb_build_object('metric_code',v_metric,'method_code',v_method,'unit',v_unit,'value',v_value,
+     'measured_at',hc.iso_utc(v_time),'interval_end_at',CASE WHEN v_endt IS NULL THEN NULL ELSE hc.iso_utc(v_endt) END,'source_device',v_dev);
+   v_digest:=encode(sha256(convert_to(v_canon::text,'UTF8')),'hex');
+   IF v_seen ? v_srid THEN
+    IF v_seen->>v_srid = v_digest THEN v_dup:=v_dup+1; ELSE v_reason:='CONFLICTING_DUPLICATE_IN_BATCH'; END IF;
+   ELSE
+    v_seen:=v_seen||jsonb_build_object(v_srid,v_digest);
+    SELECT r.payload_sha256 INTO v_existing FROM hc.ingestion_receipt r
+     WHERE r.source_namespace=p_namespace AND r.source_record_id=v_srid AND r.ingestion_version=p_version;
+    IF NOT FOUND AND EXISTS(SELECT 1 FROM hc.ingestion_receipt r WHERE r.source_namespace=p_namespace AND r.source_record_id=v_srid AND r.ingestion_version<>p_version) THEN
+     v_reason:='REVISION_NOT_SUPPORTED'; v_conflict:=true;
+    ELSIF FOUND THEN
+     IF v_existing=v_digest THEN v_dup:=v_dup+1; ELSE v_reason:='REVISION_CONFLICT'; v_conflict:=true; END IF;
+    ELSE
+     v_todo:=v_todo||jsonb_build_array(v_canon||jsonb_build_object('srid',v_srid,'digest',v_digest,
+       'tz',substring(v_ts from '(Z|[+-]\d{2}:\d{2})$'),'original_value',v_rec->'value'));
+    END IF;
+   END IF;
+  END IF;
+  IF v_reason IS NOT NULL THEN v_errors:=v_errors||jsonb_build_array(jsonb_build_object('index',v_i,'source_record_id',left(v_srid,200),'reason',v_reason)); END IF;
+  v_i:=v_i+1;
+ END LOOP;
+
+ IF jsonb_array_length(v_errors)>0 THEN
+  PERFORM hc.audit(p_subject,p_person,'import_rejected',jsonb_build_object('namespace',p_namespace,'errors',jsonb_array_length(v_errors)));
+  RETURN jsonb_build_object('status',CASE WHEN v_conflict THEN 'conflict' ELSE 'invalid' END,'inserted',0,'errors',v_errors);
+ END IF;
+
+ FOR v_item IN SELECT * FROM jsonb_array_elements(v_todo) LOOP
+  -- Identifiant déterministe : un même enregistrement source reçoit le même identifiant sur toute installation.
+  v_id:=md5(p_person::text||'|'||p_namespace||'|'||(v_item->>'srid')||'|'||p_version)::uuid;
+  INSERT INTO hc.observation(id,person_id,source_connection_id,metric_code,method_code,original_value,original_unit,value_canonical,unit_canonical,
+    measured_at,interval_end_at,original_timezone,synthetic,source_device)
+  VALUES(v_id,p_person,(SELECT c.id FROM hc.source_connection c WHERE c.provider=v_ns.provider),v_item->>'metric_code',v_item->>'method_code',
+    (v_item->>'original_value')::numeric,v_item->>'unit',(v_item->>'value')::numeric,v_item->>'unit',
+    (v_item->>'measured_at')::timestamptz,(v_item->>'interval_end_at')::timestamptz,v_item->>'tz',true,v_item->>'source_device');
+  INSERT INTO hc.observation_provenance(observation_id,person_id,source_namespace,source_record_id,ingestion_version,source_sha256,transformations)
+  VALUES(v_id,p_person,p_namespace,v_item->>'srid',p_version,v_item->>'digest','[]'::jsonb);
+  INSERT INTO hc.ingestion_receipt(person_id,connection_id,source_namespace,source_record_id,ingestion_version,payload_sha256,observation_id)
+  VALUES(p_person,(SELECT c.id FROM hc.source_connection c WHERE c.provider=v_ns.provider),p_namespace,v_item->>'srid',p_version,v_item->>'digest',v_id);
+  v_inserted:=v_inserted+1;
+ END LOOP;
+ PERFORM hc.audit(p_subject,p_person,'import_batch',jsonb_build_object('namespace',p_namespace,'version',p_version,'inserted',v_inserted,'duplicates',v_dup));
+ RETURN jsonb_build_object('status','ok','inserted',v_inserted,'duplicates',v_dup);
+END $$;
+
+
+CREATE OR REPLACE FUNCTION hc.api_record_report(p_subject text,p_person uuid,p_algorithm text,p_parameters jsonb,p_sha text,p_observation_ids uuid[]) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,hc,pg_temp AS $$
+DECLARE v_id uuid; v_known int; v_ids uuid[];
+BEGIN
+ IF NOT hc.guard(p_subject,p_person,'read') THEN RETURN jsonb_build_object('status','forbidden'); END IF;
+ IF p_sha IS NULL OR p_parameters IS NULL OR p_sha !~ '^[a-f0-9]{64}$' OR length(coalesce(p_algorithm,'')) NOT BETWEEN 1 AND 40 OR jsonb_typeof(p_parameters)<>'object' THEN RETURN jsonb_build_object('status','invalid'); END IF;
+ v_ids:=ARRAY(SELECT DISTINCT x FROM unnest(coalesce(p_observation_ids,'{}'::uuid[])) x);
+ SELECT count(*) INTO v_known FROM hc.observation o WHERE o.id=ANY(v_ids);
+ IF v_known<>coalesce(array_length(v_ids,1),0) THEN RETURN jsonb_build_object('status','invalid','reason','UNRESOLVED_REFERENCE'); END IF;
+ PERFORM pg_advisory_xact_lock(hashtextextended('report|'||p_person::text||'|'||p_sha,0));
+ SELECT id INTO v_id FROM hc.report WHERE person_id=p_person AND document_sha256=p_sha;
+ IF v_id IS NULL THEN
+  INSERT INTO hc.report(person_id,algorithm_version,document_sha256,synthetic,parameters,requested_by)
+  VALUES(p_person,p_algorithm,p_sha,true,p_parameters,left(p_subject,180)) RETURNING id INTO v_id;
+  INSERT INTO hc.report_observation(report_id,observation_id) SELECT v_id,x FROM unnest(v_ids) x;
+ END IF;
+ PERFORM hc.audit(p_subject,p_person,'generate_report',jsonb_build_object('report',v_id,'sha256',p_sha));
+ RETURN jsonb_build_object('status','ok','report_id',v_id,'sha256',p_sha);
+END $$;
+
+
+COMMIT;

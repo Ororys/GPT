@@ -1,0 +1,21 @@
+
+> test
+> tsx --test tests/*.test.ts
+
+✔ health and HTML describe a private synthetic mobile demo (191.709899ms)
+✔ requires demo session and forbids cross-person dossier (77.678596ms)
+✔ origin, malformed JSON and unknown profile are refused (15.959593ms)
+✔ known persona has a secure HttpOnly session cookie (10.66222ms)
+✔ import rejects modified and excessive files; adds one candidate only to browser session (185.593865ms)
+✔ beta sees an empty dossier and cannot read alpha PDF (7.912556ms)
+✔ PDF source is real and export stays clearly mobile-demo (411.960666ms)
+✔ native PDF demo: parse, explicit selection, session-only integration and original bytes (568.109385ms)
+✔ native PDF demo: incompatible unit, wrong person and unlisted PDF rejected (110.163089ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4837.397263

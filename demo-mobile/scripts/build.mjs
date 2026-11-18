@@ -1,0 +1,10 @@
+import {build} from 'esbuild';
+import {readFile,mkdir,writeFile} from 'node:fs/promises';
+import {resolve} from 'node:path';
+const client=await build({entryPoints:['src/main.tsx'],bundle:true,minify:true,write:false,outdir:'virtual',entryNames:'app',loader:{'.woff2':'dataurl','.woff':'dataurl'},alias:{'@':resolve('src')},define:{'process.env.NODE_ENV':'"production"'},jsx:'automatic',target:['es2022'],logLevel:'warning'});
+const js=client.outputFiles.find(f=>f.path.endsWith('.js')).text;
+const css=client.outputFiles.find(f=>f.path.endsWith('.css')).text;
+await writeFile('worker/assets.generated.ts',`export const JAVASCRIPT=${JSON.stringify(js)};\nexport const STYLES=${JSON.stringify(css)};\n`);
+await mkdir('dist/server',{recursive:true});
+await build({entryPoints:['worker/index.ts'],bundle:true,minify:true,format:'esm',platform:'browser',conditions:['workerd','browser'],target:['es2022'],outfile:'dist/server/index.js',logLevel:'warning'});
+console.log('Built mobile demo Worker with embedded, self-contained assets.');

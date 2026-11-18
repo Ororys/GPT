@@ -1,0 +1,25 @@
+
+> @health-convergence/personal@0.2.0 test
+> tsx --test tests/*.test.ts
+
+✔ jeu synthétique : schémas stricts, patient et unités cohérents (16.080255ms)
+✔ provenance : chaque mesure retrouve son document et le même événement timeline (4.879072ms)
+✔ calcul sportif : somme des seules activités filtrées, aucune moyenne fictive (3.796034ms)
+✔ sommeil : lacunes conservées, moyenne sur les seules mesures disponibles (3.744678ms)
+✔ Time Machine : un événement ancien mais connu plus tard reste absent (3.238855ms)
+✔ dernière valeur indépendante de l’ordre et d’une autre catégorie (3.93902ms)
+✔ isolation des fixtures : une copie ne modifie jamais une autre et bêta reste vide (9.265305ms)
+✔ import : contrat synthétique, valeurs originales et provenance conservés (2.599323ms)
+✔ session : signature, expiration, sujets connus et refus inter-dossier (1.6526ms)
+✔ limites du périmètre : pas de score médical, plages attachées au laboratoire (5.471877ms)
+✔ échantillons sportifs : distance intégrée et FC moyenne cohérentes avec le résumé (3.315468ms)
+✔ préparation graphique : 10 000 points, trous non remplacés et index exact (14.042898ms)
+✔ PDF synthétique : une vraie page, empreinte déterministe et métadonnées explicites (336.849552ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 840.607651

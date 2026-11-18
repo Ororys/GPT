@@ -1,0 +1,7 @@
+record_id,timestamp,metric_code,method_code,value,unit,source_device
+lab_ldl_01,2026-08-20T08:00:00Z,LDL_C,calculated_friedewald,1.42,g/L,Laboratoire fictif · résultat simulé
+lab_ldl_02,2026-11-12T08:00:00Z,LDL_C,calculated_friedewald,1.28,g/L,Laboratoire fictif · résultat simulé
+lab_hba1c_01,2026-08-20T08:00:00Z,HBA1C,lab_hplc,5.8,%,Laboratoire fictif · résultat simulé
+lab_hba1c_02,2026-11-12T08:00:00Z,HBA1C,lab_hplc,5.6,%,Laboratoire fictif · résultat simulé
+lab_tg_01,2026-08-20T08:00:00Z,TG,lab_reported,1.65,g/L,Laboratoire fictif · résultat simulé
+lab_tg_02,2026-11-12T08:00:00Z,TG,lab_reported,1.42,g/L,Laboratoire fictif · résultat simulé

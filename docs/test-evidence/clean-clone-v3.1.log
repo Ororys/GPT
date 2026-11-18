@@ -1,0 +1,101 @@
+
+> health-convergence@3.1.0 test:all
+> npm run test:unit && npm run test:pg && npm run test:e2e
+
+
+> health-convergence@3.1.0 test:unit
+> node --test tests/test_units.mjs tests/test_live_report.mjs && python3 -m unittest discover -s tests -p "test_*.py"
+
+✔ live report rebuilds from 378 synthetic observations with provenance (16.947905ms)
+✔ date filtering, bounded ranges, and missing reference behavior (4.915624ms)
+✔ person isolation, duplicate ids, unknown metrics, non synthetic, timestamp sanity (13.200263ms)
+✔ does not group HRV methods or sources (4.780031ms)
+✔ jeton : seul le sujet est retenu ; entrées hostiles → UNAUTHENTICATED (jamais une autre erreur) (10.181934ms)
+✔ CSV : guillemets, virgules, BOM, CRLF, lignes vides, colonnes manquantes (14.463833ms)
+✔ connecteurs réels : interfaces déclarées, jamais exécutables ; SDNN (HealthKit) ≠ RMSSD (Health Connect) (1.876265ms)
+✔ moteur : dates calendaires invalides refusées, dossier vide accepté avec personne explicite (22.817784ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 565.410258
+.....................................
+----------------------------------------------------------------------
+Ran 37 tests in 0.036s
+
+OK
+
+> health-convergence@3.1.0 test:pg
+> node --env-file-if-exists=.env --test --test-concurrency=1 tests/test_pg_boundary.mjs tests/test_pg_import.mjs tests/test_http_api.mjs tests/test_migrations.mjs
+
+.env not found. Continuing without it.
+.env not found. Continuing without it.
+✔ authentification : absence, jeton malformé, signature altérée, jeton expiré → 401 (1062.818076ms)
+✔ session de démonstration : profils connus uniquement ; hôte inattendu refusé (75.74068ms)
+✔ profil : chaque rôle ne voit que ses dossiers (123.651088ms)
+✔ observations : pagination, filtres, validation des paramètres, isolation (269.112981ms)
+✔ rapport à la demande : contenu, déterminisme, traçabilité, absence de sortie clinique (T08) (616.726563ms)
+✔ exports CSV et JSON : contenu complet, protégés, journalisés (152.74209ms)
+✔ import par connecteur simulé : création, idempotence, erreurs par ligne, conflits, droits (354.899533ms)
+✔ consentement : le patient révoque une source, les imports cessent ; journal visible du patient seul (109.421834ms)
+✔ référentiels, documentation, page et en-têtes de sécurité (19.666297ms)
+.env not found. Continuing without it.
+✔ migration : DDL et reçu atomiques, reprise, idempotence, détection de modification (668.200497ms)
+✔ mise à niveau v3.0 vers v3.1 : registre migrations et réimport inchangés (1086.111355ms)
+.env not found. Continuing without it.
+✔ le rôle API ne peut ni lire les tables, ni appeler les fonctions internes, ni changer de rôle (1135.284223ms)
+✔ propriétaire non privilégié, RLS forcée et politiques présentes sur toutes les tables (7.4129ms)
+✔ défense en profondeur : sans portée de personne, même le propriétaire ne voit aucune ligne de dossier (12.995273ms)
+✔ isolation entre patients et rôles (T01, T10) (109.165199ms)
+✔ les refus sont journalisés durablement (ils étaient annulés par le RAISE en v1.5) (20.712386ms)
+✔ révocation et expiration des habilitations prises en compte immédiatement (37.786167ms)
+✔ immuabilité : ni UPDATE, ni DELETE, ni TRUNCATE, même pour le rôle de migration (116.391585ms)
+✔ verrou synthétique en base et module clinique V2 non exécutable (36.379712ms)
+✔ limite documentée : le rôle API choisit le sujet et peut annuler son audit (16.838503ms)
+✔ v3.1 : rapports identiques concurrents = un instantané sans violation unicité (105.712342ms)
+.env not found. Continuing without it.
+✔ réimport intégral : aucun doublon (idempotence) (922.654098ms)
+✔ conflit de révision : rejet, sans écrasement, et lot atomique (29.806976ms)
+✔ validation en base : chaque motif de rejet, lot entièrement refusé (66.375793ms)
+✔ SDNN et RMSSD restent deux séries distinctes (T03) (18.538397ms)
+✔ qui peut importer quoi : espace de noms, rôle, connexion active (T09) (43.629349ms)
+✔ même identifiant source chez deux patients : aucune collision (régression du défaut 003) (25.963542ms)
+✔ imports concurrents du même lot : insérés exactement une fois (140.292501ms)
+✔ fuseaux et heure d'été : instant UTC exact et décalage d'origine conservés (T05) (17.070204ms)
+✔ déterminisme : une seconde installation produit les mêmes identifiants d'observation (1561.469807ms)
+✔ v3.1 : valeurs absentes ou nulles rejetées sans exception et lot atomique (25.530558ms)
+✔ v3.1 : microsecondes conservées et conflit détecté entre instants distincts (12.932842ms)
+✔ v3.1 : révocation concurrente validée avant import = import refusé (24.523034ms)
+✔ v3.1 : une autre version ne doit pas compter deux fois la même mesure (12.914067ms)
+ℹ tests 34
+ℹ suites 0
+ℹ pass 34
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 9941.94609
+
+> health-convergence@3.1.0 test:e2e
+> node --env-file-if-exists=.env --test tests/e2e/demo.e2e.mjs
+
+.env not found. Continuing without it.
+.env not found. Continuing without it.
+✔ connexion : six profils fictifs, bandeau « données fictives » permanent (1921.627235ms)
+✔ patient : synthèse, graphique, historique filtré, source d'origine (1931.430784ms)
+✔ rapport à la demande : 12 séries, empreinte, paramètres, erreur de saisie expliquée (1433.38371ms)
+✔ IDE : pas de lecture du dossier, import idempotent, erreurs par ligne ; patient : révocation (1642.286038ms)
+✔ rôles sans accès et dossier vide : états explicites (786.897719ms)
+✔ mobile 390 px : pas de débordement horizontal ; aucun message d'erreur console ni violation CSP (2604.041992ms)
+✔ capacité UI (réponses interceptées) : aucun dossier partiel présenté comme complet (1093.46355ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 12740.115355

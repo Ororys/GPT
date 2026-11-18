@@ -1,0 +1,25 @@
+
+> health-convergence@3.1.0 test:unit
+> node --test tests/test_units.mjs tests/test_live_report.mjs && python3 -m unittest discover -s tests -p "test_*.py"
+
+✔ live report rebuilds from 378 synthetic observations with provenance (8.267879ms)
+✔ date filtering, bounded ranges, and missing reference behavior (3.077889ms)
+✔ person isolation, duplicate ids, unknown metrics, non synthetic, timestamp sanity (8.673454ms)
+✔ does not group HRV methods or sources (3.471722ms)
+✔ jeton : seul le sujet est retenu ; entrées hostiles → UNAUTHENTICATED (jamais une autre erreur) (5.848175ms)
+✔ CSV : guillemets, virgules, BOM, CRLF, lignes vides, colonnes manquantes (5.377609ms)
+✔ connecteurs réels : interfaces déclarées, jamais exécutables ; SDNN (HealthKit) ≠ RMSSD (Health Connect) (0.607621ms)
+✔ moteur : dates calendaires invalides refusées, dossier vide accepté avec personne explicite (11.118294ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 242.296732
+.....................................
+----------------------------------------------------------------------
+Ran 37 tests in 0.028s
+
+OK

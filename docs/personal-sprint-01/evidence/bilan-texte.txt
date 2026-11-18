@@ -1,0 +1,50 @@
+CONVERGENCE / DOCUMENT SYNTHETIQUE
+Aucun patient reel. Aucun usage medical.
+
+
+
+
+Bilan biologique - novembre 2026
+Laboratoire Atlas - fictif
+
+Profil fictif : Alex Martin - dossier demo-alpha
+Mesure : 2026-11-04 / connu le : 2026-11-04
+
+
+
+Parametre                                     Resultat / unite / reference du laboratoire fictif
+
+
+Ferritine                                     62 µg/L [30 - 300]
+
+
+
+LDL-cholestérol                               1.28 g/L [0.5 - 1.6]
+
+
+
+Hémoglobine glyquée                           5.3 % [4 - 6]
+
+
+
+Créatinine                                    9.1 mg/L [7 - 13]
+
+
+
+Vitamine D                                    36 ng/mL [20 - 60]
+
+
+
+Hémoglobine                                   14.7 g/dL [13 - 17]
+
+
+
+
+Ce PDF est genere depuis les fixtures du prototype.
+Il ne resulte pas d'une extraction OCR ou IA.
+Les references sont fictives et ne constituent pas des normes universelles.
+
+
+
+Source : lab-2026-11-04 / page 1
+

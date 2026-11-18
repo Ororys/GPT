@@ -1,0 +1,118 @@
+openapi: 3.0.3
+info:
+  title: Health Convergence — API V1 descriptive (données synthétiques uniquement)
+  version: 3.1.0
+  description: >
+    API locale de démonstration. Aucune donnée de santé réelle. Aucun score, diagnostic, alerte ou recommandation.
+    L'identité vient d'un jeton signé ; TOUTES les autorisations sont décidées dans PostgreSQL (fonctions hc.api_*).
+    Les jetons HS256 émis par /demo/session sont un substitut de démonstration, pas une authentification (voir BLOCKERS.md).
+servers: [{url: http://127.0.0.1:8080}]
+security: [{bearer: []}]
+components:
+  securitySchemes: {bearer: {type: http, scheme: bearer, bearerFormat: JWT}}
+  parameters:
+    personId: {name: personId, in: path, required: true, schema: {type: string, format: uuid}}
+  schemas:
+    Error:
+      type: object
+      required: [error, requestId]
+      properties:
+        error: {type: string, example: FORBIDDEN}
+        requestId: {type: string, format: uuid}
+        errors: {type: array, items: {type: object, properties: {row: {type: integer, nullable: true}, source_record_id: {type: string}, reason: {type: string}}}}
+    Observation:
+      type: object
+      properties:
+        id: {type: string, format: uuid, description: Déterministe (personne, source, identifiant source, version)}
+        person_id: {type: string, format: uuid}
+        metric_code: {type: string, example: HRV}
+        method_code: {type: string, example: SDNN, description: SDNN et RMSSD ne sont jamais fusionnés}
+        value: {type: number}
+        unit: {type: string}
+        original_value: {type: number}
+        original_unit: {type: string}
+        measured_at: {type: string, format: date-time, description: UTC}
+        interval_end_at: {type: string, format: date-time, nullable: true}
+        original_timezone: {type: string, example: "+02:00"}
+        source_namespace: {type: string}
+        source_record_id: {type: string}
+        source_device: {type: string}
+        quality_state: {type: string, enum: [unreviewed, acceptable, incomplete, excluded]}
+        synthetic: {type: boolean, enum: [true]}
+paths:
+  /healthz: {get: {security: [], summary: État du service et de la base, responses: {'200': {description: OK}}}}
+  /api/v1/demo/personas: {get: {security: [], summary: Profils fictifs (si HC_DEMO_LOGIN=true), responses: {'200': {description: OK}, '404': {description: Désactivé}}}}
+  /api/v1/demo/session:
+    post:
+      security: []
+      summary: Émet un jeton de démonstration (15 min) pour un profil fictif connu
+      requestBody: {required: true, content: {application/json: {schema: {type: object, required: [subject], properties: {subject: {type: string}}}}}}
+      responses: {'200': {description: Jeton}, '404': {description: Désactivé}, '422': {description: Profil inconnu}}
+  /api/v1/me: {get: {summary: Rôle et dossiers accessibles avec permissions, responses: {'200': {description: OK}, '401': {description: Non authentifié}, '403': {description: Sujet inconnu ou inactif}}}}
+  /api/v1/metrics: {get: {summary: Registre des métriques (code, unité canonique, méthodes, bornes de plausibilité) et espaces de noms, responses: {'200': {description: OK}}}}
+  /api/v1/connectors: {get: {summary: Connecteurs simulés et interfaces préparées (non configurées), responses: {'200': {description: OK}}}}
+  /api/v1/patients/{personId}/observations:
+    get:
+      summary: Historique paginé des observations
+      parameters:
+        - {$ref: '#/components/parameters/personId'}
+        - {name: metric, in: query, schema: {type: string, pattern: '^[A-Z][A-Z0-9_]{0,31}$'}}
+        - {name: source, in: query, schema: {type: string}}
+        - {name: start, in: query, schema: {type: string, format: date}}
+        - {name: end, in: query, schema: {type: string, format: date}, description: Inclus (jour UTC)}
+        - {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 500, default: 50}}
+        - {name: offset, in: query, schema: {type: integer, minimum: 0, default: 0}}
+      responses:
+        '200': {description: OK, content: {application/json: {schema: {type: object, properties: {total: {type: integer}, observations: {type: array, items: {$ref: '#/components/schemas/Observation'}}}}}}}
+        '400': {description: Paramètres invalides, content: {application/json: {schema: {$ref: '#/components/schemas/Error'}}}}
+        '403': {description: Refus (journalisé)}
+  /api/v1/patients/{personId}/observations/{observationId}:
+    get:
+      summary: Enregistrement source avec provenance (version d'import, empreinte, date d'import)
+      parameters: [{$ref: '#/components/parameters/personId'}, {name: observationId, in: path, required: true, schema: {type: string, format: uuid}}]
+      responses: {'200': {description: OK}, '403': {description: Refus}, '404': {description: Absent de ce dossier}}
+  /api/v1/patients/{personId}/report:
+    get:
+      summary: Rapport longitudinal descriptif calculé à la demande, déterministe, avec instantané tracé en base
+      parameters:
+        - {$ref: '#/components/parameters/personId'}
+        - {name: start, in: query, schema: {type: string, format: date}}
+        - {name: end, in: query, schema: {type: string, format: date}}
+        - {name: windowDays, in: query, schema: {type: integer, minimum: 7, maximum: 45, default: 14}}
+        - {name: minDays, in: query, schema: {type: integer, minimum: 1, maximum: 45, default: 7}}
+        - {name: format, in: query, schema: {type: string, enum: [json, md], default: json}}
+      responses: {'200': {description: 'Rapport, report_id, sha256, algorithm_version'}, '400': {description: Paramètres invalides}, '403': {description: Refus}}
+  /api/v1/patients/{personId}/export:
+    get:
+      summary: Export complet des observations (journalisé comme export)
+      parameters: [{$ref: '#/components/parameters/personId'}, {name: format, in: query, schema: {type: string, enum: [json, csv], default: json}}]
+      responses: {'200': {description: Fichier}, '403': {description: Refus}}
+  /api/v1/patients/{personId}/imports/{connector}:
+    post:
+      summary: Import atomique et idempotent par un connecteur simulé
+      description: >
+        Tout ou rien. Clé d'idempotence = (personne, connecteur, record_id, version). Même contenu et version = doublon ignoré ;
+        contenu différent = 409. Une autre version du même identifiant est refusée (REVISION_NOT_SUPPORTED) jusqu'au flux de rectification. Exige une connexion de source active (consentement du patient) et un rôle habilité.
+      parameters:
+        - {$ref: '#/components/parameters/personId'}
+        - {name: connector, in: path, required: true, schema: {type: string, enum: [demo_watch_csv, demo_lab_csv, demo_center_csv]}}
+        - {name: version, in: query, schema: {type: string, default: '1'}}
+      requestBody: {required: true, content: {text/csv: {schema: {type: string, description: 'Colonnes : record_id,timestamp,metric_code,method_code,value,unit,source_device'}}}}
+      responses:
+        '201': {description: Observations créées}
+        '200': {description: Rien de nouveau (doublons)}
+        '403': {description: Rôle non habilité}
+        '409': {description: REVISION_CONFLICT ou CONNECTION_INACTIVE}
+        '413': {description: Fichier trop volumineux}
+        '422': {description: Fichier ou lignes invalides (erreurs par ligne), content: {application/json: {schema: {$ref: '#/components/schemas/Error'}}}}
+        '501': {description: Connecteur réel non configuré}
+  /api/v1/patients/{personId}/connections:
+    get: {summary: État des connexions de sources, parameters: [{$ref: '#/components/parameters/personId'}], responses: {'200': {description: OK}, '403': {description: Refus}}}
+  /api/v1/patients/{personId}/connections/{provider}:
+    put:
+      summary: Le patient autorise ou révoque une source
+      parameters: [{$ref: '#/components/parameters/personId'}, {name: provider, in: path, required: true, schema: {type: string}}]
+      requestBody: {required: true, content: {application/json: {schema: {type: object, required: [status], properties: {status: {type: string, enum: [active, revoked]}}}}}}
+      responses: {'200': {description: OK}, '403': {description: Réservé au patient}, '422': {description: Invalide}}
+  /api/v1/patients/{personId}/audit:
+    get: {summary: 'Journal des accès au dossier, autorisés et refusés (patient uniquement)', parameters: [{$ref: '#/components/parameters/personId'}], responses: {'200': {description: OK}, '403': {description: Refus}}}

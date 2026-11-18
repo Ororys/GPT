@@ -1,0 +1,10 @@
+
+> @health-convergence/personal@0.2.0 db:prepare
+> node --env-file=.env.database --env-file=.env.local --import tsx scripts/database.ts
+
+Personal schema migrated and synthetic seed ready.
+
+> @health-convergence/personal@0.2.0 db:prepare
+> node --env-file=.env.database --env-file=.env.local --import tsx scripts/database.ts
+
+Personal schema migrated and synthetic seed ready.

@@ -1,0 +1,25 @@
+
+> @health-convergence/personal@0.1.0 test:e2e
+> playwright test
+
+[WebServer] (node:7622) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 12 tests using 1 worker
+
+(node:7649) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 tests/personal.spec.ts:13:1 › overview réel : données, graphique interactif, comparaison, tableau accessible et capture desktop (2.6s)
+  ✓   2 tests/personal.spec.ts:36:1 › navigation : cinq pages, routes réelles, mode clair persistant et rétractation (4.4s)
+  ✓   3 tests/personal.spec.ts:61:1 › biologie : filtre, mesure cohérente, provenance et vrai PDF (1.7s)
+  ✓   4 tests/personal.spec.ts:80:1 › sport : filtres, tri, période et analyse synchronisée (1.7s)
+  ✓   5 tests/personal.spec.ts:94:1 › documents : recherche, états vides et source reliée (1.0s)
+  ✓   6 tests/personal.spec.ts:106:1 › Time Machine : événement et date de connaissance distincts (989ms)
+  ✓   7 tests/personal.spec.ts:116:1 › import : fichier refusé, import atomique, idempotence et cohérence des pages (3.0s)
+  ✓   8 tests/personal.spec.ts:150:1 › sécurité HTTP : sans session, accès croisé, CSRF, taille et fichier modifié (194ms)
+  ✓   9 tests/personal.spec.ts:208:1 › profil vide, paramètres et export contrôlé (1.8s)
+  ✓  10 tests/personal.spec.ts:221:1 › mobile : cinq parcours, clair/sombre, sans débordement à 390 px (3.6s)
+  ✓  11 tests/personal.spec.ts:243:1 › accessibilité : audit automatisé ciblé AA, sombre et clair, clavier et réduction du mouvement (3.3s)
+  ✓  12 tests/personal.spec.ts:265:1 › graphique 10 000 points : rendu, zoom et tableau paginé avec lacunes (1.5s)
+
+  12 passed (29.0s)

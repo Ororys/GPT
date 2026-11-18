@@ -1,0 +1,43 @@
+# ENVIRONNEMENT LOCAL, DONNÉES SYNTHÉTIQUES UNIQUEMENT. Ports publiés sur 127.0.0.1 seulement : ne jamais exposer.
+# Prérequis : `npm run env:init` (génère .env avec des secrets aléatoires locaux), puis `docker compose up --build`.
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: hc_admin            # rôle d'amorçage : migrations et seed uniquement, jamais utilisé par l'API
+      POSTGRES_PASSWORD: ${HC_ADMIN_DB_PASSWORD:?lancer npm run env:init}
+      POSTGRES_DB: health_convergence_demo
+    ports: ["127.0.0.1:55432:5432"]       # pour `npm run test:pg` depuis l'hôte
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hc_admin -d health_convergence_demo"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+    tmpfs: ["/var/lib/postgresql/data"]   # base éphémère : aucune persistance
+  migrate:
+    build: .
+    image: health-convergence-app:local
+    depends_on: {db: {condition: service_healthy}}
+    environment:
+      HC_SYNTHETIC_ONLY: "true"
+      HC_ADMIN_DATABASE_URL: postgresql://hc_admin:${HC_ADMIN_DB_PASSWORD}@db:5432/health_convergence_demo
+      HC_API_DB_PASSWORD: ${HC_API_DB_PASSWORD:?lancer npm run env:init}
+      DATABASE_URL: postgresql://hc_api_login:${HC_API_DB_PASSWORD}@db:5432/health_convergence_demo
+    command: ["sh","-c","node scripts/migrate.mjs && node scripts/seed-demo.mjs"]
+    restart: "no"
+  app:
+    build: .
+    image: health-convergence-app:local
+    depends_on: {migrate: {condition: service_completed_successfully}}
+    environment:
+      HC_SYNTHETIC_ONLY: "true"
+      HC_DEMO_LOGIN: "true"
+      HC_TOKEN_SECRET: ${HC_TOKEN_SECRET:?lancer npm run env:init}
+      DATABASE_URL: postgresql://hc_api_login:${HC_API_DB_PASSWORD}@db:5432/health_convergence_demo
+      HOST: 0.0.0.0                        # interne au conteneur ; la publication ci-dessous reste en boucle locale
+      PORT: "8080"
+      HC_ALLOWED_HOSTS: 127.0.0.1:8080,localhost:8080
+    ports: ["127.0.0.1:8080:8080"]
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]

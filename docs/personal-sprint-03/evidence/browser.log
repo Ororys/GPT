@@ -1,0 +1,27 @@
+
+> @health-convergence/personal@0.3.0 test:e2e:pg
+> tsx scripts/e2e-postgres.ts
+
+[WebServer] (node:15781) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 14 tests using 1 worker
+
+(node:15795) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 tests/personal.spec.ts:13:1 › overview réel : données, graphique interactif, comparaison, tableau accessible et capture desktop (3.6s)
+  ✓   2 tests/personal.spec.ts:36:1 › navigation : cinq pages, routes réelles, mode clair persistant et rétractation (6.1s)
+  ✓   3 tests/personal.spec.ts:61:1 › biologie : filtre, mesure cohérente, provenance et vrai PDF (3.8s)
+  ✓   4 tests/personal.spec.ts:80:1 › sport : filtres, tri, période et analyse synchronisée (3.8s)
+  ✓   5 tests/personal.spec.ts:94:1 › documents : recherche, états vides et source reliée (1.8s)
+  ✓   6 tests/personal.spec.ts:106:1 › Time Machine : événement et date de connaissance distincts (1.8s)
+  ✓   7 tests/personal.spec.ts:116:1 › import : fichier refusé, import atomique, idempotence et cohérence des pages (4.7s)
+  ✓   8 tests/personal.spec.ts:151:1 › sécurité HTTP : sans session, accès croisé, CSRF, taille et fichier modifié (309ms)
+  ✓   9 tests/personal.spec.ts:215:1 › profil vide, paramètres et export contrôlé (2.2s)
+  ✓  10 tests/personal.spec.ts:232:1 › mobile : cinq parcours, clair/sombre, sans débordement à 390 px (7.6s)
+  ✓  11 tests/personal.spec.ts:254:1 › accessibilité : audit automatisé ciblé AA, sombre et clair, clavier et réduction du mouvement (5.0s)
+  ✓  12 tests/personal.spec.ts:276:1 › graphique 10 000 points : rendu, zoom et tableau paginé avec lacunes (2.2s)
+  ✓  13 tests/personal.spec.ts:290:1 › PDF natif : lecture réelle, revue explicite, ajout sourcé et aucun doublon (3.4s)
+  ✓  14 tests/personal.spec.ts:340:1 › PDF limites : unité incompatible bloquée et absence de texte signalée sans OCR (2.2s)
+
+  14 passed (52.2s)

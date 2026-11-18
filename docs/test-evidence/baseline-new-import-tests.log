@@ -1,0 +1,96 @@
+✖ v3.1 : valeurs absentes ou nulles rejetées sans exception et lot atomique (989.917421ms)
+✖ v3.1 : microsecondes conservées et conflit détecté entre instants distincts (41.100347ms)
+✖ v3.1 : révocation concurrente validée avant import = import refusé (1245.105781ms)
+✖ v3.1 : une autre version ne doit pas compter deux fois la même mesure (21.200381ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 0
+ℹ fail 4
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3162.783975
+
+✖ failing tests:
+
+test at tests/regressions.mjs:105:1
+✖ v3.1 : valeurs absentes ou nulles rejetées sans exception et lot atomique (989.917421ms)
+  error: null value in column "original_value" of relation "observation" violates not-null constraint
+      at /workspace/HealthConvergence/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async #call (file:///workspace/scratch/src/pg-repository.mjs:5:39)
+      at async TestContext.<anonymous> (file:///workspace/scratch/tests/regressions.mjs:108:11)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    length: 887,
+    severity: 'ERROR',
+    code: '23502',
+    detail: undefined,
+    hint: undefined,
+    position: undefined,
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: `SQL statement "INSERT INTO hc.observation(id,person_id,source_connection_id,metric_code,method_code,original_value,original_unit,value_canonical,unit_canonical,\n    measured_at,interval_end_at,original_timezone,synthetic,source_device)\n  VALUES(v_id,p_person,(SELECT c.id FROM hc.source_connection c WHERE c.provider=v_ns.provider),v_item->>'metric_code',v_item->>'method_code',\n    (v_item->>'original_value')::numeric,v_item->>'unit',(v_item->>'value')::numeric,v_item->>'unit',\n    (v_item->>'measured_at')::timestamptz,(v_item->>'interval_end_at')::timestamptz,v_item->>'tz',true,v_item->>'source_device')"\nPL/pgSQL function api_import_batch(text,uuid,text,text,jsonb) line 85 at SQL statement`,
+    schema: 'hc',
+    table: 'observation',
+    column: 'original_value',
+    dataType: undefined,
+    constraint: undefined,
+    file: 'execMain.c',
+    line: '2057',
+    routine: 'ExecConstraints'
+  }
+
+test at tests/regressions.mjs:114:1
+✖ v3.1 : microsecondes conservées et conflit détecté entre instants distincts (41.100347ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + '2026-10-01T08:00:00Z'
+  - '2026-10-01T08:00:00.123456Z'
+                        ^
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/tests/regressions.mjs:118:9)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '2026-10-01T08:00:00Z',
+    expected: '2026-10-01T08:00:00.123456Z',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/regressions.mjs:122:1
+✖ v3.1 : révocation concurrente validée avant import = import refusé (1245.105781ms)
+  AssertionError [ERR_ASSERTION]: import doit attendre la transaction de révocation
+      at TestContext.<anonymous> (file:///workspace/scratch/tests/regressions.mjs:134:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/regressions.mjs:138:1
+✖ v3.1 : une autre version ne doit pas compter deux fois la même mesure (21.200381ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  'ok' !== 'conflict'
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/tests/regressions.mjs:141:9)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'ok',
+    expected: 'conflict',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

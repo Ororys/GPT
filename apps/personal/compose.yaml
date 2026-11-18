@@ -1,0 +1,17 @@
+# Synthetic demonstration, local only. Data persists in the named volume.
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: hc_personal_admin
+      POSTGRES_PASSWORD: ${HC_PERSONAL_DB_PASSWORD:?run npm run env:init}
+      POSTGRES_DB: hc_personal_demo
+    ports: ['127.0.0.1:55433:5432']
+    volumes: ['personal_data:/var/lib/postgresql/data']
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U hc_personal_admin -d hc_personal_demo']
+      interval: 2s
+      timeout: 3s
+      retries: 30
+volumes:
+  personal_data:

@@ -1,0 +1,21 @@
+
+> health-convergence@3.1.0 test:e2e
+> node --env-file-if-exists=.env --test tests/e2e/demo.e2e.mjs
+
+.env not found. Continuing without it.
+.env not found. Continuing without it.
+✔ connexion : six profils fictifs, bandeau « données fictives » permanent (1737.993053ms)
+✔ patient : synthèse, graphique, historique filtré, source d'origine (1766.70256ms)
+✔ rapport à la demande : 12 séries, empreinte, paramètres, erreur de saisie expliquée (1677.3503ms)
+✔ IDE : pas de lecture du dossier, import idempotent, erreurs par ligne ; patient : révocation (1392.937563ms)
+✔ rôles sans accès et dossier vide : états explicites (476.444273ms)
+✔ mobile 390 px : pas de débordement horizontal ; aucun message d'erreur console ni violation CSP (2280.897863ms)
+✔ capacité UI (réponses interceptées) : aucun dossier partiel présenté comme complet (324.803341ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 10688.759773

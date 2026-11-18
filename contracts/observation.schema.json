@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/health-convergence/observation-v1.3",
+  "title": "Health Convergence descriptive observation",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "person_id",
+    "metric_code",
+    "method_code",
+    "value",
+    "unit",
+    "measured_at",
+    "source_namespace",
+    "source_record_id",
+    "synthetic"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "person_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "metric_code": {
+      "type": "string",
+      "enum": [
+        "RHR",
+        "HRV",
+        "SLEEP_DURATION",
+        "STEPS",
+        "SPO2",
+        "LDL",
+        "TRIGLYCERIDES",
+        "HBA1C",
+        "WAIST",
+        "BODY_FAT",
+        "GRIP",
+        "CHAIR_STAND",
+        "EGFR",
+        "UACR",
+        "BP_SYSTOLIC",
+        "BP_DIASTOLIC"
+      ]
+    },
+    "method_code": {
+      "type": "string",
+      "minLength": 1
+    },
+    "value": {
+      "type": "number"
+    },
+    "unit": {
+      "type": "string",
+      "minLength": 1
+    },
+    "measured_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "interval_end_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "source_namespace": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source_record_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source_device": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "synthetic": {
+      "type": "boolean",
+      "const": true
+    },
+    "quality_state": {
+      "type": "string",
+      "enum": [
+        "unreviewed",
+        "acceptable",
+        "incomplete",
+        "excluded"
+      ]
+    }
+  }
+}

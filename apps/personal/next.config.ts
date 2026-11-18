@@ -1,0 +1,21 @@
+import type { NextConfig } from 'next';
+import { fileURLToPath } from 'node:url';
+const config: NextConfig = {
+  poweredByHeader: false,
+  outputFileTracingRoot: fileURLToPath(new URL('.', import.meta.url)),
+  turbopack: { root: fileURLToPath(new URL('.', import.meta.url)) },
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'Referrer-Policy', value: 'no-referrer' },
+          { key: 'X-Frame-Options', value: 'DENY' },
+          { key: 'Cache-Control', value: 'no-store' },
+        ],
+      },
+    ];
+  },
+};
+export default config;

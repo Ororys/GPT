@@ -1,0 +1,51 @@
+
+> health-convergence@3.1.0 test:pg
+> node --env-file-if-exists=.env --test --test-concurrency=1 tests/test_pg_boundary.mjs tests/test_pg_import.mjs tests/test_http_api.mjs tests/test_migrations.mjs
+
+.env not found. Continuing without it.
+.env not found. Continuing without it.
+✔ authentification : absence, jeton malformé, signature altérée, jeton expiré → 401 (808.74799ms)
+✔ session de démonstration : profils connus uniquement ; hôte inattendu refusé (56.899188ms)
+✔ profil : chaque rôle ne voit que ses dossiers (60.602286ms)
+✔ observations : pagination, filtres, validation des paramètres, isolation (131.21599ms)
+✔ rapport à la demande : contenu, déterminisme, traçabilité, absence de sortie clinique (T08) (329.562731ms)
+✔ exports CSV et JSON : contenu complet, protégés, journalisés (82.468366ms)
+✔ import par connecteur simulé : création, idempotence, erreurs par ligne, conflits, droits (137.302278ms)
+✔ consentement : le patient révoque une source, les imports cessent ; journal visible du patient seul (52.909131ms)
+✔ référentiels, documentation, page et en-têtes de sécurité (15.931224ms)
+.env not found. Continuing without it.
+✔ migration : DDL et reçu atomiques, reprise, idempotence, détection de modification (346.202943ms)
+✔ mise à niveau v3.0 vers v3.1 : registre migrations et réimport inchangés (566.245465ms)
+.env not found. Continuing without it.
+✔ le rôle API ne peut ni lire les tables, ni appeler les fonctions internes, ni changer de rôle (616.222057ms)
+✔ propriétaire non privilégié, RLS forcée et politiques présentes sur toutes les tables (4.641653ms)
+✔ défense en profondeur : sans portée de personne, même le propriétaire ne voit aucune ligne de dossier (6.738337ms)
+✔ isolation entre patients et rôles (T01, T10) (65.115875ms)
+✔ les refus sont journalisés durablement (ils étaient annulés par le RAISE en v1.5) (6.391392ms)
+✔ révocation et expiration des habilitations prises en compte immédiatement (14.374578ms)
+✔ immuabilité : ni UPDATE, ni DELETE, ni TRUNCATE, même pour le rôle de migration (39.350767ms)
+✔ verrou synthétique en base et module clinique V2 non exécutable (25.921783ms)
+✔ limite documentée : le rôle API choisit le sujet et peut annuler son audit (6.803519ms)
+✔ v3.1 : rapports identiques concurrents = un instantané sans violation unicité (42.336175ms)
+.env not found. Continuing without it.
+✔ réimport intégral : aucun doublon (idempotence) (535.454019ms)
+✔ conflit de révision : rejet, sans écrasement, et lot atomique (19.936894ms)
+✔ validation en base : chaque motif de rejet, lot entièrement refusé (24.029779ms)
+✔ SDNN et RMSSD restent deux séries distinctes (T03) (4.724638ms)
+✔ qui peut importer quoi : espace de noms, rôle, connexion active (T09) (20.86803ms)
+✔ même identifiant source chez deux patients : aucune collision (régression du défaut 003) (16.478666ms)
+✔ imports concurrents du même lot : insérés exactement une fois (95.322515ms)
+✔ fuseaux et heure d'été : instant UTC exact et décalage d'origine conservés (T05) (17.210349ms)
+✔ déterminisme : une seconde installation produit les mêmes identifiants d'observation (824.379579ms)
+✔ v3.1 : valeurs absentes ou nulles rejetées sans exception et lot atomique (16.59077ms)
+✔ v3.1 : microsecondes conservées et conflit détecté entre instants distincts (7.499339ms)
+✔ v3.1 : révocation concurrente validée avant import = import refusé (15.450738ms)
+✔ v3.1 : une autre version ne doit pas compter deux fois la même mesure (8.16512ms)
+ℹ tests 34
+ℹ suites 0
+ℹ pass 34
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5626.967852
