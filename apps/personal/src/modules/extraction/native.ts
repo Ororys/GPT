@@ -79,9 +79,33 @@ const alias: Record<string, string> = {
   hemoglobine: 'HEMOGLOBIN',
 };
 const normal = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
-const NUMBER = /^-?\d+(?:[.,]\d+)?$/;
+/** Plain decimal, or French thousands grouping in exact groups of three ("1 250", "12 500,5"). */
+const NUMBER = /^-?(?:\d+|\d{1,3}(?:[ \u00a0\u202f]\d{3})+)(?:[.,]\d+)?$/;
 const RANGE = /^(-?\d+(?:[.,]\d+)?)\s*-\s*(-?\d+(?:[.,]\d+)?)$/;
-const num = (s: string) => Number(s.replace(',', '.'));
+/** Exported for tests: a cell is read as a number only in these exact shapes. */
+export const isPdfNumber = (s: string) => NUMBER.test(s);
+const num = (s: string) => Number(s.replace(/[ \u00a0\u202f]/g, '').replace(',', '.'));
+type Column = 'parameter' | 'value' | 'unit' | 'reference';
+const DEFAULT_LAYOUT: Column[] = ['parameter', 'value', 'unit', 'reference'];
+/** Header row → column order; null when the line is not a table header. */
+export function headerLayout(cells: string[]): Column[] | null {
+  const kinds = cells.map((c): Column | null => {
+    const n = normal(c);
+    if (/^(parametre|analyse|examen)s?$/.test(n)) return 'parameter';
+    if (/^(resultat|valeur)s?$/.test(n)) return 'value';
+    if (/^unites?$/.test(n)) return 'unit';
+    if (/reference/.test(n)) return 'reference';
+    return null;
+  });
+  const set = new Set(kinds);
+  return kinds.every(Boolean) &&
+    set.size === kinds.length &&
+    set.has('parameter') &&
+    set.has('value') &&
+    set.has('unit')
+    ? (kinds as Column[])
+    : null;
+}
 interface TextItem {
   str: string;
   x: number;
@@ -146,7 +170,15 @@ export interface CollectionDate {
 export function collectionDate(text: string): CollectionDate {
   const found = new Set<string>();
   let invalid = false;
-  for (const m of text.matchAll(/PRELEVEMENT\s*:\s*(\d{2})\/(\d{2})\/(\d{4})/g)) {
+  // Accent-insensitive labels: "PRELEVEMENT :", "Prélevé le", "Date de prélèvement", "prélèvement du";
+  // separators / . or -. Every occurrence must agree.
+  const plain = text
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toUpperCase();
+  for (const m of plain.matchAll(
+    /(?:DATE DE )?PRELEVE(?:MENT)?(?: LE| DU)?\s*:?\s*(\d{2})[/.-](\d{2})[/.-](\d{4})/g,
+  )) {
     const iso = `${m[3]}-${m[2]}-${m[1]}`;
     const d = new Date(`${iso}T00:00:00Z`);
     if (Number.isFinite(d.getTime()) && d.toISOString().slice(0, 10) === iso) found.add(iso);
@@ -199,15 +231,29 @@ export async function extractSyntheticPdf(
       /LABORATOIRE\s*:\s*([^\n]+)/.exec(text)?.[1]?.trim() || 'Laboratoire non identifié';
     const candidates: PdfCandidate[] = [];
     const unrecognized: UnrecognizedLine[] = [];
+    // Column order comes from the latest table header (kept across pages); default otherwise.
+    let layout = DEFAULT_LAYOUT;
     for (const line of reconstructLines(items)) {
-      if (line.cells.length < 2 || normal(line.cells[0]) === 'parametre') continue;
-      const code = line.cells.length <= 4 ? alias[normal(line.cells[0])] : undefined;
+      if (line.cells.length < 2) continue;
+      const header = headerLayout(line.cells);
+      if (header) {
+        layout = header;
+        continue;
+      }
+      const cell = (c: Column) => {
+        const i = layout.indexOf(c);
+        return i < 0 ? undefined : line.cells[i];
+      };
+      const name = cell('parameter');
+      const code = line.cells.length <= layout.length && name ? alias[normal(name)] : undefined;
       if (!code || line.cells.length < 3) {
         unrecognized.push({ page: line.page, text: line.text });
         continue;
       }
       const definition = biomarkers.find((b) => b.code === code)!;
-      const [, rawValue, rawUnit, rawReference] = line.cells;
+      const rawValue = cell('value') ?? '',
+        rawUnit = cell('unit') ?? '',
+        rawReference = cell('reference');
       const unit = rawUnit.trim();
       const canonicalUnit = unit.replaceAll('μ', 'µ');
       const issues: CandidateIssue[] = [];

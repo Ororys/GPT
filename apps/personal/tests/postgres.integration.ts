@@ -353,7 +353,7 @@ test('PDF: six concurrent confirmations insert each selected value once and pres
 test('PDF sprint 04: new fixtures whitelisted, ambiguous candidates refused by SQL, unreferenced value kept honest', async () => {
   const { fixturePdf } = await import('../src/modules/extraction/corpus');
   const { extractSyntheticPdf } = await import('../src/modules/extraction/native');
-  for (const id of ['colonnes', 'ambigus', 'dates'])
+  for (const id of ['colonnes', 'ambigus', 'dates', 'variantes'])
     assert.equal(
       (await db.admin.query('SELECT count(*)::int n FROM personal.pdf_fixture WHERE id=$1', [id]))
         .rows[0].n,

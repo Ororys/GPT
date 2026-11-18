@@ -1,3 +1,7 @@
+# Sprint 19 / 0.19.0 — 18 novembre 2026
+
+PDF : ordre des colonnes lu dans l'en-tête, milliers français stricts, libellés de date variés ; nouveau PDF synthétique « variantes » ; sorties des 8 PDF existants identiques ; empreintes des sprints 04 et 19 verrouillées. Voir docs/personal-sprint-19/BILAN.md.
+
 # Sprint 18 / 0.18.0 — 18 novembre 2026
 
 Export complet (droit d'accès) : identités, autorisations, PDF importés et revues, reçus, données brutes du téléphone, journal d'activité ; migration additive 011. Voir docs/personal-sprint-18/BILAN.md.

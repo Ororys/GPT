@@ -1,6 +1,14 @@
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 export type FixtureId =
-  'standard' | 'decimales' | 'unites' | 'scan' | 'colonnes' | 'ambigus' | 'dates' | 'autre-profil';
+  | 'standard'
+  | 'decimales'
+  | 'unites'
+  | 'scan'
+  | 'colonnes'
+  | 'ambigus'
+  | 'dates'
+  | 'variantes'
+  | 'autre-profil';
 export const PDF_FIXTURES = [
   {
     id: 'standard' as const,
@@ -36,6 +44,12 @@ export const PDF_FIXTURES = [
     id: 'dates' as const,
     label: 'Deux dates de prélèvement',
     description: 'Dates contradictoires : aucun résultat ajoutable.',
+  },
+  {
+    id: 'variantes' as const,
+    label: 'Autre mise en page',
+    description:
+      'Colonnes dans un autre ordre, milliers « 1 250 », date « Prélevé le 05.11.2026 ».',
   },
 ];
 const values: Record<Exclude<FixtureId, 'scan' | ExtendedId>, string[]> = {
@@ -99,11 +113,14 @@ async function generate(id: FixtureId) {
  * Sprint 04 corpus. Kept separate from `generate` so the bytes, and therefore the
  * whitelisted SHA-256, of the five sprint 03 fixtures never change.
  */
-type ExtendedId = 'colonnes' | 'ambigus' | 'dates';
+type ExtendedId = 'colonnes' | 'ambigus' | 'dates' | 'variantes';
 const isExtended = (id: FixtureId): id is ExtendedId =>
-  id === 'colonnes' || id === 'ambigus' || id === 'dates';
+  id === 'colonnes' || id === 'ambigus' || id === 'dates' || id === 'variantes';
 interface ExtendedPage {
   date: string;
+  /** Optional variants (sprint 19); absent values keep the earlier fixtures byte-identical. */
+  dateLine?: string;
+  header?: string[];
   /** Pipe rows are drawn as one text run; cell rows as one run per column. */
   rows: (string | string[])[];
 }
@@ -135,6 +152,18 @@ const extended: Record<ExtendedId, ExtendedPage[]> = {
     { date: '14/09/2026', rows: ['LDL-cholesterol | 1,31 | g/L | 0,5 - 1,6'] },
     { date: '21/09/2026', rows: ['HbA1c | 5,5 | % | 4 - 6'] },
   ],
+  variantes: [
+    {
+      date: '05/11/2026',
+      dateLine: 'Prélevé le 05.11.2026 à domicile',
+      header: ['Analyse', 'Valeurs de référence', 'Résultat', 'Unité'],
+      rows: [
+        'Ferritine | 30 - 300 | 1 250 | µg/L',
+        'Hémoglobine | 13 - 17 | 14,2 | g/dL',
+        'Créatinine | 7 - 13 | 8,8 | mg/L',
+      ],
+    },
+  ],
 };
 const columns = [44, 230, 330, 420];
 async function generateExtended(id: ExtendedId) {
@@ -152,9 +181,9 @@ async function generateExtended(id: ExtendedId) {
       page.drawText(t, { x, y, size, font: strong ? bold : font });
     text('BILAN BIOLOGIQUE - DONNEES SYNTHETIQUES', 44, 790, 15, true);
     text('DOSSIER SYNTHETIQUE : demo-alpha', 44, 757);
-    text('PRELEVEMENT : ' + spec.date, 44, 733);
+    text(spec.dateLine ?? 'PRELEVEMENT : ' + spec.date, 44, 733);
     text('LABORATOIRE : Laboratoire Boreal - fictif', 44, 709);
-    const header = ['Parametre', 'Resultat', 'Unite', 'Reference du laboratoire'];
+    const header = spec.header ?? ['Parametre', 'Resultat', 'Unite', 'Reference du laboratoire'];
     if (spec.rows.some(Array.isArray)) header.forEach((h, i) => text(h, columns[i], 665, 10, true));
     else text(header.join(' | '), 44, 665, 10, true);
     spec.rows.forEach((row, i) => {

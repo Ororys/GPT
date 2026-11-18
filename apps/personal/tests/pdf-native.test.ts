@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { fixturePdf, identifyFixture, pdfDigest } from '../src/modules/extraction/corpus';
 import {
   collectionDate,
+  headerLayout,
   extractSyntheticPdf,
   reconstructLines,
   selectedObservations,
@@ -224,4 +225,67 @@ test('reconstitution : regroupement par ligne de base, ordre haut-bas puis gauch
     ],
   );
   assert.deepEqual(lines[1].bounds, { x: 44, y: 600, width: 206, height: 10.5 });
+});
+
+test('corpus : empreintes des PDF des sprints 04 et 19 verrouillées', async () => {
+  const expected = {
+    colonnes: '023dce6605d0fce5af575b4c9c371b08116a3f24925d2369c45237988808c236',
+    ambigus: '66d5c06260c0dc0b46cfb929a81862da5be7c7d3d8adbf762298484b3dec4b54',
+    dates: 'a68be2f293e345bff6583a40e9588e2105a93e6bcf667a94b0ef2a806c1c85e5',
+    variantes: '3cfe3d31c34a3e23c54db19786bdc51df84ae1ac3c55c936d1307d585b588e0d',
+  } as const;
+  for (const [id, sha] of Object.entries(expected))
+    assert.equal(await pdfDigest(await fixturePdf(id as keyof typeof expected)), sha, id);
+});
+test('variantes : ordre des colonnes lu dans l’en-tête, milliers, date « Prélevé le »', async () => {
+  const p = await extractSyntheticPdf(await fixturePdf('variantes'), 'demo-alpha');
+  assert.deepEqual(
+    p.candidates.map((c) => [c.code, c.value, c.unit, c.eligible]),
+    [
+      ['FERRITIN', 1250, 'μg/L', true],
+      ['HEMOGLOBIN', 14.2, 'g/dL', true],
+      ['CREATININE', 8.8, 'mg/L', true],
+    ],
+  );
+  assert.deepEqual(p.candidates[0].observation?.reference?.low, 30);
+  assert.equal(p.candidates[0].observation?.measuredAt, '2026-11-05T00:00:00Z');
+  assert.equal(p.candidates[0].originalText, 'Ferritine | 30 - 300 | 1 250 | μg/L');
+  assert.deepEqual(p.unrecognized, []);
+});
+test('en-tête : colonnes reconnues sans accent ni casse, en-tête incomplet ou dupliqué refusé', () => {
+  assert.deepEqual(headerLayout(['Analyse', 'Valeurs de référence', 'Résultat', 'Unité']), [
+    'parameter',
+    'reference',
+    'value',
+    'unit',
+  ]);
+  assert.deepEqual(headerLayout(['Parametre', 'Resultat', 'Unite', 'Reference du laboratoire']), [
+    'parameter',
+    'value',
+    'unit',
+    'reference',
+  ]);
+  assert.equal(headerLayout(['Analyse', 'Résultat']), null, 'unité manquante');
+  assert.equal(headerLayout(['Analyse', 'Résultat', 'Résultat', 'Unité']), null);
+  assert.equal(headerLayout(['Ferritine', '64', 'µg/L', '30 - 300']), null);
+});
+test('dates : libellés et séparateurs variés, toujours concordants', () => {
+  for (const t of [
+    'PRELEVEMENT : 05/11/2026',
+    'Prélevé le 05.11.2026',
+    'Date de prélèvement : 05-11-2026',
+    'prélèvement du 05/11/2026',
+  ])
+    assert.equal(collectionDate(t).measuredAt, '2026-11-05T00:00:00Z', t);
+  assert.equal(
+    collectionDate('Prélevé le 05.11.2026 / PRELEVEMENT : 06/11/2026').issue,
+    'MEASUREMENT_DATE_AMBIGUOUS',
+  );
+  assert.equal(collectionDate('Edité le 05/11/2026').issue, 'MEASUREMENT_DATE_MISSING');
+});
+test('milliers : groupes de trois chiffres exactement, sinon refusé', async () => {
+  const { isPdfNumber } = await import('../src/modules/extraction/native');
+  for (const ok of ['1 250', '12 500,5', '1 250', '64', '1,27']) assert.ok(isPdfNumber(ok), ok);
+  for (const bad of ['1 25', '12 3456', '1 250 0', '1  250', '< 4'])
+    assert.ok(!isPdfNumber(bad), bad);
 });
