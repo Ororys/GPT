@@ -25,7 +25,8 @@ Dans cette session :
 Sur GitHub Actions (commit `d536a93`) :
 - vérifications et **build Android debug réussis** (APK en artefact) ;
 - tests web et serveur réussis, y compris le parcours de connexion réelle ;
-- build iOS simulateur : en attente d'une machine macOS au moment de la rédaction.
+- build iOS simulateur : **non exécuté**. Sur les deux runs (`d536a93`, `a8ec596`), aucune machine macOS n'a été attribuée par GitHub : le job est resté en file d'attente 15 minutes, puis a été annulé sans exécuter une seule étape. Ce n'est pas un échec de compilation. Le code iOS n'est donc **pas encore vérifié** ; il faudra relancer le job, ou compiler sur un Mac.
+- build Android : réussi deux fois.
 
 **Non vérifié** : la lecture réelle de Santé ou Health Connect sur un téléphone. Aucun appareil ni émulateur n'est disponible ici (pas de KVM, `dl.google.com` bloqué).
 
