@@ -1,3 +1,7 @@
+# Sprint 20 / 0.20.0 — 18 novembre 2026
+
+En-têtes de sécurité (Permissions-Policy, COOP, HSTS en HTTPS seulement) ; exercice automatisé de sauvegarde/restauration (copie identique, RLS et immuabilité conservées) en CI. Voir docs/personal-sprint-20/BILAN.md.
+
 # Sprint 19 / 0.19.0 — 18 novembre 2026
 
 PDF : ordre des colonnes lu dans l'en-tête, milliers français stricts, libellés de date variés ; nouveau PDF synthétique « variantes » ; sorties des 8 PDF existants identiques ; empreintes des sprints 04 et 19 verrouillées. Voir docs/personal-sprint-19/BILAN.md.

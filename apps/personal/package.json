@@ -1,6 +1,6 @@
 {
   "name": "@health-convergence/personal",
-  "version": "0.19.0",
+  "version": "0.20.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -20,7 +20,8 @@
     "test:e2e:pg": "tsx scripts/e2e-postgres.ts",
     "test:storage-http": "tsx --test tests/storage-http.integration.ts",
     "identity:link": "node --env-file=.env.database --import tsx scripts/link-identity.ts",
-    "test:e2e:oidc": "tsx scripts/e2e-oidc.ts"
+    "test:e2e:oidc": "tsx scripts/e2e-oidc.ts",
+    "test:backup": "tsx --test tests/backup.integration.ts"
   },
   "dependencies": {
     "@capacitor/core": "8.6.0",

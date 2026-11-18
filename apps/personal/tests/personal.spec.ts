@@ -151,6 +151,19 @@ test('import : fichier refusé, import atomique, idempotence et cohérence des p
   ).toBeVisible();
 });
 
+test('en-têtes de sécurité : CSP, permissions désactivées, isolation, pas de HSTS en HTTP local', async ({
+  page,
+}) => {
+  const r = await page.request.get('/');
+  const h = r.headers();
+  expect(h['content-security-policy']).toContain("frame-ancestors 'none'");
+  expect(h['permissions-policy']).toContain('camera=()');
+  expect(h['permissions-policy']).toContain('geolocation=()');
+  expect(h['cross-origin-opener-policy']).toBe('same-origin');
+  expect(h['x-content-type-options']).toBe('nosniff');
+  expect(h['strict-transport-security']).toBeUndefined();
+});
+
 test('sécurité HTTP : sans session, accès croisé, CSRF, taille et fichier modifié', async ({
   playwright,
 }) => {
