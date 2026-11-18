@@ -4989,3 +4989,12 @@ tbody tr:last-child td {
   white-space: nowrap;
   border: 0;
 }
+/*
+ * Notch, status bar and home indicator (viewport-fit=cover). env() is 0 on devices and
+ * browsers without insets, so the desktop layout is unchanged. In the Android app,
+ * Capacitor's SystemBars (insetsHandling "css") provides the same values.
+ */
+.topbar {
+  box-sizing: content-box;
+  padding-top: env(safe-area-inset-top);
+}

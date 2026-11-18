@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import '@fontsource-variable/inter';
 import './globals.css';
 // Per-request CSP nonces require dynamic rendering, including the chart benchmark.
@@ -8,6 +8,17 @@ export const metadata: Metadata = {
   description:
     'Prototype personnel descriptif. Données entièrement synthétiques. Biologie, mouvement, documents et timeline.',
   robots: { index: false, follow: false },
+};
+// viewport-fit=cover: the native app draws under the notch and home indicator; safe-area
+// insets are applied in CSS (topbar, mobile navigation).
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+  themeColor: [
+    { media: '(prefers-color-scheme: dark)', color: '#101817' },
+    { media: '(prefers-color-scheme: light)', color: '#f3f5f0' },
+  ],
 };
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

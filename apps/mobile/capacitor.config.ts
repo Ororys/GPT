@@ -24,5 +24,9 @@ const config: CapacitorConfig = {
   },
   ios: { contentInset: 'automatic', limitsNavigationsToAppBoundDomains: false },
   android: { allowMixedContent: false },
+  plugins: {
+    // Edge-to-edge: the page declares viewport-fit=cover and pads with env(safe-area-inset-*).
+    SystemBars: { insetsHandling: 'css', initialViewportFitValueHint: 'cover' },
+  },
 };
 export default config;

@@ -13,6 +13,10 @@ test('serveur : HTTPS obligatoire hors développement local, navigation limitée
   assert.equal(prod.server.url, 'https://app.example.test');
   assert.equal(prod.server.cleartext, false);
   assert.deepEqual(prod.server.allowNavigation, ['app.example.test']);
+  assert.deepEqual(prod.plugins.SystemBars, {
+    insetsHandling: 'css',
+    initialViewportFitValueHint: 'cover',
+  });
   assert.throws(() => load({ CONVERGENCE_SERVER_URL: 'http://app.example.test' }));
   assert.equal(JSON.parse(load({ CONVERGENCE_SERVER_URL: 'http://10.0.2.2:3000' })).server.cleartext, true);
 });

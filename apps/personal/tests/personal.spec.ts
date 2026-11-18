@@ -232,6 +232,17 @@ test('profil vide, paramètres et export contrôlé', async ({ page }) => {
   ).toBeVisible();
 });
 
+test('application native : viewport-fit=cover, couleur de barre système, encoches gérées en CSS', async ({
+  page,
+}) => {
+  await open(page, '/');
+  const viewport = await page.locator('meta[name=viewport]').getAttribute('content');
+  expect(viewport).toContain('viewport-fit=cover');
+  expect(await page.locator('meta[name=theme-color]').count()).toBe(2);
+  const top = await page.locator('.topbar').evaluate((el) => getComputedStyle(el).paddingTop);
+  expect(top).toBe('0px'); // no inset on a desktop browser: layout unchanged
+});
+
 test('mobile : cinq parcours, clair/sombre, sans débordement à 390 px', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await open(page);

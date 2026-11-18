@@ -1,3 +1,7 @@
+# Sprint 17 / 0.17.0 — 18 novembre 2026
+
+Application native : viewport-fit=cover, zones sûres (encoche, barre d'état), barres système Android en mode CSS ; job CI pour la démo mobile. Voir docs/personal-sprint-17/BILAN.md.
+
 # Sprint 16 / 0.16.0 — 18 novembre 2026
 
 Audit d'accessibilité automatisé complet (6 pages × 2 thèmes × 2 tailles + fenêtres) : 36 constats corrigés (noms accessibles alignés sur le texte visible, bouton de recherche nommé), 0 restant. Voir docs/personal-sprint-16/BILAN.md.
