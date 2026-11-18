@@ -1,5 +1,5 @@
 import { z } from 'zod';
-export const CONSENT_SOURCES = ['pdf-documents', 'structured-import'] as const;
+export const CONSENT_SOURCES = ['device-health', 'pdf-documents', 'structured-import'] as const;
 export type ConsentSource = (typeof CONSENT_SOURCES)[number];
 export interface ConsentState {
   source: ConsentSource;
@@ -13,6 +13,11 @@ export const ConsentRequestSchema = z.strictObject({
   granted: z.boolean(),
 });
 export const CONSENT_LABEL: Record<ConsentSource, { title: string; detail: string }> = {
+  'device-health': {
+    title: 'Données santé du téléphone',
+    detail:
+      'Sommeil, FC au repos, VFC, pas et distance lus dans Santé (iPhone) ou Health Connect (Android), depuis l’application mobile.',
+  },
   'pdf-documents': {
     title: 'Documents PDF',
     detail:

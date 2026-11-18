@@ -1,0 +1,24 @@
+{
+  "name": "@health-convergence/mobile",
+  "version": "0.13.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "sync": "cap sync",
+    "test": "tsx --test tests/*.test.ts"
+  },
+  "dependencies": {
+    "@capacitor/android": "8.6.0",
+    "@capacitor/core": "8.6.0",
+    "@capacitor/ios": "8.6.0",
+    "@capgo/capacitor-health": "8.11.14"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "8.6.0",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0"
+  },
+  "engines": {
+    "node": ">=24"
+  }
+}

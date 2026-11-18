@@ -84,7 +84,9 @@ export function ConsentSettings({ enabled }: { enabled: boolean }) {
                   </details>
                 )}
               </div>
-              <Pill tone={c.granted ? 'teal' : 'amber'}>{c.granted ? 'Autorisé' : 'Retiré'}</Pill>
+              <Pill tone={c.granted ? 'teal' : 'amber'}>
+                {c.granted ? 'Autorisé' : c.version === 0 ? 'Non autorisé' : 'Retiré'}
+              </Pill>
               <button
                 className="button"
                 disabled={busy}

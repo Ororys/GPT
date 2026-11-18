@@ -4951,3 +4951,21 @@ tbody tr:last-child td {
   margin: 4px 0 0 18px;
   line-height: 1.8;
 }
+
+.device-health {
+  margin: 8px 0 14px;
+}
+.device-health h3 {
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+.device-health > p,
+.device-series {
+  font-size: 10px;
+  line-height: 1.8;
+  color: var(--muted);
+}
+.device-series {
+  margin: 6px 0 0 18px;
+}

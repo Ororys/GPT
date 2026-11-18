@@ -37,7 +37,7 @@ test('fresh migrations, stored entities and snapshot provenance', async () => {
   const tables = (
     await db.admin.query("SELECT tablename FROM pg_tables WHERE schemaname='personal'")
   ).rows;
-  assert.equal(tables.length, 16);
+  assert.equal(tables.length, 17);
 });
 test('SQL role has no direct data or internal function privileges, cannot become owner', async () => {
   for (const t of [
@@ -195,7 +195,7 @@ test('migrations and seed rerun preserve imports and checksum', async () => {
   assert.equal((await read()).record.observations.length, 49);
   assert.equal(
     (await db.admin.query('SELECT count(*)::int n FROM public.hc_personal_migration')).rows[0].n,
-    8,
+    9,
   );
   const rows = (await db.admin.query('SELECT name,sha256 FROM public.hc_personal_migration')).rows;
   await db.admin.query("UPDATE public.hc_personal_migration SET sha256='changed'");
@@ -587,11 +587,12 @@ test('consents: revocation stops PDF staging, confirmation and import in SQL; hi
       c.version,
     ]),
     [
+      ['device-health', false, 0],
       ['pdf-documents', true, 1],
       ['structured-import', true, 1],
     ],
   );
-  assert.equal(initial.consents[0].history[0].decidedBy, 'seed:demo-setup');
+  assert.equal(initial.consents[1].history[0].decidedBy, 'seed:demo-setup');
   assert.equal((await consents('personal:demo-beta', 'demo-alpha')).status, 'forbidden');
   assert.equal((await set('pdf-documents', 1, true)).status, 'invalid', 'no-op refused');
   assert.equal((await set('other', 1, false)).status, 'invalid');
@@ -660,7 +661,7 @@ test('consents: revocation stops PDF staging, confirmation and import in SQL; hi
     await client.query('ROLLBACK');
     await client.end();
   }
-  const history = (await consents()).consents[0].history;
+  const history = (await consents()).consents[1].history;
   assert.deepEqual(
     history.map((h: { version: number; granted: boolean }) => [h.version, h.granted]),
     [
@@ -761,4 +762,93 @@ test('OIDC identity: controlled enrolment only, several identities per dossier, 
   ]);
   await db.api.query('SELECT personal.api_audit($1,$2,$3)', [subject, 'logout', 'demo-alpha']);
   await assert.rejects(db.api.query('SELECT * FROM personal.actor'), /permission denied/);
+});
+
+test('phone health data: explicit permission required, idempotent, scoped, unit enforced', async () => {
+  const { recordKey } = await import('../src/modules/device/key');
+  const sample = {
+    dataType: 'sleep' as const,
+    value: 452,
+    unit: 'minute',
+    startDate: '2026-11-16T22:10:00.000Z',
+    endDate: '2026-11-17T05:42:00.000Z',
+    sourceId: 'night-1',
+  };
+  const records = (s: typeof sample) => [
+    {
+      type: s.dataType,
+      key: recordKey('health-connect', s),
+      start: s.startDate,
+      end: s.endDate,
+      value: s.value,
+      unit: s.unit,
+      sourceName: 'Montre de test',
+    },
+  ];
+  const send = (rows: unknown, subject = 'personal:demo-alpha', person = 'demo-alpha') =>
+    db.api
+      .query('SELECT personal.api_device_import($1,$2,$3,$4::jsonb) r', [
+        subject,
+        person,
+        'health-connect',
+        JSON.stringify(rows),
+      ])
+      .then((x) => x.rows[0].r);
+  const consents = (
+    await db.api.query('SELECT personal.api_consents($1,$2) r', [
+      'personal:demo-alpha',
+      'demo-alpha',
+    ])
+  ).rows[0].r.consents;
+  const device = consents.find((c: { source: string }) => c.source === 'device-health');
+  assert.deepEqual([device.granted, device.version], [false, 0], 'never granted by the seed');
+  await assert.rejects(send(records(sample)), /CONSENT_REQUIRED/);
+  await db.api.query('SELECT personal.api_set_consent($1,$2,$3,$4,$5)', [
+    'personal:demo-alpha',
+    'demo-alpha',
+    'device-health',
+    0,
+    true,
+  ]);
+  assert.deepEqual(await send(records(sample)), { status: 'ok', inserted: 1, duplicates: 0 });
+  assert.deepEqual(await send(records(sample)), { status: 'ok', inserted: 0, duplicates: 1 });
+  assert.equal(
+    (await send(records(sample), 'personal:demo-beta', 'demo-alpha')).status,
+    'forbidden',
+  );
+  await assert.rejects(
+    send([
+      {
+        ...records(sample)[0],
+        key: recordKey('health-connect', { ...sample, value: 1 }),
+        unit: 'hour',
+      },
+    ]),
+  );
+  const summary = (
+    await db.api.query('SELECT personal.api_device_summary($1,$2) r', [
+      'personal:demo-alpha',
+      'demo-alpha',
+    ])
+  ).rows[0].r;
+  assert.deepEqual(
+    summary.series.map((s: { type: string; count: number; platform: string }) => [
+      s.platform,
+      s.type,
+      s.count,
+    ]),
+    [['health-connect', 'sleep', 1]],
+  );
+  const beta = (
+    await db.api.query('SELECT personal.api_device_summary($1,$2) r', [
+      'personal:demo-beta',
+      'demo-beta',
+    ])
+  ).rows[0].r;
+  assert.deepEqual(beta.series, [], 'RLS: another dossier sees nothing');
+  await assert.rejects(db.api.query('SELECT * FROM personal.device_record'), /permission denied/);
+  await assert.rejects(
+    db.admin.query('DELETE FROM personal.device_record'),
+    /IMMUTABLE_PERSONAL_RECORD/,
+  );
 });

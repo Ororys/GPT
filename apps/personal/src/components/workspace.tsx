@@ -35,6 +35,7 @@ import { Documents } from './documents';
 import { Timeline } from './timeline';
 import { EvidenceModal } from './evidence-modal';
 import { ConsentSettings } from './consent-settings';
+import { DeviceHealth } from './device-health';
 import { ActivityModal } from './activity-modal';
 import { ImportModal } from './import-modal';
 import { Panel, Pill, Modal, Skeleton, Notice } from './ui';
@@ -531,14 +532,18 @@ export function Workspace({ view }: { view: View }) {
                 <div className="source-setting">
                   <Database size={20} />
                   <div>
-                    <strong>HealthKit, Health Connect, Garmin, Strava</strong>
-                    <small>Accès, contrats et applications natives à étudier séparément</small>
+                    <strong>Garmin, Strava</strong>
+                    <small>
+                      Accès fabricant non disponible (programme Garmin suspendu aux nouvelles
+                      demandes)
+                    </small>
                   </div>
                   <Pill>Non configurés</Pill>
                 </div>
                 <ConsentSettings
                   enabled={record.storage === 'postgresql' && personId === PERSON_ALPHA}
                 />
+                <DeviceHealth enabled={record.storage === 'postgresql'} />
                 <Notice>
                   Aucune conformité HDS, RGPD ou MDR revendiquée. Le partage professionnel et les
                   organisations ne sont pas activés dans ce sprint.

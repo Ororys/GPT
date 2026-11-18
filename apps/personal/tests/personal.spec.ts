@@ -614,3 +614,47 @@ test('mesures du centre : catégorie dédiée, protocole affiché, sans référe
   expect(pdf.status()).toBe(200);
   expect((await pdf.body()).subarray(0, 4).toString()).toBe('%PDF');
 });
+
+test('données du téléphone : jamais autorisées par défaut, import refusé puis accepté, résumé affiché', async ({
+  page,
+}) => {
+  test.skip(process.env.HC_PERSONAL_E2E_STORAGE !== 'postgres', 'Phone data requires PostgreSQL');
+  await open(page, '/settings');
+  const consent = page.locator('.consent-settings .source-setting', {
+    hasText: 'Données santé du téléphone',
+  });
+  await expect(consent.getByText('Non autorisé', { exact: true })).toBeVisible();
+  await expect(page.locator('.device-health')).toContainText(
+    'Depuis l’application mobile uniquement',
+  );
+  const send = () =>
+    page.evaluate(async () => {
+      const res = await fetch('/api/device-imports', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          platform: 'healthkit',
+          samples: [
+            {
+              dataType: 'restingHeartRate',
+              value: 53,
+              unit: 'bpm',
+              startDate: '2026-11-17T06:00:00.000Z',
+              endDate: '2026-11-17T06:00:00.000Z',
+              sourceName: 'Montre de test',
+              sourceId: 'rhr-1',
+            },
+          ],
+        }),
+      });
+      return { status: res.status, body: await res.json() };
+    });
+  expect(await send()).toEqual({ status: 403, body: { error: 'CONSENT_REQUIRED' } });
+  await consent.getByRole('button', { name: 'Autoriser : Données santé du téléphone' }).click();
+  await expect(consent.getByText('Autorisé', { exact: true })).toBeVisible();
+  expect(await send()).toEqual({ status: 200, body: { inserted: 1, duplicates: 0 } });
+  expect((await send()).body).toEqual({ inserted: 0, duplicates: 1 });
+  await page.reload();
+  await expect(page.locator('.device-series')).toContainText('FC au repos · 1 enregistrement(s)');
+  await expect(page.locator('.device-series')).toContainText('Santé (iPhone)');
+});
