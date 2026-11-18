@@ -37,3 +37,5 @@ La limite « nouvel espace sans PostgreSQL » de la version 0.1 est levée. L'id
 ## Actualisation 0.11 — 18 novembre 2026
 
 C-01 tranché pour l'espace personnel : jour calendaire du fuseau IANA du dossier (Europe/Paris par défaut), valeurs au jour près non décalées. Reste ouvert : décalage par mesure (voyages) quand de vrais connecteurs existeront.
+
+Recommandations sourcées pour B-01, B-02, B-03, B-05 et B-08 (sans engagement ni dépense) : [docs/DECISIONS_BLOQUANTS.md](docs/DECISIONS_BLOQUANTS.md).

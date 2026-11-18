@@ -13,7 +13,7 @@ Agir de façon autonome sur les corrections ordinaires et tester les changements
 1. `HANDOFF_CLAUDE_CODE.md` — carte du dépôt, commandes et limites.
 2. `docs/personal-sprint-03/BILAN.md`, `docs/personal-sprint-04/BILAN.md` `docs/personal-sprint-05/BILAN.md`, `docs/personal-sprint-06/BILAN.md`, `docs/personal-sprint-07/BILAN.md`, `docs/personal-sprint-08/BILAN.md`, `docs/personal-sprint-09/BILAN.md`, `docs/personal-sprint-10/BILAN.md` puis `docs/personal-sprint-11/BILAN.md` — incréments PDF, correction versionnée, doublons inter-documents, résumé de consultation, passeport de qualité, autorisations, mesures du centre, jour local et preuves.
 3. `apps/personal/README.md` et `apps/personal/AGENTS.md`.
-4. `SECURITY.md`, `BLOCKERS.md`, `ARCHITECTURE.md` et `TEST_REPORT.md`.
+4. `SECURITY.md`, `BLOCKERS.md`, `docs/DECISIONS_BLOQUANTS.md`, `ARCHITECTURE.md` et `TEST_REPORT.md`.
 5. `docs/personal-sprint-02/BILAN.md` pour le raccordement PostgreSQL.
 
 L'historique documentaire et les anciens audits sont conservés. Ce sont des rapports de sessions précédentes, pas des tests que vous avez exécutés vous-même.
