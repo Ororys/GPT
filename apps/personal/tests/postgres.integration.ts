@@ -195,7 +195,7 @@ test('migrations and seed rerun preserve imports and checksum', async () => {
   assert.equal((await read()).record.observations.length, 49);
   assert.equal(
     (await db.admin.query('SELECT count(*)::int n FROM public.hc_personal_migration')).rows[0].n,
-    10,
+    11,
   );
   const rows = (await db.admin.query('SELECT name,sha256 FROM public.hc_personal_migration')).rows;
   await db.admin.query("UPDATE public.hc_personal_migration SET sha256='changed'");
@@ -903,4 +903,27 @@ test('phone data shape (010): daily totals for steps, sleep state required, boun
     ),
   );
   assert.equal((await read(30, 'personal:demo-beta')).status, 'forbidden');
+});
+
+test('full export: identities, permissions, PDF intakes, receipts, phone data and log; scoped', async () => {
+  const x = (subject: string, person: string) =>
+    db.api
+      .query('SELECT personal.api_export_extras($1,$2) r', [subject, person])
+      .then((q) => q.rows[0].r);
+  const e = await x('personal:demo-alpha', 'demo-alpha');
+  assert.equal(e.status, 'ok');
+  assert.ok(e.identities.some((i: { subject: string }) => i.subject === 'personal:demo-alpha'));
+  assert.ok(e.consents.some((c: { source: string }) => c.source === 'pdf-documents'));
+  assert.ok(e.pdfIntakes.length >= 1 && e.pdfIntakes[0].proposal.sha256 === e.pdfIntakes[0].sha256);
+  assert.ok(
+    e.pdfIntakes.some((i: { reviewedSelection: string[] | null }) => i.reviewedSelection?.length),
+  );
+  assert.equal(e.importReceipts.length, 1);
+  assert.ok(e.deviceRecords.length >= 1);
+  assert.ok(e.activityLog.some((a: { event: string }) => a.event === 'read_record'));
+  assert.ok(e.activityLog.every((a: { subject: string }) => typeof a.subject === 'string'));
+  const beta = await x('personal:demo-beta', 'demo-beta');
+  assert.deepEqual([beta.pdfIntakes, beta.deviceRecords, beta.importReceipts], [[], [], []]);
+  assert.ok(beta.identities.every((i: { subject: string }) => i.subject !== 'personal:demo-alpha'));
+  assert.equal((await x('personal:demo-beta', 'demo-alpha')).status, 'forbidden');
 });

@@ -473,7 +473,10 @@ export function Workspace({ view }: { view: View }) {
                   </button>
                 </div>
                 <h3>Votre dossier, exportable</h3>
-                <p>Export JSON des informations et de leur provenance.</p>
+                <p>
+                  Export complet (JSON) : dossier, provenance, autorisations, documents importés,
+                  données du téléphone et journal d’activité du dossier.
+                </p>
                 <a className="button" href="/api/export" download>
                   <Download size={16} />
                   Exporter mon dossier synthétique

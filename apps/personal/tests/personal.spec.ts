@@ -225,7 +225,13 @@ test('profil vide, paramètres et export contrôlé', async ({ page }) => {
   await expect(page.locator('.sidebar-profile strong')).toContainText('Camille');
   const response = await page.request.get('/api/export');
   expect(response.status()).toBe(200);
-  expect((await response.json()).observations).toEqual([]);
+  const exported = await response.json();
+  expect(exported.observations).toEqual([]);
+  expect(exported.export.format).toBe('convergence-export');
+  if (process.env.HC_PERSONAL_E2E_STORAGE === 'postgres') {
+    expect(exported.export.consents).toBeDefined();
+    expect(exported.export.activityLog.length).toBeGreaterThan(0);
+  }
   await page.locator('.sidebar nav a[href="/"]').click();
   await expect(
     page.getByRole('heading', { name: /Bienvenue dans votre espace, Camille/ }),

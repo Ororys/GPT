@@ -1,3 +1,7 @@
+# Sprint 18 / 0.18.0 — 18 novembre 2026
+
+Export complet (droit d'accès) : identités, autorisations, PDF importés et revues, reçus, données brutes du téléphone, journal d'activité ; migration additive 011. Voir docs/personal-sprint-18/BILAN.md.
+
 # Sprint 17 / 0.17.0 — 18 novembre 2026
 
 Application native : viewport-fit=cover, zones sûres (encoche, barre d'état), barres système Android en mode CSS ; job CI pour la démo mobile. Voir docs/personal-sprint-17/BILAN.md.
