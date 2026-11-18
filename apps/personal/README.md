@@ -1,4 +1,4 @@
-# Convergence Personal 0.4 — PostgreSQL, données synthétiques
+# Convergence Personal 0.5 — PostgreSQL, données synthétiques
 
 Les cinq pages sont raccordées à une base PostgreSQL réelle, sans fallback silencieux. Aucun dossier réel, OCR, LLM ou fournisseur connecté.
 
@@ -55,3 +55,7 @@ Extraction native réelle avec unpdf, limitée aux PDF du corpus synthétique id
 Tableau en colonnes reconstitué par coordonnées ; lignes non reprises affichées ; valeurs « < », paramètres répétés et dates multiples ou invalides bloqués avec motif. Trois PDF synthétiques ajoutés à la liste blanche. Voir `../../docs/personal-sprint-04/BILAN.md`.
 
 Si le Chromium de Playwright n'est pas téléchargeable, `HC_PLAYWRIGHT_CHROMIUM=<chemin>` permet d'utiliser un Chromium déjà installé.
+
+## Correction versionnée — sprint 05
+
+Un résultat lu dans un PDF peut être corrigé depuis la fenêtre source (mode PostgreSQL) : même unité, motif obligatoire, nouvelle version immuable. La valeur et le texte lus restent conservés ; la Time Machine affiche la valeur connue à la date choisie. Voir `../../docs/personal-sprint-05/BILAN.md`.

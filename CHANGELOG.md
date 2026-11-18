@@ -1,3 +1,7 @@
+# Sprint personnel 05 / 0.5.0 — 18 novembre 2026
+
+Correction versionnée des résultats lus dans un PDF : migration additive 003, table immuable sous RLS, motif obligatoire, contrôle de version concurrente, historique et Time Machine. Valeur et texte d'origine jamais modifiés. Conflits et mode non PostgreSQL renvoient 409 au lieu de 500. Voir docs/personal-sprint-05/BILAN.md.
+
 # Sprint personnel 04 / 0.4.0 — 18 novembre 2026
 
 Parcours PDF natif consolidé : lignes reconstituées depuis des colonnes, lignes non reprises exposées, valeurs « < » et doublons intra-document bloqués, dates multiples ou invalides refusées, toutes les mentions de dossier contrôlées, titre issu de la date lue. Trois PDF synthétiques ajoutés à la liste blanche ; empreintes des PDF existants verrouillées. Aucune migration SQL, aucun OCR/LLM. Voir docs/personal-sprint-04/BILAN.md.

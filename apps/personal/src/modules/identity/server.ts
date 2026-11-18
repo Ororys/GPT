@@ -35,8 +35,10 @@ export function apiError(error: unknown) {
           ? 404
           : code === 'PAYLOAD_TOO_LARGE'
             ? 413
-            : code.startsWith('INVALID')
-              ? 422
-              : 500;
+            : code.endsWith('_CONFLICT') || code.endsWith('_REQUIRES_POSTGRES')
+              ? 409
+              : code.startsWith('INVALID')
+                ? 422
+                : 500;
   return Response.json({ error: status === 500 ? 'INTERNAL_ERROR' : code }, { status });
 }

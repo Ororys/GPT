@@ -4760,3 +4760,70 @@ tbody tr:last-child td {
     font-size: 9px;
   }
 }
+
+.correction-mark {
+  font-size: 10px;
+  color: var(--muted);
+}
+.correction-form {
+  border: 1px solid var(--border-strong);
+  border-radius: 9px;
+  padding: 13px 15px;
+  margin: 12px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.correction-form strong {
+  font-size: 12px;
+}
+.correction-form .source-quote {
+  font-size: 11px;
+  padding: 10px;
+  background: var(--bg);
+  border-radius: 7px;
+  overflow-wrap: anywhere;
+}
+.correction-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.correction-fields label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 10px;
+  color: var(--muted);
+  flex: 1 1 180px;
+}
+.correction-fields input {
+  font: inherit;
+  font-size: 13px;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border-strong);
+  border-radius: 7px;
+  padding: 8px 10px;
+}
+.correction-form small,
+.correction-history {
+  font-size: 10px;
+  line-height: 1.8;
+  color: var(--muted);
+}
+.correction-history {
+  margin: 12px 0;
+}
+.correction-history summary {
+  cursor: pointer;
+  color: var(--accent);
+}
+.correction-history strong {
+  color: var(--text);
+  display: block;
+  margin-top: 8px;
+}
+.correction-history ol {
+  margin: 4px 0 0 18px;
+}

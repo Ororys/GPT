@@ -56,3 +56,7 @@ Voir [le bilan PDF et relais Claude Code](docs/personal-sprint-03/BILAN.md) pour
 ## Incrément personnel 0.4 — 18 novembre 2026
 
 Livré : cas limites PDF (colonnes, lignes non reprises, valeurs « < », doublons intra-document, dates ambiguës/invalides). Prochain P1 : correction versionnée des candidats avec historique ; ensuite signalement des doublons inter-documents. Voir [le bilan](docs/personal-sprint-04/BILAN.md).
+
+## Incrément personnel 0.5 — 18 novembre 2026
+
+Livré : correction versionnée des résultats PDF (D-01 pour l'espace personnel), avec historique, motif, concurrence et Time Machine. Prochain : signalement non bloquant des doublons inter-documents. Voir [le bilan](docs/personal-sprint-05/BILAN.md).

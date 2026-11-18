@@ -477,7 +477,12 @@ export function Workspace({ view }: { view: View }) {
       </nav>
       {record && (
         <>
-          <EvidenceModal record={record} selection={source} onClose={() => setSource(null)} />
+          <EvidenceModal
+            record={record}
+            selection={source}
+            onClose={() => setSource(null)}
+            onCorrected={() => refresh()}
+          />
           <ActivityModal
             activity={record.activities.find((a) => a.id === activityId)}
             onClose={() => setActivityId(null)}

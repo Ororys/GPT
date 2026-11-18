@@ -40,9 +40,24 @@ export function knownAt(record: HealthRecord, cutoff: string): HealthRecord {
     ...record,
     asOf: cutoff,
     documents: record.documents.filter(visible),
-    observations: record.observations.filter((o) => o.measuredAt <= cutoff && o.knownAt <= cutoff),
+    observations: record.observations
+      .filter((o) => o.measuredAt <= cutoff && o.knownAt <= cutoff)
+      .map((o) => valueKnownAt(o, cutoff)),
     activities: record.activities.filter(visible),
     sleep: record.sleep.filter(visible),
     events: record.events.filter(visible),
   };
+}
+/**
+ * Time Machine for corrections: a correction is known from `correctedAt`. Before that
+ * moment the value read from the source (or the earlier version) is the one shown.
+ */
+export function valueKnownAt(o: Observation, cutoff: string): Observation {
+  if (!o.corrections?.length) return o;
+  const known = o.corrections.filter((c) => c.correctedAt <= cutoff);
+  if (known.length === o.corrections.length) return o;
+  const { corrections: _later, ...rest } = o;
+  return known.length
+    ? { ...rest, value: known[known.length - 1].value, corrections: known }
+    : { ...rest, value: o.evidence.originalValue };
 }

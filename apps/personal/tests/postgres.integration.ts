@@ -37,7 +37,7 @@ test('fresh migrations, stored entities and snapshot provenance', async () => {
   const tables = (
     await db.admin.query("SELECT tablename FROM pg_tables WHERE schemaname='personal'")
   ).rows;
-  assert.equal(tables.length, 14);
+  assert.equal(tables.length, 15);
 });
 test('SQL role has no direct data or internal function privileges, cannot become owner', async () => {
   for (const t of [
@@ -195,15 +195,20 @@ test('migrations and seed rerun preserve imports and checksum', async () => {
   assert.equal((await read()).record.observations.length, 37);
   assert.equal(
     (await db.admin.query('SELECT count(*)::int n FROM public.hc_personal_migration')).rows[0].n,
-    2,
+    3,
   );
-  const row = (await db.admin.query('SELECT * FROM public.hc_personal_migration')).rows[0];
+  const rows = (await db.admin.query('SELECT name,sha256 FROM public.hc_personal_migration')).rows;
   await db.admin.query("UPDATE public.hc_personal_migration SET sha256='changed'");
   try {
     await assert.rejects(prepareDatabase(db.adminUrl, db.apiUrl), /PERSONAL_MIGRATION_MODIFIED/);
   } finally {
-    await db.admin.query('UPDATE public.hc_personal_migration SET sha256=$1', [row.sha256]);
+    for (const row of rows)
+      await db.admin.query('UPDATE public.hc_personal_migration SET sha256=$1 WHERE name=$2', [
+        row.sha256,
+        row.name,
+      ]);
   }
+  await prepareDatabase(db.adminUrl, db.apiUrl);
 });
 
 let stagedPdf: import('../src/modules/extraction/native').PdfProposal;
@@ -401,4 +406,99 @@ test('PDF sprint 04: new fixtures whitelisted, ambiguous candidates refused by S
   assert.equal(vitd.measuredAt.slice(0, 10), '2026-10-03');
   const doc = r.record.documents.find((d: { id: string }) => d.id === columns.id);
   assert.equal(doc.title, 'Bilan PDF · 3 octobre 2026');
+});
+test('corrections: versioned, original kept, stale version refused, concurrent writers serialized', async () => {
+  const correct = (
+    observation: string,
+    expected: number,
+    value: number,
+    reason = 'erreur de lecture du tableau',
+    subject = 'personal:demo-alpha',
+    person = 'demo-alpha',
+  ) =>
+    db.api
+      .query('SELECT personal.api_correct_observation($1,$2,$3,$4,$5,$6) r', [
+        subject,
+        person,
+        observation,
+        expected,
+        value,
+        reason,
+      ])
+      .then((x) => x.rows[0].r);
+  const before = await read();
+  const target = before.record.observations.find(
+    (o: { evidence: { method: string }; code: string }) =>
+      o.evidence.method === 'native-pdf' && o.code === 'CREATININE',
+  );
+  const synthetic = before.record.observations.find(
+    (o: { evidence: { method: string } }) => o.evidence.method !== 'native-pdf',
+  );
+  assert.ok(target && synthetic);
+  const original = target.value;
+  assert.equal((await correct(synthetic.id, 0, 1)).status, 'invalid');
+  assert.equal((await correct(target.id, 0, original)).status, 'invalid', 'no-op refused');
+  assert.equal((await correct(target.id, 0, 9.5, 'x')).status, 'invalid', 'reason required');
+  assert.equal((await correct(target.id, 0, -1)).status, 'invalid');
+  assert.equal((await correct('missing', 0, 1)).status, 'not_found');
+  assert.equal(
+    (await correct(target.id, 0, 9.5, 'erreur', 'personal:demo-beta', 'demo-alpha')).status,
+    'forbidden',
+  );
+  assert.equal(
+    (await correct(target.id, 0, 9.5, 'erreur', 'personal:demo-beta', 'demo-beta')).status,
+    'not_found',
+    'RLS hides another dossier observation',
+  );
+
+  const results = await Promise.all(
+    Array.from({ length: 6 }, (_, i) => correct(target.id, 0, 9.5 + i)),
+  );
+  assert.equal(results.filter((r) => r.status === 'ok').length, 1);
+  assert.equal(results.filter((r) => r.status === 'conflict').length, 5);
+  const winner = 9.5 + results.findIndex((r) => r.status === 'ok');
+  assert.equal((await correct(target.id, 0, 3)).status, 'conflict');
+  assert.deepEqual(await correct(target.id, 1, 9.2, 'retour à la valeur vérifiée'), {
+    status: 'ok',
+    version: 2,
+  });
+
+  const after = (await read()).record.observations.find((o: { id: string }) => o.id === target.id);
+  assert.equal(after.value, 9.2);
+  assert.equal(after.evidence.originalValue, original);
+  assert.equal(after.evidence.sourceText, target.evidence.sourceText);
+  assert.equal(after.quality, 'needs-review');
+  assert.deepEqual(
+    after.corrections.map((c: { version: number; value: number; unit: string }) => [
+      c.version,
+      c.value,
+      c.unit,
+    ]),
+    [
+      [1, winner, target.unit],
+      [2, 9.2, target.unit],
+    ],
+  );
+  assert.match(after.corrections[0].correctedAt, /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}Z$/);
+  const stored = (
+    await db.admin.query('SELECT payload FROM personal.observation WHERE id=$1', [target.id])
+  ).rows[0].payload;
+  assert.equal(stored.value, original, 'stored observation untouched');
+  await assert.rejects(
+    db.api.query('SELECT * FROM personal.observation_correction'),
+    /permission denied/,
+  );
+  await assert.rejects(
+    db.admin.query('UPDATE personal.observation_correction SET value=1'),
+    /IMMUTABLE_PERSONAL_RECORD/,
+  );
+  assert.equal(
+    (
+      await db.admin.query(
+        "SELECT count(*)::int n FROM personal.audit WHERE event='correct_observation' AND resource_id LIKE $1",
+        [target.id + '#v%'],
+      )
+    ).rows[0].n,
+    2,
+  );
 });

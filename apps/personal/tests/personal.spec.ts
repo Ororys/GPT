@@ -395,3 +395,67 @@ test('PDF ambigus : motifs de blocage explicites, lignes non reprises visibles, 
     dialog.getByRole('button', { name: 'Ajouter 0 résultat(s) sélectionné(s)' }),
   ).toBeDisabled();
 });
+
+test('correction versionnée : valeur lue conservée, motif, historique et refus d’une version périmée', async ({
+  page,
+}) => {
+  test.skip(process.env.HC_PERSONAL_E2E_STORAGE !== 'postgres', 'Corrections require PostgreSQL');
+  await open(page, '/documents');
+  await page
+    .locator('.documents-hero')
+    .getByRole('button', { name: 'Importer une démo', exact: true })
+    .click();
+  const importDialog = page.getByRole('dialog');
+  await importDialog.getByRole('combobox', { name: 'Exemple PDF' }).selectOption('colonnes');
+  await importDialog.getByRole('button', { name: 'Essayer ce PDF' }).click();
+  await importDialog.getByRole('button', { name: 'Ajouter 3 résultat(s) sélectionné(s)' }).click();
+  await expect(importDialog.getByText(/3 résultat\(s\) ajouté\(s\)/)).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+
+  await page.locator('.document-card', { hasText: 'Bilan PDF · 3 octobre 2026' }).click();
+  const source = page.getByRole('dialog');
+  await source.getByRole('button', { name: 'Corriger Ferritine' }).click();
+  await expect(source.locator('.correction-form .source-quote')).toContainText(
+    'Ferritine | 58 | μg/L | 30 - 300',
+  );
+  await source.getByLabel('Nouvelle valeur (µg/L)').fill('56,5');
+  await source.getByLabel('Motif de la correction').fill('erreur de lecture du tableau');
+  await source.getByRole('button', { name: 'Enregistrer la correction' }).click();
+  await expect(source.getByText(/Correction v1 enregistrée pour Ferritine/)).toBeVisible();
+  await expect(source.locator('.highlight-row, tbody tr', { hasText: 'Ferritine' })).toContainText(
+    '56,5 µg/L · corrigée v1 · lu 58',
+  );
+  await source.getByText('Historique des corrections (1)').click();
+  await expect(source.locator('.correction-history')).toContainText(
+    '« erreur de lecture du tableau »',
+  );
+  await page.screenshot({ path: `${shots}/11-correction.png`, fullPage: true });
+
+  const record = await (await page.request.get('/api/records/demo-alpha')).json();
+  const ferritin = record.observations.find(
+    (o: { sourceId: string; code: string; corrections?: unknown[] }) =>
+      o.sourceId.startsWith('pdf-') && o.code === 'FERRITIN' && o.corrections,
+  );
+  expect(ferritin.value).toBe(56.5);
+  expect(ferritin.evidence.originalValue).toBe(58);
+  expect(ferritin.quality).toBe('needs-review');
+
+  const stale = await page.evaluate(
+    async (id) =>
+      (
+        await fetch('/api/observations/correct', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({
+            observationId: id,
+            expectedVersion: 0,
+            value: '57',
+            reason: 'formulaire ancien',
+          }),
+        })
+      ).status,
+    ferritin.id,
+  );
+  expect(stale).toBe(409);
+});
