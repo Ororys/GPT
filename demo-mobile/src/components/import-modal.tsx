@@ -40,11 +40,13 @@ export function ImportModal({
       const data = await res.json();
       if (!res.ok)
         throw Error(
-          data.error === 'FORBIDDEN'
-            ? 'Ce fichier appartient au profil fictif Alex.'
-            : data.error === 'PAYLOAD_TOO_LARGE'
-              ? 'Fichier trop volumineux.'
-              : 'Seul le fichier synthétique fourni est accepté, sans modification. Aucun contenu n’a été enregistré.',
+          data.error === 'CONSENT_REQUIRED'
+            ? 'Import structuré désactivé : l’autorisation a été retirée dans Paramètres. Rien n’a été enregistré.'
+            : data.error === 'FORBIDDEN'
+              ? 'Ce fichier appartient au profil fictif Alex.'
+              : data.error === 'PAYLOAD_TOO_LARGE'
+                ? 'Fichier trop volumineux.'
+                : 'Seul le fichier synthétique fourni est accepté, sans modification. Aucun contenu n’a été enregistré.',
         );
       await onImported();
       setMessage(

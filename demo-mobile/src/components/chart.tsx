@@ -59,6 +59,7 @@ export function DataChart({
     const text = dark ? '#9eafae' : '#536967';
     const grid = dark ? '#ffffff0b' : '#143c3510';
     const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const multiYear = dates.length > 1 && new Set(dates.map((d) => String(d).slice(0, 4))).size > 1;
     chart.setOption({
       animation: !reduced,
       animationDuration: 500,
@@ -102,6 +103,8 @@ export function DataChart({
               : new Date(v).toLocaleDateString('fr-FR', {
                   day: 'numeric',
                   month: 'short',
+                  // Without the year, points one year apart read as days apart.
+                  ...(multiYear ? { year: '2-digit' as const } : {}),
                   timeZone: 'UTC',
                 }),
         },

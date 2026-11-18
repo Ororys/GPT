@@ -23,3 +23,11 @@ Répond aux recoupements R01 (adiposité ↔ métabolisme), R03 (cardio-rénal) 
 ## Limites
 
 Deux visites seulement : pas de « trajectoire » au sens du rapport R10. Pas de mesure de masse grasse ni de lever de chaise (protocoles et appareils à définir). Les protocoles sont fictifs et non validés. Les graphiques utilisent un axe par catégories : l'espacement des points n'est pas proportionnel au temps (comportement existant, à revoir si souhaité). Aucune interprétation de la pression artérielle.
+
+## Report dans la démo mobile (demande du fondateur)
+
+Fichiers partagés resynchronisés depuis `apps/personal`, adaptations mobiles réappliquées à l'identique (mêmes écarts qu'à la reprise : modèle, navigation, textes). `styles.css` régénéré depuis `globals.css` (seul écart : import Tailwind). Le Worker gagne `/api/summary` et le signalement des doublons à partir de la session. Correction et autorisations restent indisponibles (PostgreSQL requis), ce que l'interface indique.
+
+- Tests Worker : 10/10 (`mobile-worker.log`), dont parité sprints 04–10 ; types : OK ; build : OK.
+- Worker compilé servi localement et parcouru en iPhone 13 : mesures du centre, passeport, revue PDF ambiguë, résumé (200, PDF), aucune erreur JavaScript, aucun débordement horizontal (`mobile-*.png`).
+- **Non republié** sur le site privé : l'accès Sites n'est pas disponible dans cette session.

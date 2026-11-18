@@ -10,25 +10,51 @@ import {
   TriangleAlert,
   ArrowUpRight,
 } from 'lucide-react';
-import type { PdfProposal } from '@/modules/extraction/native';
+import type {
+  CandidateIssue,
+  CandidateNote,
+  PdfOverlap,
+  PdfProposal,
+} from '@/modules/extraction/native';
 import { PDF_FIXTURES, type FixtureId } from '@/modules/extraction/corpus';
 import { Pill, Notice } from './ui';
 const message = (code: string) =>
-  code === 'FORBIDDEN'
-    ? 'Le profil du document ne correspond pas au dossier ouvert.'
-    : code === 'INVALID_DEMO_PDF'
-      ? 'Seuls les PDF synthétiques fournis sont acceptés. Aucun document personnel ne doit être envoyé.'
-      : code === 'PAYLOAD_TOO_LARGE'
-        ? 'PDF trop volumineux : 500 Ko maximum.'
-        : code === 'PDF_REQUIRES_POSTGRES'
-          ? 'Ce parcours PDF nécessite le mode PostgreSQL de l’application.'
-          : code === 'REVIEW_CONFLICT'
-            ? 'Ce document a déjà été revu avec une autre sélection.'
-            : 'Le PDF n’a pas pu être traité. Aucun résultat n’a été ajouté.';
+  code === 'CONSENT_REQUIRED'
+    ? 'Import de documents PDF désactivé : l’autorisation a été retirée dans Paramètres. Rien n’a été enregistré.'
+    : code === 'FORBIDDEN'
+      ? 'Le profil du document ne correspond pas au dossier ouvert.'
+      : code === 'INVALID_DEMO_PDF'
+        ? 'Seuls les PDF synthétiques fournis sont acceptés. Aucun document personnel ne doit être envoyé.'
+        : code === 'PAYLOAD_TOO_LARGE'
+          ? 'PDF trop volumineux : 500 Ko maximum.'
+          : code === 'PDF_REQUIRES_POSTGRES'
+            ? 'Ce parcours PDF nécessite le mode PostgreSQL de l’application.'
+            : code === 'REVIEW_CONFLICT'
+              ? 'Ce document a déjà été revu avec une autre sélection.'
+              : 'Le PDF n’a pas pu être traité. Aucun résultat n’a été ajouté.';
+const issueLabel: Record<CandidateIssue, string> = {
+  UNIT_MISMATCH_NO_CONVERSION: 'unité incompatible, non convertie',
+  MEASUREMENT_DATE_MISSING: 'date de prélèvement absente',
+  MEASUREMENT_DATE_INVALID: 'date de prélèvement invalide',
+  MEASUREMENT_DATE_AMBIGUOUS: 'plusieurs dates de prélèvement',
+  PATIENT_NOT_IDENTIFIED: 'dossier non identifié',
+  INVALID_VALUE: 'valeur invalide',
+  VALUE_QUALIFIER_NOT_SUPPORTED: 'valeur précédée d’un signe, non interprétée',
+  VALUE_NOT_NUMERIC: 'valeur non numérique',
+  DUPLICATE_IN_DOCUMENT: 'paramètre présent plusieurs fois',
+};
+const noteLabel: Record<CandidateNote, string> = {
+  REFERENCE_ABSENT: 'Aucune référence de laboratoire sur la ligne.',
+  REFERENCE_NOT_STRUCTURED: 'Référence conservée dans le texte source, non structurée.',
+  ROW_RECONSTRUCTED_FROM_COLUMNS: 'Ligne reconstituée à partir de colonnes alignées.',
+};
+const blockedReason = (issues: CandidateIssue[]) =>
+  'Non ajouté : ' + issues.map((i) => issueLabel[i] ?? 'à vérifier').join(', ');
 export function PdfImportForm({ onImported }: { onImported: () => Promise<void> }) {
   const [fixture, setFixture] = useState<FixtureId>('standard');
   const [proposal, setProposal] = useState<PdfProposal | null>(null);
   const [selected, setSelected] = useState<string[]>([]);
+  const [overlaps, setOverlaps] = useState<PdfOverlap[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -49,8 +75,16 @@ export function PdfImportForm({ onImported }: { onImported: () => Promise<void> 
       const result = await response.json();
       if (!response.ok) throw Error(message(result.error));
       const p = result.proposal as PdfProposal;
+      const found = (result.overlaps ?? []) as PdfOverlap[];
       setProposal(p);
-      setSelected(p.candidates.filter((c) => c.eligible).map((c) => c.id));
+      setOverlaps(found);
+      // A value already present that day from another document starts unselected: adding it
+      // stays possible, but only by an explicit choice.
+      setSelected(
+        p.candidates
+          .filter((c) => c.eligible && !found.some((o) => o.candidateId === c.id))
+          .map((c) => c.id),
+      );
       setReviewed(result.reviewed);
       if (result.reviewed) setSuccess('Ce document a déjà été ajouté. Aucun doublon ne sera créé.');
     } catch (e) {
@@ -184,6 +218,13 @@ export function PdfImportForm({ onImported }: { onImported: () => Promise<void> 
               {proposal.status === 'ocr-required' ? 'OCR nécessaire' : 'Texte natif lu'}
             </Pill>
           </div>
+          {proposal.status !== 'ocr-required' &&
+            proposal.warnings.map((w) => (
+              <div className="feedback error" role="status" key={w}>
+                <TriangleAlert size={18} />
+                {w}
+              </div>
+            ))}
           {proposal.status === 'ocr-required' ? (
             <div className="feedback error" role="status">
               <TriangleAlert size={18} />
@@ -210,11 +251,24 @@ export function PdfImportForm({ onImported }: { onImported: () => Promise<void> 
                       <strong>{c.label}</strong>
                       <small>
                         Page {c.page} ·{' '}
-                        {c.eligible ? 'À vérifier par vous' : 'Non ajouté : unité incompatible'}
+                        {c.eligible ? 'À vérifier par vous' : blockedReason(c.issues)}
                       </small>
+                      {overlaps
+                        .find((o) => o.candidateId === c.id)
+                        ?.matches.map((m) => (
+                          <small className="pdf-overlap" key={m.observationId}>
+                            Déjà dans le dossier le même jour (UTC) :{' '}
+                            {m.value.toLocaleString('fr-FR')} {m.unit} · {m.documentTitle} ·{' '}
+                            {m.value === c.value && m.unit === c.observation?.unit
+                              ? 'valeur identique'
+                              : 'valeur différente'}
+                            . Non coché par défaut ; rien n’est fusionné.
+                          </small>
+                        ))}
                     </span>
                     <b>
-                      {c.value.toLocaleString('fr-FR')} <small>{c.unit}</small>
+                      {c.value === null ? '—' : c.value.toLocaleString('fr-FR')}{' '}
+                      <small>{c.unit}</small>
                     </b>
                   </label>
                   <details>
@@ -224,10 +278,27 @@ export function PdfImportForm({ onImported }: { onImported: () => Promise<void> 
                       Page {c.page} · zone PDF x={Math.round(c.bounds.x)}, y=
                       {Math.round(c.bounds.y)} · confiance non calibrée : aucune valeur annoncée.
                     </small>
+                    {c.notes?.map((n) => (
+                      <small key={n}>{noteLabel[n] ?? n}</small>
+                    ))}
                   </details>
                 </article>
               ))}
             </div>
+          )}
+          {!!proposal.unrecognized?.length && (
+            <details className="pdf-unrecognized">
+              <summary>{proposal.unrecognized.length} ligne(s) lue(s) mais non reprise(s)</summary>
+              <p>
+                Paramètre non pris en charge ou format non reconnu : rien n’est déduit de ces
+                lignes.
+              </p>
+              {proposal.unrecognized.map((l, i) => (
+                <p className="source-quote" key={i}>
+                  Page {l.page} · {l.text}
+                </p>
+              ))}
+            </details>
           )}
           <Notice>
             La date du prélèvement est connue au jour près ; aucune heure n’est déduite. Les valeurs
@@ -264,9 +335,9 @@ export function PdfImportForm({ onImported }: { onImported: () => Promise<void> 
         </div>
       )}
       <Notice>
-        Uniquement les fichiers synthétiques de ce prototype. Les autres formats de laboratoire,
-        scans, documents réels et corrections de valeur ne sont pas pris en charge dans cet
-        incrément.
+        Uniquement les fichiers synthétiques de ce prototype, sous forme de tableau contrôlé (lignes
+        à séparateurs ou colonnes alignées). Les autres formats de laboratoire, scans, documents
+        réels et corrections de valeur ne sont pas pris en charge dans cet incrément.
       </Notice>
     </div>
   );

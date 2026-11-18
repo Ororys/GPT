@@ -22,6 +22,16 @@ export const EvidenceSchema = z.object({
   originalUnit: z.string(),
 });
 export type Evidence = z.infer<typeof EvidenceSchema>;
+/** One immutable correction version; the original value stays in `evidence.originalValue`. */
+export const CorrectionSchema = z.object({
+  version: z.number().int().positive(),
+  value: z.number().finite(),
+  unit: z.string(),
+  reason: z.string(),
+  correctedBy: z.string(),
+  correctedAt: z.iso.datetime(),
+});
+export type Correction = z.infer<typeof CorrectionSchema>;
 export const ObservationSchema = z.object({
   id: z.string(),
   personId: z.literal(PERSON_ALPHA),
@@ -39,6 +49,8 @@ export const ObservationSchema = z.object({
   reference: z
     .object({ low: z.number(), high: z.number(), laboratory: z.string(), unit: z.string() })
     .optional(),
+  /** Read model only (PostgreSQL): history, oldest first; `value` is then the last version. */
+  corrections: z.array(CorrectionSchema).optional(),
 });
 export type Observation = z.infer<typeof ObservationSchema>;
 export interface Biomarker {

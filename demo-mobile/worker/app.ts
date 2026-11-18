@@ -4,6 +4,12 @@ import {baseRecord} from '../src/modules/health-records/fixtures';
 import {PERSON_ALPHA,PERSON_BETA} from '../src/modules/health-records/model';
 import {importTemplate,TEMPLATE_TEXT} from '../src/modules/documents/import-contract';
 import {documentPdf} from '../src/modules/documents/pdf';
+import {consultationSummary,SUMMARY_PERIODS} from '../src/modules/summary/model';
+import {consultationSummaryPdf} from '../src/modules/summary/pdf';
+import type {HealthRecord} from '../src/modules/health-records/model';
+import type {PdfOverlap} from '../src/modules/extraction/native';
+// Same rule as personal.api_pdf_overlaps: same parameter, same UTC day, another document; signal only.
+function overlapsFor(value:HealthRecord,p:PdfProposal):PdfOverlap[]{return p.candidates.filter(c=>c.observation).map(c=>({candidateId:c.id,matches:value.observations.filter(o=>o.code===c.code&&o.sourceId!==p.id&&o.measuredAt.slice(0,10)===c.observation!.measuredAt.slice(0,10)).map(o=>({observationId:o.id,documentId:o.sourceId,documentTitle:value.documents.find(d=>d.id===o.sourceId)?.title??o.sourceId,value:o.value,unit:o.unit}))})).filter(o=>o.matches.length);}
 const HTML='<!doctype html><html lang="fr" data-theme="dark"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><meta name="color-scheme" content="dark light"><title>Convergence — démo mobile privée</title><link rel="stylesheet" href="/app.css"></head><body><div id="root"></div><script type="module" src="/app.js"></script></body></html>';
 const ORIGIN='https://convergence-mobile-demo.waxyphlox4.chatgpt.site';
 const HEADERS={'x-content-type-options':'nosniff','referrer-policy':'no-referrer','cache-control':'no-store','content-security-policy':"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'"};
@@ -33,7 +39,7 @@ export async function handle(request:Request){
    }
    if(path==='/api/pdf/analyze'&&request.method==='POST'){
     if(!request.headers.get('content-type')?.startsWith('application/pdf'))return json({error:'INVALID_FILE_TYPE'},422);
-    const bytes=await binaryBody(request,500000);const fixtureId=await identifyFixture(bytes);const p=await extractSyntheticPdf(bytes,id!);proposals.set(fixtureId,Promise.resolve(p));pids.set(fixtureId,p.id);return json({status:'ok',proposal:p,reviewed:pdfStates(request).some(s=>s.fixtureId===fixtureId)});
+    const bytes=await binaryBody(request,500000);const fixtureId=await identifyFixture(bytes);const p=await extractSyntheticPdf(bytes,id!);proposals.set(fixtureId,Promise.resolve(p));pids.set(fixtureId,p.id);return json({status:'ok',proposal:p,reviewed:pdfStates(request).some(s=>s.fixtureId===fixtureId),overlaps:overlapsFor(await record(request,id!),p)});
    }
    if(path==='/api/pdf/confirm'&&request.method==='POST'){
     if(id!=='demo-alpha')return json({error:'FORBIDDEN'},403);let selection;try{selection=PdfSelectionSchema.parse(JSON.parse(await body(request,10000)));}catch{return json({error:'INVALID_SELECTION'},422);}
@@ -41,6 +47,11 @@ export async function handle(request:Request){
     let rows;try{rows=selectedObservations(p,selection.selectedIds);}catch{return json({error:'INVALID_SELECTION'},422);}
     const states=pdfStates(request),existing=states.find(s=>s.fixtureId===p!.fixtureId);if(existing){const same=[...existing.selectedIds].sort().join('|')===[...selection.selectedIds].sort().join('|');return json({inserted:0,duplicates:1,...(!same?{error:'REVIEW_CONFLICT'}:{})},same?200:409);}
     states.push({fixtureId:p.fixtureId,selectedIds:selection.selectedIds,processedAt:rows[0].evidence.processedAt});return json({inserted:rows.length,duplicates:0},200,{'set-cookie':cookieHeader('hc_mobile_pdf',encodeURIComponent(JSON.stringify(states)))});
+   }
+   if(path==='/api/summary'&&request.method==='GET'){
+    const period=Number(url.searchParams.get('period')??365);if(!(SUMMARY_PERIODS as readonly number[]).includes(period))return json({error:'INVALID_PERIOD'},422);
+    const value=await record(request,id!);const pdf=await consultationSummaryPdf(consultationSummary(value,period),{name:value.profile.firstName,personId:value.personId});
+    return new Response(pdf as Uint8Array<ArrayBuffer>,{headers:{...HEADERS,'content-type':'application/pdf','content-disposition':`attachment; filename="convergence-resume-${period}j.pdf"`}});
    }
    if(path==='/api/imports'&&request.method==='GET')return new Response(TEMPLATE_TEXT,{headers:{...HEADERS,'content-type':'application/json','content-disposition':'attachment; filename="bilan-synthetique-demo.json"'}});
    if(path==='/api/imports'&&request.method==='POST'){

@@ -4679,6 +4679,31 @@ tbody tr:last-child td {
   margin: 9px 0;
   overflow-wrap: anywhere;
 }
+.pdf-unrecognized {
+  border: 1px dashed var(--border-strong);
+  border-radius: 9px;
+  padding: 11px 15px;
+}
+.pdf-unrecognized summary {
+  cursor: pointer;
+  color: var(--accent);
+  font-size: 10px;
+  line-height: 1.8;
+}
+.pdf-unrecognized p {
+  font-size: 10px;
+  line-height: 1.8;
+  color: var(--muted);
+}
+.pdf-unrecognized .source-quote {
+  font-size: 11px;
+  color: inherit;
+  padding: 10px;
+  background: var(--bg);
+  border-radius: 7px;
+  margin: 9px 0 0;
+  overflow-wrap: anywhere;
+}
 .pdf-import-form > .notice {
   font-size: 10px;
   line-height: 1.8;
@@ -4734,4 +4759,195 @@ tbody tr:last-child td {
   .pdf-import-form > .notice {
     font-size: 9px;
   }
+}
+
+.correction-mark {
+  font-size: 10px;
+  color: var(--muted);
+}
+.correction-form {
+  border: 1px solid var(--border-strong);
+  border-radius: 9px;
+  padding: 13px 15px;
+  margin: 12px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.correction-form strong {
+  font-size: 12px;
+}
+.correction-form .source-quote {
+  font-size: 11px;
+  padding: 10px;
+  background: var(--bg);
+  border-radius: 7px;
+  overflow-wrap: anywhere;
+}
+.correction-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.correction-fields label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 10px;
+  color: var(--muted);
+  flex: 1 1 180px;
+}
+.correction-fields input {
+  font: inherit;
+  font-size: 13px;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border-strong);
+  border-radius: 7px;
+  padding: 8px 10px;
+}
+.correction-form small,
+.correction-history {
+  font-size: 10px;
+  line-height: 1.8;
+  color: var(--muted);
+}
+.correction-history {
+  margin: 12px 0;
+}
+.correction-history summary {
+  cursor: pointer;
+  color: var(--accent);
+}
+.correction-history strong {
+  color: var(--text);
+  display: block;
+  margin-top: 8px;
+}
+.correction-history ol {
+  margin: 4px 0 0 18px;
+}
+
+.pdf-candidate small.pdf-overlap {
+  color: var(--text);
+}
+
+.summary-export {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+.summary-export select {
+  font: inherit;
+  font-size: 12px;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  padding: 9px 10px;
+}
+.quality-strip .text-button + .text-button {
+  margin-left: 0;
+}
+.passport-section {
+  margin-bottom: 20px;
+}
+.passport-section h3 {
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 10px;
+}
+.passport-table {
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.passport-table table {
+  min-width: 560px;
+}
+.passport-table td {
+  white-space: normal;
+  vertical-align: top;
+  font-size: 11px;
+}
+.passport-table td small,
+.passport-card small {
+  display: block;
+  font-size: 9px;
+  color: var(--muted);
+  line-height: 1.7;
+  margin-top: 3px;
+}
+.passport-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 10px;
+}
+.passport-card {
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  padding: 13px 15px;
+}
+.passport-card header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.passport-card strong {
+  font-size: 12px;
+}
+.passport-card dl {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: 6px;
+}
+.passport-card dl div {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 10px;
+}
+.passport-card dt {
+  color: var(--muted);
+}
+.passport-card dd {
+  text-align: right;
+}
+.passport-missing {
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 10px;
+}
+
+.consent-settings {
+  margin: 8px 0 14px;
+}
+.consent-settings h3 {
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+.consent-settings > p,
+.consent-note {
+  font-size: 10px;
+  line-height: 1.8;
+  color: var(--muted);
+  margin-top: 8px;
+}
+.consent-settings details {
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+.consent-settings summary {
+  cursor: pointer;
+  color: var(--accent);
+}
+.consent-settings ol {
+  margin: 4px 0 0 18px;
+  line-height: 1.8;
 }

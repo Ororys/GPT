@@ -7,7 +7,7 @@ import {
   PERSON_BETA,
   DEMO_NOW,
 } from './model';
-export const biomarkers: Biomarker[] = [
+export const labBiomarkers: Biomarker[] = [
   {
     code: 'FERRITIN',
     label: 'Ferritine',
@@ -63,6 +63,71 @@ export const biomarkers: Biomarker[] = [
     decimals: 1,
   },
 ];
+/**
+ * Centre measurements (R01, R03, R05): same catalogue and observation model as biology,
+ * attached to the annual centre reports. No laboratory reference range: none exists for
+ * these measures in this prototype. The protocol is stated on every value.
+ */
+export const CENTRE_CATEGORY = 'Mesures du centre';
+export const centreMeasures: Biomarker[] = [
+  {
+    code: 'WAIST',
+    label: 'Tour de taille',
+    shortLabel: 'Tour de taille',
+    category: CENTRE_CATEGORY,
+    unit: 'cm',
+    color: '#9fd8b9',
+    decimals: 0,
+  },
+  {
+    code: 'BP_SYS',
+    label: 'Pression artérielle systolique',
+    shortLabel: 'PA systolique',
+    category: CENTRE_CATEGORY,
+    unit: 'mmHg',
+    color: '#f0a58f',
+    decimals: 0,
+  },
+  {
+    code: 'BP_DIA',
+    label: 'Pression artérielle diastolique',
+    shortLabel: 'PA diastolique',
+    category: CENTRE_CATEGORY,
+    unit: 'mmHg',
+    color: '#d9b3e8',
+    decimals: 0,
+  },
+  {
+    code: 'GRIP',
+    label: 'Force de préhension',
+    shortLabel: 'Préhension',
+    category: CENTRE_CATEGORY,
+    unit: 'kg',
+    color: '#b5c8f2',
+    decimals: 1,
+  },
+];
+/** Full catalogue shown in the record: laboratory parameters, then centre measurements. */
+export const biomarkers: Biomarker[] = [...labBiomarkers, ...centreMeasures];
+export const CENTRE_PROTOCOL: Record<string, string> = {
+  WAIST:
+    'Mètre ruban, debout, à mi-distance entre dernière côte et crête iliaque, en fin d’expiration (protocole fictif)',
+  BP_SYS:
+    'Tensiomètre automatique, assis après 5 min de repos, moyenne de 3 mesures au bras gauche (protocole fictif)',
+  BP_DIA:
+    'Tensiomètre automatique, assis après 5 min de repos, moyenne de 3 mesures au bras gauche (protocole fictif)',
+  GRIP: 'Dynamomètre à main, main dominante, meilleur de 3 essais (protocole fictif)',
+};
+const centreVisits = [
+  { id: 'report-2025-10-22', date: '2025-10-22T09:00:00Z', knownAt: '2025-10-30T11:00:00Z' },
+  { id: 'report-2026-10-28', date: '2026-10-28T09:00:00Z', knownAt: '2026-11-05T11:00:00Z' },
+];
+const centreValues: Record<string, number[]> = {
+  WAIST: [86, 84],
+  BP_SYS: [124, 121],
+  BP_DIA: [78, 77],
+  GRIP: [41.5, 42],
+};
 const dates = ['2024-02-09', '2024-08-16', '2025-02-12', '2025-11-14', '2026-05-12', '2026-11-04'];
 const values: Record<string, number[]> = {
   FERRITIN: [43, 48, 46, 54, 57, 62],
@@ -93,6 +158,18 @@ export const demoDocuments: HealthDocument[] = dates.map((d, i) => ({
   synthetic: true,
 }));
 demoDocuments.push({
+  id: 'report-2025-10-22',
+  personId: PERSON_ALPHA,
+  title: 'Compte rendu de bilan annuel · 2025',
+  kind: 'report',
+  date: '2025-10-22T09:00:00Z',
+  knownAt: '2025-10-30T11:00:00Z',
+  laboratory: 'Centre Convergence · fictif',
+  pages: 1,
+  status: 'available',
+  synthetic: true,
+});
+demoDocuments.push({
   id: 'report-2026-10-28',
   personId: PERSON_ALPHA,
   title: 'Compte rendu de bilan annuel',
@@ -105,7 +182,7 @@ demoDocuments.push({
   synthetic: true,
 });
 export const demoObservations: Observation[] = dates.flatMap((d, i) =>
-  biomarkers.map((b) => ({
+  labBiomarkers.map((b) => ({
     id: `${b.code}-${d}`,
     personId: PERSON_ALPHA,
     synthetic: true,
@@ -135,6 +212,35 @@ export const demoObservations: Observation[] = dates.flatMap((d, i) =>
       originalUnit: b.unit,
     },
   })),
+);
+const unitOf = (code: string) => centreMeasures.find((m) => m.code === code)!.unit;
+demoObservations.push(
+  ...centreVisits.flatMap((v, i) =>
+    centreMeasures.map((m): Observation => ({
+      id: `${m.code}-${v.date.slice(0, 10)}`,
+      personId: PERSON_ALPHA,
+      synthetic: true,
+      code: m.code,
+      value: centreValues[m.code][i],
+      unit: unitOf(m.code),
+      measuredAt: v.date,
+      knownAt: v.knownAt,
+      method: CENTRE_PROTOCOL[m.code],
+      sourceId: v.id,
+      quality: 'available',
+      evidence: {
+        documentId: v.id,
+        page: 1,
+        sourceText: `${m.label} : ${centreValues[m.code][i]} ${m.unit}`,
+        method: 'synthetic-fixture',
+        validation: 'synthetic-verified',
+        processedAt: v.knownAt,
+        confidence: null,
+        originalValue: centreValues[m.code][i],
+        originalUnit: m.unit,
+      },
+    })),
+  ),
 );
 const isoAgo = (n: number, hour = 8) =>
   new Date(Date.parse('2026-11-18T00:00:00Z') - n * 86400000 + hour * 3600000).toISOString();
