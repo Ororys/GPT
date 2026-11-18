@@ -19,6 +19,9 @@ export interface SummaryValue {
 export interface SummaryMarker {
   code: string;
   label: string;
+  category: string;
+  /** Distinct measurement protocols or methods stated on the values. */
+  methods: string[];
   values: SummaryValue[];
   /** Several units for one parameter: values are listed, never converted or compared. */
   mixedUnits: boolean;
@@ -82,6 +85,8 @@ export function consultationSummary(record: HealthRecord, periodDays: number): C
       markers.push({
         code: b.code,
         label: b.label,
+        category: b.category,
+        methods: [...new Set(observations.filter((o) => o.code === b.code).map((o) => o.method))],
         values: rows,
         mixedUnits: new Set(rows.map((r) => r.unit)).size > 1,
       });

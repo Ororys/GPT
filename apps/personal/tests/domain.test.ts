@@ -21,7 +21,8 @@ import { authorize, issueSession, verifySession } from '../src/modules/identity/
 
 test('jeu synthétique : schémas stricts, patient et unités cohérents', () => {
   const record = baseRecord();
-  assert.equal(record.observations.length, 36);
+  // 6 laboratory parameters × 6 reports + 4 centre measures × 2 annual reports.
+  assert.equal(record.observations.length, 44);
   for (const o of record.observations) {
     assert.ok(ObservationSchema.safeParse(o).success);
     assert.equal(o.personId, record.personId);
@@ -32,7 +33,7 @@ test('jeu synthétique : schémas stricts, patient et unités cohérents', () =>
     assert.ok(o.measuredAt <= o.knownAt);
     assert.ok(o.knownAt <= DEMO_NOW);
   }
-  assert.equal(new Set(record.observations.map((o) => o.id)).size, 36);
+  assert.equal(new Set(record.observations.map((o) => o.id)).size, 44);
 });
 test('provenance : chaque mesure retrouve son document et le même événement timeline', () => {
   const record = baseRecord();
@@ -131,7 +132,14 @@ test('limites du périmètre : pas de score médical, plages attachées au labor
       record.documents.some((d) => d.laboratory.includes('Horizon')),
   );
   for (const o of record.observations) {
-    assert.ok(o.reference?.laboratory.includes('fictif'));
+    const centre =
+      record.biomarkers.find((b) => b.code === o.code)?.category === 'Mesures du centre';
+    // Laboratory values carry their lab's range; centre measures carry a protocol, no range.
+    if (centre) {
+      assert.equal(o.reference, undefined);
+      assert.match(o.method, /protocole fictif/);
+      assert.ok(o.sourceId.startsWith('report-'));
+    } else assert.ok(o.reference?.laboratory.includes('fictif'));
     assert.ok(o.evidence.confidence === null);
   }
   assert.ok(!Object.keys(record).some((k) => /risk|score|diagnos/.test(k)));

@@ -201,6 +201,20 @@ export function Biology({ record, period, openDocument }: PageProps) {
               distincts ; aucune association médicale n’est calculée.
             </Notice>
           </Panel>
+          {last && !last.reference && definition.category === 'Mesures du centre' && (
+            <div className="reference-card">
+              <Info size={19} />
+              <div>
+                <strong>Protocole de la mesure sélectionnée</strong>
+                <p>{last.method}</p>
+                <small>
+                  Mesure du centre, sans plage de référence. Un changement de protocole ou
+                  d’appareil rend les valeurs non directement comparables.
+                </small>
+              </div>
+              <SourceButton onClick={() => openDocument(last.sourceId, last.id)} />
+            </div>
+          )}
           {last?.reference && (
             <div className="reference-card">
               <Info size={19} />

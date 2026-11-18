@@ -1,4 +1,4 @@
-# Convergence Personal 0.9 — PostgreSQL, données synthétiques
+# Convergence Personal 0.10 — PostgreSQL, données synthétiques
 
 Les cinq pages sont raccordées à une base PostgreSQL réelle, sans fallback silencieux. Aucun dossier réel, OCR, LLM ou fournisseur connecté.
 
@@ -75,3 +75,7 @@ Vue d'ensemble → « Passeport de qualité » : provenance, couverture, périod
 ## Autorisations — sprint 09
 
 Paramètres → « Ce que vous autorisez » : autoriser ou retirer les imports PDF et structurés. Le refus est appliqué par PostgreSQL ; chaque décision est versionnée et journalisée. Voir `../../docs/personal-sprint-09/BILAN.md`.
+
+## Mesures du centre — sprint 10
+
+Biologie → catégorie « Mesures du centre » : tour de taille, pression artérielle, force de préhension, chacune avec son protocole et son compte rendu source, sans plage de référence. Voir `../../docs/personal-sprint-10/BILAN.md`.

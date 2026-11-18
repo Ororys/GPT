@@ -11,7 +11,7 @@ Agir de façon autonome sur les corrections ordinaires et tester les changements
 ## Lire en premier
 
 1. `HANDOFF_CLAUDE_CODE.md` — carte du dépôt, commandes et limites.
-2. `docs/personal-sprint-03/BILAN.md`, `docs/personal-sprint-04/BILAN.md` `docs/personal-sprint-05/BILAN.md`, `docs/personal-sprint-06/BILAN.md`, `docs/personal-sprint-07/BILAN.md`, `docs/personal-sprint-08/BILAN.md` puis `docs/personal-sprint-09/BILAN.md` — incréments PDF, correction versionnée, doublons inter-documents, résumé de consultation, passeport de qualité, autorisations et preuves.
+2. `docs/personal-sprint-03/BILAN.md`, `docs/personal-sprint-04/BILAN.md` `docs/personal-sprint-05/BILAN.md`, `docs/personal-sprint-06/BILAN.md`, `docs/personal-sprint-07/BILAN.md`, `docs/personal-sprint-08/BILAN.md`, `docs/personal-sprint-09/BILAN.md` puis `docs/personal-sprint-10/BILAN.md` — incréments PDF, correction versionnée, doublons inter-documents, résumé de consultation, passeport de qualité, autorisations, mesures du centre et preuves.
 3. `apps/personal/README.md` et `apps/personal/AGENTS.md`.
 4. `SECURITY.md`, `BLOCKERS.md`, `ARCHITECTURE.md` et `TEST_REPORT.md`.
 5. `docs/personal-sprint-02/BILAN.md` pour le raccordement PostgreSQL.
@@ -52,6 +52,10 @@ Lecture réelle du texte natif avec unpdf/PDF.js, uniquement sur un corpus PDF s
 ## Autorisations (sprint 09)
 
 `006_source_consent.sql` : toute nouvelle entrée de données doit être couverte par un trigger `require_consent` sur sa table d'arrivée. Ne jamais présenter comme autorisable une source qui n'existe pas (montres, fabricants). Le retrait ne supprime rien.
+
+## Mesures du centre (sprint 10)
+
+Décision du fondateur : séries de la page Biologie, catégorie « Mesures du centre », dans le modèle d'observation existant. Protocole obligatoire dans `method`, **jamais de plage de référence inventée**, aucune interprétation de la pression artérielle. `labBiomarkers` (laboratoire, PDF) et `biomarkers` (catalogue complet) sont distincts.
 
 ## Discipline technique
 

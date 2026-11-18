@@ -123,7 +123,9 @@ export function EvidenceModal({
                       <td>
                         {o.reference
                           ? `${o.reference.low}–${o.reference.high} ${o.unit}`
-                          : 'Non fournie'}
+                          : o.method.includes('protocole')
+                            ? `Sans référence · ${o.method}`
+                            : 'Non fournie'}
                       </td>
                       {rows.some(correctable) && (
                         <td>

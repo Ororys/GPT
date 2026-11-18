@@ -10,7 +10,8 @@ export type ComparabilityNote =
   | 'SEVERAL_DEVICES'
   | 'MANUFACTURER_ESTIMATE'
   | 'HRV_METHOD_SPECIFIC'
-  | 'ANALYTICAL_METHOD_NOT_REPORTED';
+  | 'ANALYTICAL_METHOD_NOT_REPORTED'
+  | 'SEVERAL_PROTOCOLS';
 export interface Gap {
   from: string;
   to: string;
@@ -19,6 +20,7 @@ export interface Gap {
 export interface BiologyPassport {
   code: string;
   label: string;
+  category: string;
   count: number;
   first: string | null;
   last: string | null;
@@ -26,6 +28,8 @@ export interface BiologyPassport {
   laboratories: string[];
   documents: number;
   acquisition: { method: string; count: number }[];
+  /** Measurement method or protocol as stated on each value. */
+  protocols: string[];
   needsReview: number;
   corrected: number;
   notes: ComparabilityNote[];
@@ -105,9 +109,14 @@ export function qualityPassport(record: HealthRecord, windowDays = 90): QualityP
     if (laboratories.length > 1) notes.push('SEVERAL_LABORATORIES');
     if (rows.some((o) => o.method === 'lab_method_not_reported'))
       notes.push('ANALYTICAL_METHOD_NOT_REPORTED');
+    const protocols = [
+      ...new Set(rows.map((o) => o.method).filter((m) => m !== 'lab_method_not_reported')),
+    ];
+    if (protocols.length > 1) notes.push('SEVERAL_PROTOCOLS');
     return {
       code: b.code,
       label: b.label,
+      category: b.category,
       count: rows.length,
       first: rows[0]?.measuredAt ?? null,
       last: rows.at(-1)?.measuredAt ?? null,
@@ -115,6 +124,7 @@ export function qualityPassport(record: HealthRecord, windowDays = 90): QualityP
       laboratories,
       documents: new Set(rows.map((o) => o.sourceId)).size,
       acquisition: [...methods].map(([method, count]) => ({ method, count })),
+      protocols,
       needsReview: rows.filter((o) => o.quality === 'needs-review').length,
       corrected: rows.filter((o) => o.corrections?.length).length,
       notes,

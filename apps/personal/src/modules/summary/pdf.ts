@@ -108,37 +108,51 @@ export async function consultationSummaryPdf(
     { color: muted, gap: 6 },
   );
 
-  heading('Biologie : valeurs présentes, dans l’ordre chronologique');
-  if (!s.markers.length) para('Aucun résultat biologique sur la période.', { color: muted });
-  for (const m of s.markers) {
-    ensure(40);
-    para(`${m.label} · ${m.values.length} résultat(s)`, { strong: true, size: 11, gap: 1 });
-    if (m.mixedUnits)
-      para(
-        'Plusieurs unités sur la période : valeurs listées telles quelles, sans conversion ni comparaison.',
-        {
-          indent: 12,
-          color: muted,
-          size: 9,
-        },
-      );
-    for (const v of m.values) {
-      const parts = [
-        `${day(v.date)} : ${n(v.value, 6)} ${v.unit}`,
-        v.reference
-          ? `référence ${v.reference.laboratory} ${n(v.reference.low, 6)}–${n(v.reference.high, 6)} ${v.unit}`
-          : 'référence non structurée',
-        `source : ${v.documentTitle}, page ${v.page}`,
-      ];
-      if (v.correction)
-        parts.push(
-          `corrigée (version ${v.correction.version}), valeur lue ${n(v.correction.originalValue, 6)}`,
+  const CENTRE = 'Mesures du centre';
+  const section = (title: string, markers: typeof s.markers, empty: string) => {
+    heading(title);
+    if (!markers.length) para(empty, { color: muted });
+    for (const m of markers) {
+      ensure(40);
+      para(`${m.label} · ${m.values.length} résultat(s)`, { strong: true, size: 11, gap: 1 });
+      if (m.category === CENTRE)
+        para(
+          `Protocole : ${m.methods.join(' / ')}${m.methods.length > 1 ? ' — plusieurs protocoles, valeurs non directement comparables' : ''}.`,
+          { indent: 12, color: muted, size: 9 },
         );
-      if (v.needsReview) parts.push('à vérifier');
-      para(parts.join(' · '), { indent: 12, size: 9, gap: 1 });
+      if (m.mixedUnits)
+        para(
+          'Plusieurs unités sur la période : valeurs listées telles quelles, sans conversion ni comparaison.',
+          { indent: 12, color: muted, size: 9 },
+        );
+      for (const v of m.values) {
+        const parts = [`${day(v.date)} : ${n(v.value, 6)} ${v.unit}`];
+        if (v.reference)
+          parts.push(
+            `référence ${v.reference.laboratory} ${n(v.reference.low, 6)}–${n(v.reference.high, 6)} ${v.unit}`,
+          );
+        else if (m.category !== CENTRE) parts.push('référence non structurée');
+        parts.push(`source : ${v.documentTitle}, page ${v.page}`);
+        if (v.correction)
+          parts.push(
+            `corrigée (version ${v.correction.version}), valeur lue ${n(v.correction.originalValue, 6)}`,
+          );
+        if (v.needsReview) parts.push('à vérifier');
+        para(parts.join(' · '), { indent: 12, size: 9, gap: 1 });
+      }
+      y -= 4;
     }
-    y -= 4;
-  }
+  };
+  section(
+    'Biologie : valeurs présentes, dans l’ordre chronologique',
+    s.markers.filter((m) => m.category !== CENTRE),
+    'Aucun résultat biologique sur la période.',
+  );
+  section(
+    'Mesures du centre : valeurs présentes, avec leur protocole',
+    s.markers.filter((m) => m.category === CENTRE),
+    'Aucune mesure du centre sur la période.',
+  );
   if (s.missing.length) {
     ensure(30);
     para('Aucune mesure sur la période pour : ' + s.missing.join(', ') + '.', { color: muted });

@@ -585,3 +585,32 @@ test('autorisations : retrait depuis les paramètres, import PDF refusé par la 
   expect(pdf.granted).toBe(true);
   expect(pdf.history.map((h: { granted: boolean }) => h.granted).slice(-2)).toEqual([false, true]);
 });
+
+test('mesures du centre : catégorie dédiée, protocole affiché, sans référence, source et PDF reliés', async ({
+  page,
+}) => {
+  await open(page, '/biology');
+  await page
+    .getByRole('combobox', { name: 'Catégorie biologique' })
+    .selectOption('Mesures du centre');
+  await expect(page.locator('.biomarker-option')).toHaveCount(4);
+  await page.locator('.biomarker-option', { hasText: 'Tour de taille' }).click();
+  await page.getByRole('checkbox', { name: 'Tout l’historique' }).check();
+  await expect(page.locator('.large-value')).toContainText('84');
+  const protocol = page.locator('.reference-card', {
+    hasText: 'Protocole de la mesure sélectionnée',
+  });
+  await expect(protocol).toContainText('Mètre ruban');
+  await expect(page.getByText('Référence du bilan sélectionné')).toHaveCount(0);
+  await expect(page.locator('.table-scroll tbody tr')).toHaveCount(2);
+  await page.screenshot({ path: `${shots}/15-centre.png`, fullPage: true });
+  await page.getByRole('button', { name: 'Bilan source' }).first().click();
+  const dialog = page.getByRole('dialog');
+  await expect(dialog.locator('tbody tr', { hasText: 'Tour de taille' })).toContainText(
+    'Sans référence · Mètre ruban',
+  );
+  const href = await dialog.getByRole('link', { name: /Ouvrir le PDF/ }).getAttribute('href');
+  const pdf = await page.request.get(href!);
+  expect(pdf.status()).toBe(200);
+  expect((await pdf.body()).subarray(0, 4).toString()).toBe('%PDF');
+});

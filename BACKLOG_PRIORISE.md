@@ -76,3 +76,7 @@ Livré : passeport de qualité (R12). Voir [le bilan](docs/personal-sprint-08/BI
 ## Incrément personnel 0.9 — 18 novembre 2026
 
 Livré : autorisations par source versionnées et appliquées en SQL. Voir [le bilan](docs/personal-sprint-09/BILAN.md).
+
+## Incrément personnel 0.10 — 18 novembre 2026
+
+Livré : mesures du centre (R01/R03/R05 en juxtaposition descriptive). Ouvert : axe temporel proportionnel des graphiques, masse grasse et lever de chaise (protocoles à définir). Voir [le bilan](docs/personal-sprint-10/BILAN.md).

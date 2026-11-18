@@ -1,3 +1,7 @@
+# Sprint personnel 10 / 0.10.0 — 18 novembre 2026
+
+Mesures du centre (tour de taille, PA systolique/diastolique, préhension) en nouvelle catégorie de la page Biologie, sur deux bilans annuels fictifs, avec protocole explicite et sans plage de référence inventée. Résumé et passeport mis à jour. Axe des graphiques : année affichée sur plusieurs années. Voir docs/personal-sprint-10/BILAN.md.
+
 # Sprint personnel 09 / 0.9.0 — 18 novembre 2026
 
 Autorisations par entrée de données (PDF, import structuré), versionnées, révocables et appliquées par la base (triggers au point d'entrée, transaction annulée). Migration additive 006, API et bloc dans Paramètres. Voir docs/personal-sprint-09/BILAN.md.

@@ -25,8 +25,8 @@ test('fresh migrations, stored entities and snapshot provenance', async () => {
   const r = await read();
   assert.equal(r.status, 'ok');
   assert.equal(r.record.storage, 'postgresql');
-  assert.equal(r.record.documents.length, 7);
-  assert.equal(r.record.observations.length, 36);
+  assert.equal(r.record.documents.length, 8);
+  assert.equal(r.record.observations.length, 44);
   assert.equal(r.record.activities.length, 52);
   assert.equal(r.record.sleep.length, 83);
   for (const o of r.record.observations) {
@@ -118,7 +118,7 @@ test('unknown fixture and cross-user import insert nothing', async () => {
   assert.equal((await imported('a'.repeat(64))).status, 'invalid');
   assert.equal((await imported(hash, 'personal:demo-beta', 'demo-alpha')).status, 'forbidden');
   assert.equal((await imported(hash, 'personal:demo-beta', 'demo-beta')).status, 'invalid');
-  assert.equal((await read()).record.observations.length, 36);
+  assert.equal((await read()).record.observations.length, 44);
 });
 test('atomicity: database insert failure rolls back document, observation, receipt and success audit', async () => {
   await db.admin.query(
@@ -155,8 +155,8 @@ test('six concurrent clients: imported once, persistent receipt, identical retry
     values.reduce((n, v) => n + v.duplicates, 0),
     5,
   );
-  assert.equal((await read()).record.observations.length, 37);
-  assert.equal((await read()).record.documents.length, 8);
+  assert.equal((await read()).record.observations.length, 45);
+  assert.equal((await read()).record.documents.length, 9);
   const c = new pg.Client({ connectionString: db.apiUrl });
   await c.connect();
   try {
@@ -192,7 +192,7 @@ test('immutable results, documents, receipts and audit; bad units rejected', asy
 });
 test('migrations and seed rerun preserve imports and checksum', async () => {
   await prepareDatabase(db.adminUrl, db.apiUrl);
-  assert.equal((await read()).record.observations.length, 37);
+  assert.equal((await read()).record.observations.length, 45);
   assert.equal(
     (await db.admin.query('SELECT count(*)::int n FROM public.hc_personal_migration')).rows[0].n,
     6,

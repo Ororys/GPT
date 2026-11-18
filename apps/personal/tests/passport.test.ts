@@ -75,3 +75,21 @@ test('passeport : unités, laboratoires et appareils multiples signalés ; dossi
   assert.deepEqual(rhr.notes, []);
   assert.equal(rhr.longestGap?.days, 90);
 });
+
+test('passeport : mesures du centre avec protocole déclaré, changement de protocole signalé', () => {
+  const record = baseRecord('demo-alpha');
+  const waist = qualityPassport(record).biology.find((b) => b.code === 'WAIST')!;
+  assert.equal(waist.category, 'Mesures du centre');
+  assert.equal(waist.count, 2);
+  assert.equal(waist.protocols.length, 1);
+  assert.match(waist.protocols[0], /protocole fictif/);
+  assert.ok(!waist.notes.includes('SEVERAL_PROTOCOLS'));
+  const changed: HealthRecord = {
+    ...record,
+    observations: record.observations.map((o) =>
+      o.id === 'WAIST-2025-10-22' ? { ...o, method: 'Autre mètre ruban (protocole fictif)' } : o,
+    ),
+  };
+  const after = qualityPassport(changed).biology.find((b) => b.code === 'WAIST')!;
+  assert.ok(after.notes.includes('SEVERAL_PROTOCOLS'));
+});

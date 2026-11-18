@@ -11,6 +11,7 @@ const noteLabel: Record<ComparabilityNote, string> = {
   MANUFACTURER_ESTIMATE: 'Estimation du fabricant, pas une mesure de référence.',
   HRV_METHOD_SPECIFIC: 'VFC propre à sa méthode de calcul : non comparable à une autre méthode.',
   ANALYTICAL_METHOD_NOT_REPORTED: 'Méthode analytique non indiquée par le document.',
+  SEVERAL_PROTOCOLS: 'Plusieurs méthodes ou protocoles : valeurs non directement comparables.',
 };
 const day = (iso: string) => dateLabel(iso, { day: 'numeric', month: 'short', year: 'numeric' });
 export function QualityPassportModal({
@@ -73,7 +74,7 @@ export function QualityPassportModal({
         </div>
       </section>
       <section className="passport-section" aria-labelledby="passport-biology">
-        <h3 id="passport-biology">Biologie · tout l’historique</h3>
+        <h3 id="passport-biology">Biologie et mesures du centre · tout l’historique</h3>
         {measured.length === 0 && <p>Aucun résultat biologique dans ce dossier.</p>}
         <div className="passport-cards">
           {measured.map((b) => (
@@ -93,6 +94,12 @@ export function QualityPassportModal({
                   <dt>Unité(s)</dt>
                   <dd>{b.units.join(', ')}</dd>
                 </div>
+                {b.category === 'Mesures du centre' && (
+                  <div>
+                    <dt>Protocole</dt>
+                    <dd>{b.protocols.join(' / ')}</dd>
+                  </div>
+                )}
                 <div>
                   <dt>Laboratoire(s)</dt>
                   <dd>{b.laboratories.join(', ')}</dd>

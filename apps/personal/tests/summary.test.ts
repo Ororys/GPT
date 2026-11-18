@@ -28,7 +28,14 @@ test('résumé : sélection par période, sources et lacunes, sans calcul d’é
       assert.ok(record.documents.some((d) => d.id === v.documentId));
       assert.ok(v.page >= 1);
     }
-    assert.deepEqual(Object.keys(m).sort(), ['code', 'label', 'mixedUnits', 'values']);
+    assert.deepEqual(Object.keys(m).sort(), [
+      'category',
+      'code',
+      'label',
+      'methods',
+      'mixedUnits',
+      'values',
+    ]);
   }
   assert.ok(year.sleep.nights <= year.sleep.days);
   assert.deepEqual(year.sleep.hrvMethods, ['SDNN']);
@@ -93,6 +100,10 @@ test('PDF du résumé : texte réel, sources et limites présentes, vocabulaire 
     'source : Bilan biologique',
     'page 1',
     'Nuits enregistrées',
+    'Mesures du centre : valeurs présentes, avec leur protocole',
+    'Tour de taille',
+    'Protocole : Mètre ruban',
+    'source : Compte rendu de bilan annuel',
     'SDNN',
     'Aucune conversion d',
     'aucun diagnostic, score ni recommandation',
