@@ -29,3 +29,9 @@ Toutes les fonctions SQL faisaient confiance au sujet transmis par le rôle appl
 - Un attaquant qui contrôle le processus applicatif possède aussi la clé et peut signer des sessions. La protection vise une fuite du seul accès base.
 - Les fonctions non gardées (`api_audit`, `api_identity_person`) restent appelables par le rôle applicatif. La seconde ne fait que résoudre une identité déjà rattachée, et sa clé de sujet est un hachage.
 - L'audit reste annulable par un appelant qui contrôle la transaction ; il n'est pas externalisé (S-04).
+
+## Complément (même soirée)
+
+- **Clé obligatoire en mode PostgreSQL** : sans `HC_PERSONAL_SESSION_SECRET`, le serveur générait une clé aléatoire, et la base, qui connaît la vraie clé, refusait alors tout avec un « forbidden » trompeur. Il répond désormais `503 SESSION_SECRET_REQUIRED` avec un message explicite dans les journaux. Test HTTP dédié (stockage HTTP : 3/3).
+- **CI** : les fichiers de tests PostgreSQL s'exécutent l'un après l'autre. Sur une grappe neuve, deux fichiers créaient en même temps les rôles partagés. Le correctif a été vérifié sur une grappe neuve locale.
+- **CI** : l'exercice de sauvegarde utilise les outils clients PostgreSQL 16, alignés sur le serveur.

@@ -7,6 +7,14 @@ const state = globalThis as typeof globalThis & {
 };
 async function pool() {
   if (!process.env.HC_PERSONAL_DATABASE_URL) throw Error('DATABASE_UNAVAILABLE');
+  // The database checks session signatures with this key (S-02): a random per-process key
+  // would make every call fail as "forbidden". Refuse clearly instead.
+  if (!process.env.HC_PERSONAL_SESSION_SECRET) {
+    console.error(
+      'HC_PERSONAL_SESSION_SECRET is required in PostgreSQL mode (see npm run env:init).',
+    );
+    throw Error('SESSION_SECRET_REQUIRED');
+  }
   const p = (state.personalPool ??= new pg.Pool({
     connectionString: process.env.HC_PERSONAL_DATABASE_URL,
     max: 8,
@@ -63,7 +71,11 @@ export async function databaseCall<T>(sql: string, parameters: unknown[]): Promi
       client.release();
     }
   } catch (e) {
-    if (e instanceof Error && e.message === 'UNSAFE_DATABASE_ROLE') throw e;
+    if (
+      e instanceof Error &&
+      ['UNSAFE_DATABASE_ROLE', 'SESSION_SECRET_REQUIRED'].includes(e.message)
+    )
+      throw e;
     // Business refusal raised by a SQL trigger (permission withdrawn): surfaced as such.
     if (e instanceof Error && e.message === 'CONSENT_REQUIRED') throw Error('CONSENT_REQUIRED');
     throw Error('DATABASE_UNAVAILABLE');

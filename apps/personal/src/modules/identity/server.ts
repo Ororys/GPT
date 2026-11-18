@@ -26,7 +26,12 @@ export function requireSameOrigin(request: Request) {
 }
 export function apiError(error: unknown) {
   const code = error instanceof Error ? error.message : 'INTERNAL_ERROR';
-  const status = ['DATABASE_UNAVAILABLE', 'UNSAFE_DATABASE_ROLE', 'OIDC_UNAVAILABLE'].includes(code)
+  const status = [
+    'DATABASE_UNAVAILABLE',
+    'UNSAFE_DATABASE_ROLE',
+    'OIDC_UNAVAILABLE',
+    'SESSION_SECRET_REQUIRED',
+  ].includes(code)
     ? 503
     : code === 'UNAUTHENTICATED'
       ? 401

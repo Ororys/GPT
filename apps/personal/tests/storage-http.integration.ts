@@ -11,7 +11,7 @@ before(async () => {
 after(async () => {
   await db?.drop();
 });
-async function probe(url: string) {
+async function probe(url: string, serverSecret?: string) {
   const secret = 'synthetic-http-probe-secret-0123456789abcdef';
   const base = 'http://127.0.0.1:3101';
   const child = spawn(
@@ -23,7 +23,7 @@ async function probe(url: string) {
         ...process.env,
         HC_PERSONAL_STORAGE: 'postgres',
         HC_PERSONAL_DATABASE_URL: url,
-        HC_PERSONAL_SESSION_SECRET: secret,
+        HC_PERSONAL_SESSION_SECRET: serverSecret ?? secret,
         NEXT_TELEMETRY_DISABLED: '1',
       },
     },
@@ -66,4 +66,10 @@ test('application refuses an administrator connection instead of bypassing RLS',
   assert.equal(r.status, 503);
   assert.equal(r.data.error, 'UNSAFE_DATABASE_ROLE');
   assert.equal(r.data.record, undefined);
+});
+test('PostgreSQL without a session key: clear 503, no random key, no data', async () => {
+  const r = await probe(db.apiUrl, '');
+  assert.equal(r.status, 503);
+  assert.equal(r.data.error, 'SESSION_SECRET_REQUIRED');
+  assert.equal(r.data.observations, undefined);
 });
