@@ -1,4 +1,5 @@
 'use client';
+import { PhoneActivityPanel } from './phone-panels';
 import { localDay, weekStart, zoneOf } from '@/modules/observations/time';
 import { useState } from 'react';
 import { Bike, Footprints, Waves, ArrowUpRight, Timer, Route, Mountain, Info } from 'lucide-react';
@@ -42,15 +43,19 @@ export function Sport({ record, period, openActivity }: PageProps) {
   })();
   if (!record.activities.length)
     return (
-      <Panel>
-        <Empty
-          title="Votre prochain mouvement commence ici"
-          text="Aucune activité dans ce dossier fictif. Les connecteurs sportifs réels ne sont pas encore configurés."
-        />
-      </Panel>
+      <>
+        {record.device && <PhoneActivityPanel device={record.device} />}
+        <Panel>
+          <Empty
+            title="Votre prochain mouvement commence ici"
+            text="Aucune séance d’activité dans ce dossier. Pas et distance du téléphone s’affichent ci-dessus une fois importés depuis l’application mobile."
+          />
+        </Panel>
+      </>
     );
   return (
     <>
+      {record.device && <PhoneActivityPanel device={record.device} />}
       <div className="sport-hero">
         <div>
           <span className="eyebrow">CHAQUE MOUVEMENT COMPTE</span>

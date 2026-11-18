@@ -123,6 +123,8 @@ export interface HealthRecord {
   personId: string;
   /** IANA zone used to assign instants to calendar days (C-01). Default Europe/Paris. */
   timeZone?: string;
+  /** Daily values read on the phone (sprint 14); kept apart from the synthetic series. */
+  device?: import('../device/daily').DeviceDaily | null;
   synthetic: true;
   storage: 'synthetic-fixture+local-imports' | 'postgresql';
   asOf: string;

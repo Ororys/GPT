@@ -1,0 +1,36 @@
+
+> @health-convergence/personal@0.13.0 test:pg
+> tsx --test tests/postgres.integration.ts
+
+✔ fresh migrations, stored entities and snapshot provenance (524.243235ms)
+✔ SQL role has no direct data or internal function privileges, cannot become owner (90.38743ms)
+✔ patient isolation, invalid subjects and durable denied audit (16.619418ms)
+✔ RLS: owner sees no dossier without authorized scope, no caller-controlled scope bypass (4.961673ms)
+✔ database identity revocation takes effect on next read and import (5.857676ms)
+✔ unknown fixture and cross-user import insert nothing (31.361003ms)
+✔ atomicity: database insert failure rolls back document, observation, receipt and success audit (9.2437ms)
+✔ six concurrent clients: imported once, persistent receipt, identical retry (113.890345ms)
+✔ immutable results, documents, receipts and audit; bad units rejected (57.628878ms)
+✔ migrations and seed rerun preserve imports and checksum (325.134973ms)
+✔ PDF: native candidates staged with original bytes, no automatic observation insertion (176.104401ms)
+✔ PDF: cross-user intake and direct table access refused (6.205685ms)
+✔ PDF: incompatible unit and forged selection cannot become observations (19.163562ms)
+✔ PDF: failure during confirmation rolls back document, observations and review event (8.271372ms)
+✔ PDF: six concurrent confirmations insert each selected value once and preserve original units (64.327165ms)
+✔ PDF sprint 04: new fixtures whitelisted, ambiguous candidates refused by SQL, unreferenced value kept honest (91.098315ms)
+✔ corrections: versioned, original kept, stale version refused, concurrent writers serialized (100.94752ms)
+✔ PDF overlaps: same parameter and day from another document signalled, never merged (133.477834ms)
+✔ audit: summary export accepted, unknown events still refused (3.293616ms)
+✔ consents: revocation stops PDF staging, confirmation and import in SQL; history kept (148.38978ms)
+✔ local day (C-01): instants follow the dossier zone across midnight and DST, day values never shift (16.601305ms)
+✔ OIDC identity: controlled enrolment only, several identities per dossier, revocation, audit (133.724464ms)
+✔ phone health data: explicit permission required, idempotent, scoped, unit enforced (46.362675ms)
+✔ phone data shape (010): daily totals for steps, sleep state required, bounded read (35.181428ms)
+ℹ tests 24
+ℹ suites 0
+ℹ pass 24
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2595.986135

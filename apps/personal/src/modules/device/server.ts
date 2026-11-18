@@ -3,6 +3,7 @@ import { databaseCall } from '../storage/postgres';
 import { storageMode } from '../storage/mode';
 import type { DeviceImport, DeviceSeries } from './model';
 import { recordKey } from './key';
+import type { DeviceRow } from './daily';
 export async function importDeviceRecords(personId: string, subject: string, data: DeviceImport) {
   if (storageMode() !== 'postgres') throw Error('DEVICE_REQUIRES_POSTGRES');
   const now = Date.now() + 5 * 60_000;
@@ -15,6 +16,8 @@ export async function importDeviceRecords(personId: string, subject: string, dat
     value: s.value,
     unit: s.unit,
     sourceName: s.sourceName ?? null,
+    sleepState: s.sleepState ?? null,
+    aggregation: s.aggregation,
   }));
   const r = await databaseCall<{ status: string; inserted: number; duplicates: number }>(
     'SELECT personal.api_device_import($1,$2,$3,$4::jsonb) AS result',
@@ -23,6 +26,14 @@ export async function importDeviceRecords(personId: string, subject: string, dat
   if (r.status !== 'ok')
     throw Error(r.status === 'forbidden' ? 'FORBIDDEN' : 'INVALID_DEVICE_DATA');
   return { inserted: r.inserted, duplicates: r.duplicates };
+}
+export async function deviceRows(personId: string, subject: string, days = 90) {
+  const r = await databaseCall<{ status: string; records: DeviceRow[] }>(
+    'SELECT personal.api_device_records($1,$2,$3) AS result',
+    [subject, personId, days],
+  );
+  if (r.status !== 'ok') throw Error('FORBIDDEN');
+  return r.records;
 }
 export async function deviceSummary(personId: string, subject: string) {
   if (storageMode() !== 'postgres') return [] as DeviceSeries[];

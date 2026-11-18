@@ -24,6 +24,11 @@ export const DEVICE_LABEL: Record<DeviceType, string> = {
   distance: 'Distance',
 };
 const iso = z.iso.datetime({ offset: true });
+export const SLEEP_STATES = ['inBed', 'asleep', 'awake', 'rem', 'deep', 'light'] as const;
+/** States that count as time asleep; in bed and awake never do. */
+export const ASLEEP: readonly string[] = ['asleep', 'rem', 'deep', 'light'];
+/** Steps and distance: only the platform's own daily totals (deduplicated across devices). */
+export const DAILY_TOTAL_TYPES: readonly DeviceType[] = ['steps', 'distance'];
 export const DeviceSampleSchema = z
   .strictObject({
     dataType: z.enum(DEVICE_TYPES),
@@ -33,14 +38,23 @@ export const DeviceSampleSchema = z
     endDate: iso,
     sourceName: z.string().max(100).optional(),
     sourceId: z.string().max(200).optional(),
+    sleepState: z.enum(SLEEP_STATES).optional(),
+    aggregation: z.enum(['sample', 'daily-total']).default('sample'),
   })
   .refine((s) => s.unit === DEVICE_UNIT[s.dataType], { message: 'UNIT' })
-  .refine((s) => Date.parse(s.endDate) >= Date.parse(s.startDate), { message: 'RANGE' });
+  .refine((s) => Date.parse(s.endDate) >= Date.parse(s.startDate), { message: 'RANGE' })
+  .refine((s) => DAILY_TOTAL_TYPES.includes(s.dataType) === (s.aggregation === 'daily-total'), {
+    message: 'AGGREGATION',
+  })
+  .refine((s) => (s.dataType === 'sleep') === (s.sleepState !== undefined), {
+    message: 'SLEEP_STATE',
+  });
 export const DeviceImportSchema = z.strictObject({
   platform: z.enum(['healthkit', 'health-connect']),
   samples: z.array(DeviceSampleSchema).min(1).max(500),
 });
 export type DeviceImport = z.infer<typeof DeviceImportSchema>;
+export type DeviceSampleInput = z.input<typeof DeviceSampleSchema>;
 export interface DeviceSeries {
   platform: 'healthkit' | 'health-connect';
   type: DeviceType;

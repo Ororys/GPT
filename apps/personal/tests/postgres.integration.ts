@@ -195,7 +195,7 @@ test('migrations and seed rerun preserve imports and checksum', async () => {
   assert.equal((await read()).record.observations.length, 49);
   assert.equal(
     (await db.admin.query('SELECT count(*)::int n FROM public.hc_personal_migration')).rows[0].n,
-    9,
+    10,
   );
   const rows = (await db.admin.query('SELECT name,sha256 FROM public.hc_personal_migration')).rows;
   await db.admin.query("UPDATE public.hc_personal_migration SET sha256='changed'");
@@ -783,6 +783,7 @@ test('phone health data: explicit permission required, idempotent, scoped, unit 
       value: s.value,
       unit: s.unit,
       sourceName: 'Montre de test',
+      sleepState: 'asleep',
     },
   ];
   const send = (rows: unknown, subject = 'personal:demo-alpha', person = 'demo-alpha') =>
@@ -851,4 +852,55 @@ test('phone health data: explicit permission required, idempotent, scoped, unit 
     db.admin.query('DELETE FROM personal.device_record'),
     /IMMUTABLE_PERSONAL_RECORD/,
   );
+});
+
+test('phone data shape (010): daily totals for steps, sleep state required, bounded read', async () => {
+  const send = (rows: unknown) =>
+    db.api
+      .query('SELECT personal.api_device_import($1,$2,$3,$4::jsonb) r', [
+        'personal:demo-alpha',
+        'demo-alpha',
+        'healthkit',
+        JSON.stringify(rows),
+      ])
+      .then((x) => x.rows[0].r);
+  const base = { start: '2026-11-16T23:00:00Z', end: '2026-11-17T23:00:00Z', sourceName: 'iPhone' };
+  const k = (n: number) => 'k'.repeat(42) + n;
+  assert.equal(
+    (
+      await send([
+        {
+          ...base,
+          type: 'steps',
+          key: k(1),
+          value: 9100,
+          unit: 'count',
+          aggregation: 'daily-total',
+        },
+      ])
+    ).inserted,
+    1,
+  );
+  await assert.rejects(
+    send([{ ...base, type: 'steps', key: k(2), value: 90, unit: 'count' }]),
+    /device_record_shape/,
+  );
+  await assert.rejects(
+    send([{ ...base, type: 'sleep', key: k(3), value: 60, unit: 'minute' }]),
+    /device_record_shape/,
+  );
+  const read = (days: number, subject = 'personal:demo-alpha') =>
+    db.api
+      .query('SELECT personal.api_device_records($1,$2,$3) r', [subject, 'demo-alpha', days])
+      .then((x) => x.rows[0].r);
+  const r = await read(3650);
+  assert.equal(r.status, 'invalid', 'window bounded to 400 days');
+  const ok = await read(400);
+  assert.ok(
+    ok.records.some(
+      (x: { type: string; aggregation: string; value: number }) =>
+        x.type === 'steps' && x.aggregation === 'daily-total' && x.value === 9100,
+    ),
+  );
+  assert.equal((await read(30, 'personal:demo-beta')).status, 'forbidden');
 });

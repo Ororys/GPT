@@ -25,6 +25,7 @@ test('données du téléphone : types limités, unité imposée sans conversion,
     { endDate: '2026-11-16T06:00:00.000Z' },
     { startDate: 'hier' },
     { extra: true },
+    { sleepState: 'asleep' },
   ])
     assert.equal(
       DeviceImportSchema.safeParse({ platform: 'healthkit', samples: [{ ...sample, ...bad }] })
@@ -49,4 +50,32 @@ test('clé d’idempotence : stable, distincte par plateforme et par valeur', ()
   assert.equal(recordKey('healthkit', { ...sample }), k);
   assert.notEqual(recordKey('health-connect', sample), k);
   assert.notEqual(recordKey('healthkit', { ...sample, value: 55 }), k);
+});
+
+test('forme : pas et distance en total quotidien, sommeil avec son état', () => {
+  const ok = (x: object) =>
+    DeviceImportSchema.safeParse({ platform: 'health-connect', samples: [{ ...sample, ...x }] })
+      .success;
+  assert.equal(
+    ok({ dataType: 'steps', unit: 'count', value: 8000, aggregation: 'daily-total' }),
+    true,
+  );
+  assert.equal(ok({ dataType: 'steps', unit: 'count', value: 80 }), false, 'raw steps refused');
+  assert.equal(ok({ dataType: 'sleep', unit: 'minute', value: 60, sleepState: 'deep' }), true);
+  assert.equal(ok({ dataType: 'sleep', unit: 'minute', value: 60 }), false, 'sleep without state');
+  assert.equal(ok({ dataType: 'restingHeartRate', aggregation: 'daily-total' }), false);
+  assert.notEqual(
+    recordKey('health-connect', {
+      ...sample,
+      dataType: 'sleep',
+      unit: 'minute',
+      sleepState: 'deep',
+    }),
+    recordKey('health-connect', {
+      ...sample,
+      dataType: 'sleep',
+      unit: 'minute',
+      sleepState: 'rem',
+    }),
+  );
 });

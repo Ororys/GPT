@@ -1,3 +1,7 @@
+# Sprint 14 / 0.14.0 — 18 novembre 2026
+
+Données du téléphone affichées (Vue d'ensemble, Sport) dans des panneaux distincts : temps endormi seulement, chevauchements fusionnés, pas et distance en totaux quotidiens de la plateforme, VFC séparée par méthode (SDNN/RMSSD). Migration additive 010. Voir docs/personal-sprint-14/BILAN.md.
+
 # Sprint 13 / 0.13.0 — 18 novembre 2026
 
 Applications Android et iOS (Capacitor) ouvrant le même serveur que le site ; lecture seule et minimisée de Santé / Health Connect (sommeil, FC au repos, VFC, pas, distance) sous autorisation explicite ; migration additive 009 ; builds natifs en CI (Android réussi). Voir docs/personal-sprint-13/BILAN.md.

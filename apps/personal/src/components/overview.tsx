@@ -27,6 +27,7 @@ import { addDays, localDay, zoneOf } from '@/modules/observations/time';
 import { Panel, Pill, SectionHeading, SourceButton, Notice, Empty } from './ui';
 import { DataChart, type ChartSeries } from './chart';
 import { QualityPassportModal } from './quality-passport';
+import { PhoneRestPanel } from './phone-panels';
 import { number, hours, duration } from './format';
 export interface PageProps {
   record: HealthRecord;
@@ -69,17 +70,20 @@ export function Overview({ record, period, navigate, openDocument, openActivity 
   }, [record, period, metric, compare]);
   if (!record.observations.length && !record.activities.length)
     return (
-      <Panel>
-        <Empty
-          title={`Bienvenue dans votre espace, ${record.profile.firstName}.`}
-          text="Ce profil fictif est volontairement vide. Choisissez le profil Alex dans les paramètres pour explorer le dossier de démonstration."
-          action={
-            <button className="button primary" onClick={() => navigate('settings')}>
-              Choisir un profil <ArrowRight size={16} />
-            </button>
-          }
-        />
-      </Panel>
+      <>
+        <Panel>
+          <Empty
+            title={`Bienvenue dans votre espace, ${record.profile.firstName}.`}
+            text="Ce profil fictif est volontairement vide. Choisissez le profil Alex dans les paramètres pour explorer le dossier de démonstration."
+            action={
+              <button className="button primary" onClick={() => navigate('settings')}>
+                Choisir un profil <ArrowRight size={16} />
+              </button>
+            }
+          />
+        </Panel>
+        {record.device && <PhoneRestPanel device={record.device} />}
+      </>
     );
   return (
     <>
@@ -382,6 +386,7 @@ export function Overview({ record, period, navigate, openDocument, openActivity 
           </div>
         </Panel>
       </div>
+      {record.device && <PhoneRestPanel device={record.device} />}
       <div className="quality-strip">
         <span className="quality-icon">
           <CalendarDays size={20} />

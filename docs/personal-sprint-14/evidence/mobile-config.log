@@ -1,0 +1,15 @@
+
+> @health-convergence/mobile@0.13.0 test
+> tsx --test tests/*.test.ts
+
+✔ serveur : HTTPS obligatoire hors développement local, navigation limitée à ce serveur (353.764801ms)
+✔ Android : aucune écriture santé, lecture limitée aux cinq types utilisés (5.030809ms)
+✔ iOS : HealthKit déclaré, message d’usage en français, aucune écriture annoncée (2.892191ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 544.484123

@@ -658,3 +658,133 @@ test('données du téléphone : jamais autorisées par défaut, import refusé p
   await expect(page.locator('.device-series')).toContainText('FC au repos · 1 enregistrement(s)');
   await expect(page.locator('.device-series')).toContainText('Santé (iPhone)');
 });
+
+test('données du téléphone affichées : nuits et cœur en vue d’ensemble, pas en sport, séparées du jeu fictif', async ({
+  page,
+}) => {
+  test.skip(process.env.HC_PERSONAL_E2E_STORAGE !== 'postgres', 'Phone data requires PostgreSQL');
+  await open(page, '/settings');
+  const consent = page.locator('.consent-settings .source-setting', {
+    hasText: 'Données santé du téléphone',
+  });
+  // Granted by the previous test in this run, or grant it now.
+  if (await consent.getByRole('button', { name: /Autoriser/ }).count())
+    await consent.getByRole('button', { name: /Autoriser/ }).click();
+  await expect(consent.getByText('Autorisé', { exact: true })).toBeVisible();
+  const day = new Date(Date.now() - 86_400_000).toISOString().slice(0, 10);
+  const status = await page.evaluate(async (d) => {
+    const s = (x: object) => ({ unit: 'minute', dataType: 'sleep', ...x });
+    const res = await fetch('/api/device-imports', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        platform: 'healthkit',
+        samples: [
+          s({
+            value: 480,
+            sleepState: 'inBed',
+            startDate: `${d}T21:00:00.000Z`,
+            endDate: `${d}T05:00:00.000Z`.replace(d, d),
+          }),
+          s({
+            value: 300,
+            sleepState: 'asleep',
+            startDate: `${d}T00:00:00.000Z`,
+            endDate: `${d}T05:00:00.000Z`,
+          }),
+          s({
+            value: 60,
+            sleepState: 'deep',
+            startDate: `${d}T05:00:00.000Z`,
+            endDate: `${d}T06:00:00.000Z`,
+          }),
+          {
+            dataType: 'steps',
+            unit: 'count',
+            value: 8421,
+            aggregation: 'daily-total',
+            startDate: `${d}T00:00:00.000Z`,
+            endDate: `${d}T23:00:00.000Z`,
+          },
+          {
+            dataType: 'heartRateVariability',
+            unit: 'millisecond',
+            value: 44,
+            startDate: `${d}T06:00:00.000Z`,
+            endDate: `${d}T06:00:00.000Z`,
+          },
+        ],
+      }),
+    });
+    return res.status;
+  }, day);
+  expect(status).toBe(422);
+  const ok = await page.evaluate(async (d) => {
+    const res = await fetch('/api/device-imports', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        platform: 'healthkit',
+        samples: [
+          {
+            dataType: 'sleep',
+            unit: 'minute',
+            value: 300,
+            sleepState: 'asleep',
+            startDate: `${d}T00:00:00.000Z`,
+            endDate: `${d}T05:00:00.000Z`,
+          },
+          {
+            dataType: 'sleep',
+            unit: 'minute',
+            value: 60,
+            sleepState: 'deep',
+            startDate: `${d}T05:00:00.000Z`,
+            endDate: `${d}T06:00:00.000Z`,
+          },
+          {
+            dataType: 'sleep',
+            unit: 'minute',
+            value: 420,
+            sleepState: 'inBed',
+            startDate: `${d}T00:00:00.000Z`,
+            endDate: `${d}T07:00:00.000Z`,
+          },
+          {
+            dataType: 'steps',
+            unit: 'count',
+            value: 8421,
+            aggregation: 'daily-total',
+            startDate: `${d}T00:00:00.000Z`,
+            endDate: `${d}T23:00:00.000Z`,
+          },
+          {
+            dataType: 'heartRateVariability',
+            unit: 'millisecond',
+            value: 44,
+            startDate: `${d}T06:00:00.000Z`,
+            endDate: `${d}T06:00:00.000Z`,
+          },
+        ],
+      }),
+    });
+    return res.status;
+  }, day);
+  expect(ok).toBe(200);
+  const record = await (await page.request.get('/api/records/demo-alpha')).json();
+  expect(record.device.sleepHours).toEqual([{ day, value: 6 }]);
+  expect(record.device.steps).toEqual([{ day, value: 8421 }]);
+  expect(record.device.hrv).toEqual([{ method: 'SDNN', values: [{ day, value: 44 }] }]);
+  expect(record.sleep.length).toBeGreaterThan(80);
+  await page.locator('.sidebar nav a[href="/"]').click();
+  const rest = page.locator('.phone-panel', { hasText: 'Nuits et cœur, tels que mesurés' });
+  await expect(rest).toContainText('VFC (SDNN) : 1 jour(s) mesuré(s), dernière valeur 44 ms.');
+  await expect(rest).toContainText('au lit et éveils exclus');
+  await rest.scrollIntoViewIfNeeded();
+  await page.waitForTimeout(800);
+  await rest.screenshot({ path: `${shots}/17-phone-overview.png` });
+  await page.locator('.sidebar nav a[href="/sport"]').click();
+  await expect(
+    page.locator('.phone-panel', { hasText: 'Pas et distance au quotidien' }),
+  ).toContainText('dédoublonne téléphone et montre');
+});

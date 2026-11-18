@@ -107,6 +107,8 @@ export function DataChart({
       // Time axis: spacing is proportional to elapsed time, so a one-year gap looks like one.
       xAxis: {
         type: 'time',
+        // Daily data: never two ticks within the same day (otherwise labels repeat the date).
+        ...(dayKeys && !intraday ? { minInterval: 86_400_000 } : {}),
         axisLine: { show: false },
         axisTick: { show: false },
         splitLine: { show: false },
