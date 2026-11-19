@@ -4998,3 +4998,98 @@ tbody tr:last-child td {
   box-sizing: content-box;
   padding-top: env(safe-area-inset-top);
 }
+/* On-device mode (launch): first launch, lock screen, device settings. */
+.device-gate {
+  min-height: 100vh;
+  max-width: 560px;
+  margin: 0 auto;
+  padding: calc(24px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.device-gate-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.device-gate .panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.device-gate h1 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.5rem;
+}
+.device-gate form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.device-notice ul {
+  margin: 10px 0 0 18px;
+  list-style: disc;
+  display: grid;
+  gap: 8px;
+  color: var(--muted);
+}
+.device-notice small {
+  display: block;
+  margin-top: 10px;
+  color: var(--subtle);
+}
+.code-field,
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.code-field input,
+.field input,
+.field select {
+  min-height: 44px;
+  border-radius: 10px;
+  border: 1px solid var(--border-strong);
+  background: var(--surface-raised);
+  color: var(--text);
+  padding: 0 12px;
+  font-size: 1rem;
+}
+.code-field input {
+  letter-spacing: 0.4em;
+  font-size: 1.25rem;
+}
+.check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+}
+.check input {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--accent);
+}
+.button.danger {
+  border-color: #e0979766;
+  color: #f0b1a8;
+}
+:root[data-theme='light'] .button.danger {
+  border-color: #a3352c55;
+  color: #a3352c;
+}
+.device-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.device-gate-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}

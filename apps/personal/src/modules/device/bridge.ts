@@ -10,7 +10,22 @@ export function isNativeApp() {
  * them in batches. Steps and distance come from the platform's daily totals, which
  * deduplicate phone and watch; sleep keeps the state of every segment (or stage).
  */
-export async function importPhoneHealth(days = 30) {
+type Send = (batch: {
+  platform: 'healthkit' | 'health-connect';
+  samples: DeviceSampleInput[];
+}) => Promise<{ inserted: number; duplicates: number }>;
+/** Hosted version: the server route. The on-device record passes its own store instead. */
+const sendToServer: Send = async (batch) => {
+  const res = await fetch('/api/device-imports', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(batch),
+  });
+  const data = await res.json();
+  if (!res.ok) throw Error(data.error || 'DEVICE_IMPORT_FAILED');
+  return data;
+};
+export async function importPhoneHealth(days = 30, send: Send = sendToServer) {
   const { Capacitor } = await import('@capacitor/core');
   const { Health } = await import('@capgo/capacitor-health');
   const platform = Capacitor.getPlatform() === 'ios' ? 'healthkit' : 'health-connect';
@@ -94,13 +109,7 @@ export async function importPhoneHealth(days = 30) {
   let inserted = 0,
     duplicates = 0;
   for (let i = 0; i < samples.length; i += 500) {
-    const res = await fetch('/api/device-imports', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ platform, samples: samples.slice(i, i + 500) }),
-    });
-    const data = await res.json();
-    if (!res.ok) throw Error(data.error || 'DEVICE_IMPORT_FAILED');
+    const data = await send({ platform, samples: samples.slice(i, i + 500) });
     inserted += data.inserted;
     duplicates += data.duplicates;
   }

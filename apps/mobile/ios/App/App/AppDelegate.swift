@@ -7,8 +7,22 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        // Override point for customization after application launch.
+        excludeWebDataFromBackup()
         return true
+    }
+
+    /// Health data stays on this phone: the web view's storage (IndexedDB, encrypted by the
+    /// app with the user's code) is excluded from iCloud and computer backups.
+    private func excludeWebDataFromBackup() {
+        let fm = FileManager.default
+        guard let library = fm.urls(for: .libraryDirectory, in: .userDomainMask).first else { return }
+        for name in ["WebKit", "Caches", "Application Support"] {
+            var url = library.appendingPathComponent(name, isDirectory: true)
+            try? fm.createDirectory(at: url, withIntermediateDirectories: true)
+            var values = URLResourceValues()
+            values.isExcludedFromBackup = true
+            try? url.setResourceValues(values)
+        }
     }
 
     func applicationWillResignActive(_ application: UIApplication) {

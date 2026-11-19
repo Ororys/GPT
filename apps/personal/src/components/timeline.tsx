@@ -202,8 +202,9 @@ export function Timeline({ record, period, openDocument, openActivity }: PagePro
         </Panel>
       )}
       <Notice>
-        La Time Machine reconstitue les informations disponibles dans le jeu synthétique. Elle ne
-        reconstitue pas un état de santé médical et ne déduit aucun lien causal.
+        La Time Machine reconstitue les informations disponibles{' '}
+        {record.synthetic ? 'dans le jeu synthétique' : 'dans votre dossier'}. Elle ne reconstitue
+        pas un état de santé médical et ne déduit aucun lien causal.
       </Notice>
     </>
   );

@@ -73,7 +73,8 @@ export interface HealthDocument {
   laboratory: string;
   pages: number;
   status: 'available' | 'needs-review' | 'error';
-  synthetic: true;
+  /** False only for documents the person added on their own phone (storage 'device'). */
+  synthetic: boolean;
 }
 export interface Activity {
   id: string;
@@ -125,8 +126,10 @@ export interface HealthRecord {
   timeZone?: string;
   /** Daily values read on the phone (sprint 14); kept apart from the synthetic series. */
   device?: import('../device/daily').DeviceDaily | null;
-  synthetic: true;
-  storage: 'synthetic-fixture+local-imports' | 'postgresql';
+  /** False only for the on-device record, which holds the person's own data. */
+  synthetic: boolean;
+  /** 'device': record kept encrypted on the phone, no server (launch mode). */
+  storage: 'synthetic-fixture+local-imports' | 'postgresql' | 'device';
   asOf: string;
   profile: { firstName: string; initials: string; description: string };
   biomarkers: Biomarker[];

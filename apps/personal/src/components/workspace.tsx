@@ -38,6 +38,10 @@ import { ConsentSettings } from './consent-settings';
 import { DeviceHealth } from './device-health';
 import { ActivityModal } from './activity-modal';
 import { ImportModal } from './import-modal';
+import { DeviceGate, NoticeText } from './device-gate';
+import { DeviceSettings } from './device-settings';
+import { PdfAddModal } from './pdf-add-modal';
+import { DEVICE_RUNTIME, deviceStore } from '@/modules/local/session';
 import { Panel, Pill, Modal, Skeleton, Notice } from './ui';
 const navigation = [
   { id: 'overview' as const, name: 'Vue d’ensemble', icon: LayoutDashboard, path: '/' },
@@ -82,9 +86,13 @@ async function autoSyncPhone(onImported: () => Promise<void>) {
     const { isNativeApp, importPhoneHealth } = await import('@/modules/device/bridge');
     const { shouldAutoSync, SYNC_KEY } = await import('@/modules/device/sync-policy');
     if (!isNativeApp()) return;
-    const res = await fetch('/api/consents', { cache: 'no-store' });
-    if (!res.ok) return;
-    const consents = (await res.json()) as { source: string; granted: boolean }[];
+    let consents: { source: string; granted: boolean }[];
+    if (DEVICE_RUNTIME) consents = await deviceStore().consents();
+    else {
+      const res = await fetch('/api/consents', { cache: 'no-store' });
+      if (!res.ok) return;
+      consents = (await res.json()) as { source: string; granted: boolean }[];
+    }
     let lastSync: string | null = null;
     try {
       lastSync = localStorage.getItem(SYNC_KEY);
@@ -92,7 +100,9 @@ async function autoSyncPhone(onImported: () => Promise<void>) {
     const allowed = consents.some((c) => c.source === 'device-health' && c.granted);
     if (!shouldAutoSync({ native: true, consentGranted: allowed, lastSync, now: Date.now() }))
       return;
-    const r = await importPhoneHealth(7);
+    const r = DEVICE_RUNTIME
+      ? await importPhoneHealth(7, (batch) => deviceStore().importDevice(batch))
+      : await importPhoneHealth(7);
     try {
       localStorage.setItem(SYNC_KEY, new Date().toISOString());
     } catch {}
@@ -101,7 +111,27 @@ async function autoSyncPhone(onImported: () => Promise<void>) {
     // Manual import remains available and explains errors.
   }
 }
+/** Today, written like the demo heading (« MERCREDI 18 NOVEMBRE 2026 »). */
+const today = () =>
+  new Date()
+    .toLocaleDateString('fr-FR', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    })
+    .toUpperCase();
 export function Workspace({ view }: { view: View }) {
+  // Launch mode: the record is on the phone, behind the code (first launch, then unlock).
+  return DEVICE_RUNTIME ? (
+    <DeviceGate>
+      <WorkspaceView view={view} />
+    </DeviceGate>
+  ) : (
+    <WorkspaceView view={view} />
+  );
+}
+function WorkspaceView({ view }: { view: View }) {
   const router = useRouter();
   const [record, setRecord] = useState<HealthRecord | null>(null);
   const [error, setError] = useState('');
@@ -120,6 +150,7 @@ export function Workspace({ view }: { view: View }) {
   const [search, setSearch] = useState('');
   const refresh = useCallback(
     async (id = personId) => {
+      if (DEVICE_RUNTIME) return setRecord(await deviceStore().record());
       const res = await fetch(`/api/records/${id}`, { cache: 'no-store' });
       if (!res.ok)
         throw Error(
@@ -153,6 +184,17 @@ export function Workspace({ view }: { view: View }) {
       if (preference === 'light') {
         document.documentElement.dataset.theme = 'light';
         setTheme('light');
+      }
+      if (DEVICE_RUNTIME) {
+        const value = await deviceStore().record();
+        if (!cancelled) {
+          setPersonId(value.personId);
+          setRecord(value);
+          void autoSyncPhone(async () => {
+            if (!cancelled) setRecord(await deviceStore().record());
+          });
+        }
+        return;
       }
       const status = await fetch('/api/auth/status', { cache: 'no-store' });
       if (!status.ok) throw Error('Le service de connexion ne répond pas.');
@@ -287,8 +329,11 @@ export function Workspace({ view }: { view: View }) {
           <div className="sidebar-profile">
             <span className="avatar">{record?.profile.initials || 'AM'}</span>
             <div>
-              <strong>{record?.profile.firstName || 'Alex'} · profil fictif</strong>
-              <small>Prototype personnel</small>
+              <strong>
+                {record?.profile.firstName || 'Alex'}
+                {record?.synthetic === false ? '' : ' · profil fictif'}
+              </strong>
+              <small>{DEVICE_RUNTIME ? 'Sur ce téléphone' : 'Prototype personnel'}</small>
             </div>
             <button
               className="icon-button"
@@ -337,16 +382,23 @@ export function Workspace({ view }: { view: View }) {
         <main id="main-content">
           <div className="demo-notice">
             <span>
-              <span className="live-dot" /> ESPACE DE DÉMONSTRATION
+              <span className="live-dot" />{' '}
+              {DEVICE_RUNTIME ? 'SUR CE TÉLÉPHONE' : 'ESPACE DE DÉMONSTRATION'}
             </span>
-            <p>Données entièrement fictives. Aucun usage médical.</p>
+            <p>
+              {DEVICE_RUNTIME
+                ? 'Vos données restent chiffrées sur ce téléphone. Aucun usage médical.'
+                : 'Données entièrement fictives. Aucun usage médical.'}
+            </p>
             <button onClick={() => setHelpOpen(true)}>
               En savoir plus <ArrowUpRight size={12} />
             </button>
           </div>
           <div className="page-heading">
             <div>
-              <div className="eyebrow heading-date">MERCREDI 18 NOVEMBRE 2026 · DÉMO</div>
+              <div className="eyebrow heading-date" suppressHydrationWarning>
+                {DEVICE_RUNTIME ? today() : 'MERCREDI 18 NOVEMBRE 2026 · DÉMO'}
+              </div>
               <h1>{meta.title}</h1>
               <p>
                 {view === 'overview'
@@ -358,8 +410,18 @@ export function Workspace({ view }: { view: View }) {
               className="button primary import-top"
               onClick={() => setImportOpen(true)}
               disabled={!record}
+              aria-label={DEVICE_RUNTIME ? 'Ajouter un PDF' : 'Importer une démo'}
             >
-              <Upload size={16} /> Importer <span>une démo</span>
+              <Upload size={16} />{' '}
+              {DEVICE_RUNTIME ? (
+                <>
+                  Ajouter <span>un PDF</span>
+                </>
+              ) : (
+                <>
+                  Importer <span>une démo</span>
+                </>
+              )}
             </button>
           </div>
           {view !== 'settings' && (
@@ -437,6 +499,8 @@ export function Workspace({ view }: { view: View }) {
             <Documents {...props} onImport={() => setImportOpen(true)} />
           ) : view === 'timeline' ? (
             <Timeline {...props} />
+          ) : DEVICE_RUNTIME ? (
+            <DeviceSettings record={record} onChanged={() => refresh()} />
           ) : (
             <div className="settings-grid">
               {authMode === 'oidc' ? (
@@ -599,7 +663,10 @@ export function Workspace({ view }: { view: View }) {
               <i />
             </span>
             <span>Votre histoire mérite de la clarté.</span>
-            <small>Prototype synthétique · ni diagnostic, ni score médical</small>
+            <small>
+              {DEVICE_RUNTIME ? 'Descriptif' : 'Prototype synthétique'} · ni diagnostic, ni score
+              médical
+            </small>
           </footer>
         </main>
       </div>
@@ -623,6 +690,23 @@ export function Workspace({ view }: { view: View }) {
             selection={source}
             onClose={() => setSource(null)}
             onCorrected={() => refresh()}
+            {...(DEVICE_RUNTIME
+              ? {
+                  openPdf: async (id: string) => {
+                    const bytes = await deviceStore().pdfBytes(id);
+                    const url = URL.createObjectURL(
+                      new Blob([bytes as BlobPart], { type: 'application/pdf' }),
+                    );
+                    window.open(url, '_blank', 'noopener');
+                    setTimeout(() => URL.revokeObjectURL(url), 60_000);
+                  },
+                  deleteDocument: async (id: string) => {
+                    await deviceStore().deleteDocument(id);
+                    setSource(null);
+                    await refresh();
+                  },
+                }
+              : {})}
           />
           <ActivityModal
             activity={record.activities.find((a) => a.id === activityId)}
@@ -630,11 +714,19 @@ export function Workspace({ view }: { view: View }) {
           />
         </>
       )}
-      <ImportModal
-        open={importOpen}
-        onClose={() => setImportOpen(false)}
-        onImported={() => refresh()}
-      />
+      {DEVICE_RUNTIME ? (
+        <PdfAddModal
+          open={importOpen}
+          onClose={() => setImportOpen(false)}
+          onAdded={() => refresh()}
+        />
+      ) : (
+        <ImportModal
+          open={importOpen}
+          onClose={() => setImportOpen(false)}
+          onImported={() => refresh()}
+        />
+      )}
       <Modal
         open={helpOpen}
         onOpenChange={setHelpOpen}
@@ -642,31 +734,41 @@ export function Workspace({ view }: { view: View }) {
         description="Convergence · premier sprint B2C"
       >
         <div className="help-content">
-          <Pill tone="teal">100 % synthétique · local</Pill>
-          <p>
-            Explorez un même dossier à travers la biologie, le mouvement, les documents et la
-            timeline. Les filtres, les graphiques, les sources PDF et l’import structuré de
-            démonstration fonctionnent.
-          </p>
-          <h3>Ce qui n’est pas implémenté</h3>
-          <p>
-            Authentification réelle, OCR, extraction par IA, synchronisation fabricant, avis
-            médical, partage professionnel et paiement.
-          </p>
-          <Notice>
-            Ces écrans sont un prototype descriptif. Aucune donnée de santé réelle ne doit y être
-            introduite.{' '}
-            {record?.storage === 'postgresql'
-              ? 'Les données et les imports de cet espace sont persistés dans PostgreSQL, dans un schéma dédié.'
-              : 'Le mode fixtures local est explicitement activé ; les reçus restent des fichiers locaux.'}
-          </Notice>
+          {DEVICE_RUNTIME ? (
+            <NoticeText />
+          ) : (
+            <>
+              <Pill tone="teal">100 % synthétique · local</Pill>
+              <p>
+                Explorez un même dossier à travers la biologie, le mouvement, les documents et la
+                timeline. Les filtres, les graphiques, les sources PDF et l’import structuré de
+                démonstration fonctionnent.
+              </p>
+              <h3>Ce qui n’est pas implémenté</h3>
+              <p>
+                Authentification réelle, OCR, extraction par IA, synchronisation fabricant, avis
+                médical, partage professionnel et paiement.
+              </p>
+              <Notice>
+                Ces écrans sont un prototype descriptif. Aucune donnée de santé réelle ne doit y
+                être introduite.{' '}
+                {record?.storage === 'postgresql'
+                  ? 'Les données et les imports de cet espace sont persistés dans PostgreSQL, dans un schéma dédié.'
+                  : 'Le mode fixtures local est explicitement activé ; les reçus restent des fichiers locaux.'}
+              </Notice>
+            </>
+          )}
         </div>
       </Modal>
       <Modal
         open={searchOpen}
         onOpenChange={setSearchOpen}
         title="Retrouver dans votre histoire"
-        description="Rechercher dans les documents et les paramètres du dossier fictif."
+        description={
+          DEVICE_RUNTIME
+            ? 'Rechercher dans vos documents et les paramètres.'
+            : 'Rechercher dans les documents et les paramètres du dossier fictif.'
+        }
       >
         <label className="search-input">
           <Search size={18} />

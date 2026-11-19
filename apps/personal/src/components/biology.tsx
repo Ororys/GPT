@@ -50,7 +50,11 @@ export function Biology({ record, period, openDocument }: PageProps) {
       <Panel>
         <Empty
           title="Vos bilans trouveront leur place ici"
-          text="Aucun résultat biologique dans ce dossier fictif."
+          text={
+            record.synthetic
+              ? 'Aucun résultat biologique dans ce dossier fictif.'
+              : 'Les valeurs de vos PDF ne sont pas lues automatiquement pour l’instant. Vos documents sont rangés dans la page Documents.'
+          }
         />
       </Panel>
     );

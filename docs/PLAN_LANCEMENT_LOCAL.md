@@ -1,6 +1,6 @@
 # Plan : lancement « données sur le téléphone » et RGPD (19 novembre 2026)
 
-**Décision du fondateur :** pour le lancement, les données de santé restent sur le téléphone, avec un écran de connexion propre à l'application, afin de ne rien payer en hébergement. Ce document est **un plan, rien n'est encore codé**. La version serveur (PostgreSQL, OIDC) est **conservée telle quelle** dans le dépôt pour plus tard : synchronisation, partage avec un soignant.
+**Décision du fondateur :** pour le lancement, les données de santé restent sur le téléphone, avec un écran de connexion propre à l'application, afin de ne rien payer en hébergement. Ce document était un plan ; **sa réalisation est décrite dans `personal-sprint-23/BILAN.md`** (étapes 1, 2 et 4 faites, étape 3 sans la biométrie). La version serveur (PostgreSQL, OIDC) est **conservée telle quelle** dans le dépôt pour plus tard : synchronisation, partage avec un soignant.
 
 ## Ce que la décision change
 

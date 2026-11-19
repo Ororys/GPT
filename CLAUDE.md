@@ -76,6 +76,16 @@ Ne pas désactiver RLS, les triggers d'immuabilité, la vérification Host/Origi
 
 Depuis le sprint 12, une connexion réelle OIDC (PKCE, `amr` exigé, rattachement contrôlé, `008_oidc_identity.sql`) existe derrière `HC_PERSONAL_AUTH=oidc` ; la démonstration reste le défaut. Ne jamais ajouter de rattachement automatique d'une identité à un dossier. Les redirections utilisent l'origine publique configurée, jamais `request.url`. Depuis le sprint 21 (S-02), quand `db:prepare` a installé la clé (`HC_PERSONAL_SESSION_SECRET`), `personal.guard` exige la preuve de session signée transmise par `databaseCall` (`hc.session_proof`) : ne jamais contourner `databaseCall` ni désactiver cette vérification ; toute nouvelle fonction d'API doit passer par `personal.guard`. L'audit en base reste annulable dans une transaction contrôlée par un appelant et n'est pas inviolable face à l'administrateur. Ces points ne sont pas résolus par la présente livraison.
 
+## Lancement « données sur le téléphone » (sprint 23)
+
+Décision du fondateur (19 novembre 2026) : au lancement, les données de santé restent **sur le téléphone**, chiffrées, sans serveur ni compte. Coût d'hébergement nul ; la version web reste la démonstration aux profils fictifs. La version hébergée (PostgreSQL, OIDC, routes `/api`) est **conservée** pour plus tard : ne pas la supprimer.
+
+- `npm run build:mobile` (apps/personal) produit les pages statiques dans `apps/mobile/dist` avec `NEXT_PUBLIC_HC_RUNTIME=device`. Capacitor les embarque sauf si `CONVERGENCE_SERVER_URL` est défini (mode hébergé).
+- `modules/local/` : coffre chiffré (AES-256-GCM, clé enveloppée par PBKDF2-SHA-256 600 000 itérations à partir du code de 6 à 12 chiffres, jamais stocké), dépôt local (`store.ts`) avec autorisations versionnées, import téléphone idempotent, PDF conservés tels quels. Les noms d'entrées ne doivent rien révéler du contenu (identifiants aléatoires, index chiffré).
+- Fonctions RGPD : premier lancement (majorité, information versionnée `NOTICE_VERSION`), retrait avec ou sans effacement, suppression d'un document, export complet, « Supprimer toutes mes données », code oublié = tout effacer. Aucune requête hors de l'origine de la page (CSP `connect-src 'self'`, test E2E). Données exclues des sauvegardes iCloud et Google.
+- Les PDF sont **rangés sans lecture des valeurs**. Le fondateur souhaite une lecture par IA en ligne (lecture seule, sans interprétation) : non codée, car elle demande un compte et une clé chez un fournisseur, un petit serveur relais pour cacher la clé, et une nouvelle analyse RGPD (le PDF quitterait le téléphone). Ne pas l'ajouter sans ces décisions.
+- Tests : `tests/local-store.test.ts`, `npm run test:e2e:device` après `build:mobile`.
+
 ## Prochain travail raisonnable
 
 Consolider le parcours PDF et son banc synthétique : autres mises en page, cas ambigus, dates, doublons et revue/correction versionnée. Conserver le design et le découpage actuel. Ne pas lancer simultanément assistant IA, intégrations fabricants, portail B2B ou réorganisation du dossier.

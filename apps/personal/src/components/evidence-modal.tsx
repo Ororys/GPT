@@ -11,11 +11,17 @@ export function EvidenceModal({
   selection,
   onClose,
   onCorrected,
+  openPdf,
+  deleteDocument,
 }: {
   record: HealthRecord;
   selection: { documentId: string; observationId?: string } | null;
   onClose: () => void;
   onCorrected?: () => Promise<void>;
+  /** On-device record: the PDF is decrypted on the phone instead of fetched from a server. */
+  openPdf?: (documentId: string) => Promise<void>;
+  /** On-device record: the person may delete their own document (RGPD art. 17). */
+  deleteDocument?: (documentId: string) => Promise<void>;
 }) {
   const doc = record.documents.find((d) => d.id === selection?.documentId);
   const observation = record.observations.find((o) => o.id === selection?.observationId);
@@ -36,7 +42,11 @@ export function EvidenceModal({
       open={!!selection}
       onOpenChange={(v) => !v && onClose()}
       title={doc?.title || 'Source documentaire'}
-      description="Evidence Engine · source synthétique consultable, sans extraction IA."
+      description={
+        doc && !doc.synthetic
+          ? 'Votre document, conservé tel quel.'
+          : 'Evidence Engine · source synthétique consultable, sans extraction IA.'
+      }
       wide
     >
       {doc ? (
@@ -53,7 +63,11 @@ export function EvidenceModal({
               </small>
             </div>
             <Pill tone={doc.status === 'needs-review' ? 'amber' : 'teal'}>
-              {doc.status === 'needs-review' ? 'À vérifier' : 'Jeu synthétique'}
+              {doc.status === 'needs-review'
+                ? 'À vérifier'
+                : doc.synthetic
+                  ? 'Jeu synthétique'
+                  : 'Rangé sur ce téléphone'}
             </Pill>
           </div>
           {observation && (
@@ -208,23 +222,48 @@ export function EvidenceModal({
               ))}
             </details>
           )}
-          <Notice>
-            {doc.id.startsWith('pdf-')
-              ? 'Le PDF original téléversé est conservé avec son empreinte.'
-              : 'Le PDF est généré à partir du même jeu de données.'}{' '}
-            Ces références fictives ne sont pas des normes universelles. Une donnée « à vérifier »
-            n’est jamais considérée comme validée médicalement.
-          </Notice>
+          {!doc.synthetic ? (
+            <Notice>
+              PDF conservé tel que vous l’avez ajouté, chiffré sur ce téléphone. Ses valeurs ne sont
+              pas lues automatiquement.
+            </Notice>
+          ) : (
+            <Notice>
+              {doc.id.startsWith('pdf-')
+                ? 'Le PDF original téléversé est conservé avec son empreinte.'
+                : 'Le PDF est généré à partir du même jeu de données.'}{' '}
+              Ces références fictives ne sont pas des normes universelles. Une donnée « à vérifier »
+              n’est jamais considérée comme validée médicalement.
+            </Notice>
+          )}
           <div className="modal-actions">
-            <a
-              className="button primary"
-              href={`/api/documents/${doc.id}#page=${observation?.evidence.page || 1}`}
-              target="_blank"
-              rel="noreferrer"
-            >
-              <ExternalLink size={16} />
-              Ouvrir le PDF · page {observation?.evidence.page || 1}
-            </a>
+            {openPdf ? (
+              <button className="button primary" onClick={() => void openPdf(doc.id)}>
+                <ExternalLink size={16} />
+                Ouvrir le PDF
+              </button>
+            ) : (
+              <a
+                className="button primary"
+                href={`/api/documents/${doc.id}#page=${observation?.evidence.page || 1}`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                <ExternalLink size={16} />
+                Ouvrir le PDF · page {observation?.evidence.page || 1}
+              </a>
+            )}
+            {deleteDocument && (
+              <button
+                className="button danger"
+                onClick={() => {
+                  if (confirm(`Supprimer définitivement « ${doc.title} » de ce téléphone ?`))
+                    void deleteDocument(doc.id);
+                }}
+              >
+                Supprimer ce document
+              </button>
+            )}
             <button className="button" onClick={onClose}>
               <Check size={16} />
               Fermer la source

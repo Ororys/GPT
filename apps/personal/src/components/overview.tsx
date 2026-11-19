@@ -74,10 +74,15 @@ export function Overview({ record, period, navigate, openDocument, openActivity 
         <Panel>
           <Empty
             title={`Bienvenue dans votre espace, ${record.profile.firstName}.`}
-            text="Ce profil fictif est volontairement vide. Choisissez le profil Alex dans les paramètres pour explorer le dossier de démonstration."
+            text={
+              record.synthetic
+                ? 'Ce profil fictif est volontairement vide. Choisissez le profil Alex dans les paramètres pour explorer le dossier de démonstration.'
+                : 'Rangez un premier document PDF, ou autorisez dans Paramètres la lecture des données de votre téléphone. Rien n’est inventé pour remplir votre dossier.'
+            }
             action={
               <button className="button primary" onClick={() => navigate('settings')}>
-                Choisir un profil <ArrowRight size={16} />
+                {record.synthetic ? 'Choisir un profil' : 'Ouvrir les paramètres'}{' '}
+                <ArrowRight size={16} />
               </button>
             }
           />

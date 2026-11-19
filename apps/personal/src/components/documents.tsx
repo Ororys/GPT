@@ -49,14 +49,14 @@ export function Documents({
           </p>
         </div>
         <button className="button primary" onClick={onImport}>
-          <Upload size={17} /> Importer une démo
+          <Upload size={17} /> {record.synthetic ? 'Importer une démo' : 'Ajouter un PDF'}
         </button>
       </section>
       <div className="document-stats">
         <div>
           <FolderOpen size={17} />
           <strong>{record.documents.length}</strong>
-          <span>documents synthétiques</span>
+          <span>{record.synthetic ? 'documents synthétiques' : 'documents'}</span>
         </div>
         <div>
           <Layers size={17} />
@@ -123,8 +123,9 @@ export function Documents({
                   <ArrowUpRight size={17} />
                 </div>
                 <div className="doc-evidence">
-                  {record.observations.filter((o) => o.sourceId === d.id).length} résultats reliés ·
-                  PDF synthétique
+                  {d.synthetic
+                    ? `${record.observations.filter((o) => o.sourceId === d.id).length} résultats reliés · PDF synthétique`
+                    : 'PDF rangé · valeurs non lues'}
                 </div>
               </button>
             ))}
@@ -149,9 +150,9 @@ export function Documents({
         )}
       </Panel>
       <Notice>
-        Ces PDF sont générés depuis le jeu synthétique. Aucun OCR ni service IA n’est exécuté.
-        L’import accepte uniquement les PDF et le JSON synthétiques fournis, jamais un vrai document
-        médical.
+        {record.synthetic
+          ? 'Ces PDF sont générés depuis le jeu synthétique. Aucun OCR ni service IA n’est exécuté. L’import accepte uniquement les PDF et le JSON synthétiques fournis, jamais un vrai document médical.'
+          : 'Vos PDF sont conservés tels quels, chiffrés sur ce téléphone. Leurs valeurs ne sont pas lues automatiquement pour l’instant.'}
       </Notice>
     </>
   );

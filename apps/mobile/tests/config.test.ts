@@ -8,7 +8,7 @@ const load = (env: Record<string, string>) =>
     ['--import', 'tsx', '-e', "import('./capacitor.config.ts').then(m=>console.log(JSON.stringify(m.default)))"],
     { env: { ...process.env, ...env }, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
   );
-test('serveur : HTTPS obligatoire hors développement local, navigation limitée à ce serveur', () => {
+test('mode hébergé : HTTPS obligatoire hors développement local, navigation limitée à ce serveur', () => {
   const prod = JSON.parse(load({ CONVERGENCE_SERVER_URL: 'https://app.example.test' }));
   assert.equal(prod.server.url, 'https://app.example.test');
   assert.equal(prod.server.cleartext, false);
@@ -46,4 +46,28 @@ test('iOS : HealthKit déclaré, message d’usage en français, aucune écritur
     (readFileSync('ios/App/App.xcodeproj/project.pbxproj', 'utf8').match(/CODE_SIGN_ENTITLEMENTS = App\/App.entitlements;/g) || []).length,
     2,
   );
+});
+test('lancement : pages embarquées, aucun serveur ouvert par défaut', () => {
+  const env = { ...process.env };
+  delete env.CONVERGENCE_SERVER_URL;
+  const local = JSON.parse(
+    execFileSync(
+      process.execPath,
+      ['--import', 'tsx', '-e', "import('./capacitor.config.ts').then(m=>console.log(JSON.stringify(m.default)))"],
+      { env, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
+    ),
+  );
+  assert.equal(local.webDir, 'dist');
+  assert.equal(local.server, undefined);
+});
+test('sauvegardes : données exclues des copies Google et iCloud', () => {
+  const manifest = readFileSync('android/app/src/main/AndroidManifest.xml', 'utf8');
+  assert.match(manifest, /android:allowBackup="false"/);
+  assert.match(manifest, /android:dataExtractionRules="@xml\/data_extraction_rules"/);
+  const rules = readFileSync('android/app/src/main/res/xml/data_extraction_rules.xml', 'utf8');
+  for (const part of ['cloud-backup', 'device-transfer'])
+    assert.match(rules, new RegExp(`<${part}>[\\s\\S]*<exclude domain="root" path="\\." />`));
+  const swift = readFileSync('ios/App/App/AppDelegate.swift', 'utf8');
+  assert.match(swift, /isExcludedFromBackup = true/);
+  assert.match(swift, /"WebKit"/);
 });

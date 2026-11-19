@@ -1,14 +1,15 @@
-# Où en est Convergence — état au 18 novembre 2026
+# Où en est Convergence — état au 19 novembre 2026
 
 Document de synthèse pour le fondateur, en langage simple. Référence technique de l'API : `API_PERSONAL.md`. Le détail de chaque étape est dans `docs/personal-sprint-NN/BILAN.md`, avec ses preuves de tests.
 
 ## Ce que fait le produit aujourd'hui
 
-**Une application web et une application mobile (Android et iPhone)** qui partagent les mêmes écrans et le même serveur.
+**Au lancement (décision du 19 novembre 2026) : une application Android et iPhone dont les données restent chiffrées sur le téléphone**, sans serveur ni compte, déverrouillée par un code. Le site web montre la démonstration aux profils fictifs. La version hébergée (serveur, vraie connexion) est conservée pour plus tard.
 
 | Fonction | État |
 |---|---|
 | Vue d'ensemble, Biologie, Sport, Documents, Timeline, Paramètres | En place (5 pages + réglages, design d'origine conservé) |
+| Application « sur le téléphone » | Premier lancement (majorité, information), code, rangement des PDF, export, suppression d'un document ou de tout, retrait d'une autorisation avec effacement (sprint 23) |
 | Lecture de PDF de laboratoire | Texte natif, format de tableau contrôlé, 9 PDF de test fictifs. Revue avant ajout, blocage des cas ambigus, correction versionnée, doublons signalés |
 | Mesures du centre | Tour de taille, tension, préhension, 5 levers de chaise, masse grasse : avec protocole, sans norme inventée |
 | Données du téléphone | Lues dans Santé (iPhone) et Health Connect (Android) en lecture seule : sommeil, FC au repos, VFC, pas, distance. Sans double comptage, synchronisées à l'ouverture de l'application |

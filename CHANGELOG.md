@@ -1,3 +1,7 @@
+# Sprint 23 / 0.23.0 — 19 novembre 2026
+
+Lancement « données sur le téléphone » : pages embarquées dans l'application (sans serveur), coffre chiffré par un code, premier lancement (majorité, information versionnée), rangement des PDF, retrait avec effacement, suppression d'un document ou de toutes les données, export complet, aucune requête hors de l'application, sauvegardes cloud exclues. La version hébergée est conservée. Voir docs/personal-sprint-23/BILAN.md.
+
 # Sprint 22 / 0.22.0 — 18 novembre 2026
 
 Synchronisation automatique des données du téléphone à l'ouverture de l'application (autorisation requise, au plus toutes les 6 h, silencieuse en cas d'échec). Voir docs/personal-sprint-22/BILAN.md.
