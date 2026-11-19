@@ -42,3 +42,10 @@ Corrections apportées en passant :
 1. Créer un **projet API OpenAI** (un abonnement ChatGPT ne suffit pas : l'API a son propre contrat et sa facturation), accepter le DPA, demander la résidence UE et la conservation nulle.
 2. Faire valider par un avocat le point HDS et les transferts (voir `ANALYSE_RGPD.md`, section 10).
 3. Choisir où héberger le relais.
+
+## Intégration continue (GitHub, 19 novembre 2026)
+
+Tout est vert sur le commit `336b0e3` :
+- « Personal B2C prototype » (run 44449484275) : tests du relais, construction avec le relais de test, parcours navigateur application → relais → faux OpenAI, et le reste de la suite ;
+- « Mobile apps » (run 44449484330) : compilations Android et iPhone ;
+- « Synthetic validation » (run 44449484207).
