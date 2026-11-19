@@ -127,3 +127,30 @@ Amende administrative jusqu'à **20 millions d'euros ou 4 % du chiffre d'affaire
 - [Article L.1111-8 CSP (Légifrance)](https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000049577902) ; [ANS — champ d'application HDS](https://esante.gouv.fr/faq/quel-est-le-champ-dapplication-de-la-legislation-relative-lhebergement-de-donnees-de-sante-caractere-personnel)
 - [Village de la Justice — HDS et RGPD](https://www.village-justice.com/articles/hebergement-donnee-sante-rgpd,30355.html)
 - Textes cités de mémoire et à vérifier sur Légifrance ou EUR-Lex : articles 4, 5, 6, 7, 9, 12 à 22, 25, 28, 30, 32 à 37 et 83 du RGPD ; articles 45, 82 et 85 de la loi Informatique et Libertés ; article L.1115-1 CSP.
+
+## 10. Lecture des PDF par une IA en ligne (analyse du 19 novembre 2026)
+
+Demande du fondateur : faire lire les valeurs d'un PDF par une IA en ligne, **sans interprétation**. Cette fonction n'est pas codée. Ci-dessous, ce qu'elle exigerait. Ce n'est pas un avis d'avocat.
+
+**Pourquoi ce n'est pas comme un utilisateur qui envoie lui-même son bilan à ChatGPT.** Dans ce cas, c'est un usage personnel (exemption domestique de l'article 2.2.c) : la personne choisit le service, et la société éditrice de Convergence n'intervient pas. Si c'est **notre application** qui envoie le PDF, c'est la société qui choisit le fournisseur, le moyen et la finalité : elle devient **responsable de ce traitement**, et le fournisseur d'IA devient son **sous-traitant**.
+
+**Le consentement ne remplace pas le contrat.** Ce sont deux obligations distinctes :
+
+| Obligation | Rôle | La case à cocher suffit-elle ? |
+|---|---|---|
+| Base légale (art. 6 et 9.2.a) | Rendre l'envoi licite | **Oui**, si le consentement est explicite, distinct, éclairé (fournisseur nommé, pays, durée de conservation) et retirable |
+| Contrat de sous-traitance (art. 28) | Encadrer ce que le fournisseur fait des données | **Non**, obligatoire en plus. En pratique : accepter le DPA (accord de traitement) du fournisseur, qui est en général standard |
+| Transferts hors UE (art. 44 et suivants) | Si le fournisseur est américain | **Non** : il faut une base de transfert (certification Data Privacy Framework du fournisseur, ou clauses types). Le consentement (art. 49) ne vaut que pour des transferts occasionnels |
+| Information (art. 13) | Dire à qui part le PDF | Texte à ajouter à côté de la case |
+| AIPD (art. 35) | Évaluer le nouveau risque | Mise à jour obligatoire |
+| Sécurité (art. 32) | Protéger l'envoi | Chiffrement en transit, aucune conservation sur notre relais |
+
+**Point à faire trancher par un avocat : l'hébergement HDS.** Si le fournisseur d'IA ou notre serveur relais **conserve** le PDF (journaux, historique), cela peut être qualifié d'hébergement de données de santé, donc certificat HDS exigé. Un traitement **à la volée sans conservation** (option « zéro conservation » du fournisseur) réduit fortement ce risque, sans certitude juridique.
+
+**Recommandation.**
+1. Choisir un fournisseur qui offre un DPA, une **option zéro conservation** et, idéalement, un traitement **dans l'UE** (un fournisseur européen évite la question des transferts). À vérifier fournisseur par fournisseur.
+2. Une case à cocher **à chaque envoi** (ou une autorisation « Lecture par IA » distincte, retirable comme les autres), nommant le fournisseur.
+3. Un relais minimal qui ne garde rien et ne journalise pas le contenu.
+4. Mettre à jour l'AIPD et la politique de confidentialité avant d'activer la fonction.
+
+**Alternative sans aucune de ces obligations pour la société** : un bouton « Partager » qui ouvre le PDF dans l'application d'IA que la personne choisit elle-même (ChatGPT, Le Chat…), puis la personne saisit les valeurs dans Convergence. C'est moins pratique, mais c'est alors son propre usage.
