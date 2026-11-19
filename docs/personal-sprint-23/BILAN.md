@@ -51,3 +51,9 @@ La version hébergée (PostgreSQL, OIDC, routes `/api`) n'est pas modifiée et g
 2. La clé est protégée par le code seul : un code de 6 chiffres reste devinable par force brute si quelqu'un copie le stockage du téléphone, malgré les 600 000 itérations. Il faudra garder la clé dans le Keychain ou le Keystore (avec la biométrie) et recommander un code plus long.
 3. **Lecture des PDF par IA en ligne : non codée.** Elle demande un compte et une clé chez un fournisseur d'IA (dépense), un petit serveur relais pour ne pas mettre la clé dans l'application (hébergement, donc plus « 0 € »), un contrat sans conservation des données, et une mise à jour de l'analyse RGPD, puisque le PDF quitterait le téléphone.
 4. Au démarrage, l'application ouvre toujours la page d'accueil ; recharger une autre page n'est pas prévu dans l'application.
+
+## Intégration continue (GitHub, 19 novembre 2026)
+
+Tout est vert sur les commits `d2e7dd2` et `ca8fc4f` :
+- « Personal B2C prototype » : l'étape `build:mobile` puis `test:e2e:device` passe (run 44431172123), avec le reste de la suite (PostgreSQL, connexion réelle, démo web, sauvegarde) ;
+- « Mobile apps » : les compilations Android et iPhone réussissent avec les pages embarquées (runs 44431066039 et 44431172213).
