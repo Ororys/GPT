@@ -10,9 +10,10 @@ import {
   TriangleAlert,
   CheckCircle2,
 } from 'lucide-react';
-import { CONSENT_LABEL, type ConsentState } from '@/modules/consent/model';
+import { CONSENT_LABEL } from '@/modules/consent/model';
 import { deviceStore, eraseEverything, lock } from '@/modules/local/session';
-import type { LocalSource } from '@/modules/local/store';
+import type { LocalConsentState, LocalSource } from '@/modules/local/store';
+import { AI_PROVIDER } from '@/modules/ai/contract';
 import { isNativeApp, importPhoneHealth } from '@/modules/device/bridge';
 import { dateLabel } from '@/modules/observations/selectors';
 import { consultationSummary } from '@/modules/summary/model';
@@ -25,6 +26,10 @@ const LABEL: Record<LocalSource, { title: string; detail: string }> = {
   'pdf-documents': {
     title: 'Documents PDF',
     detail: 'Ranger vos PDF sur ce téléphone, chiffrés, tels que vous les ajoutez.',
+  },
+  'ai-reading': {
+    title: `Lecture des PDF par une IA (${AI_PROVIDER})`,
+    detail: `Quand vous le demandez pour un document, le PDF est envoyé à ${AI_PROVIDER}, qui recopie ses valeurs sans les interpréter. Vous choisissez ensuite ce qui est ajouté. Rien n’est envoyé sans votre accord à chaque envoi.`,
   },
 };
 /** Saves a file through the browser; on a phone, behaviour depends on the WebView. */
@@ -43,7 +48,7 @@ export function DeviceSettings({
   record: HealthRecord;
   onChanged: () => Promise<void>;
 }) {
-  const [consents, setConsents] = useState<ConsentState[]>([]);
+  const [consents, setConsents] = useState<LocalConsentState[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [info, setInfo] = useState('');
@@ -87,7 +92,7 @@ export function DeviceSettings({
       setBusy(false);
     }
   }
-  const decide = (c: ConsentState, granted: boolean, erase = false) =>
+  const decide = (c: LocalConsentState, granted: boolean, erase = false) =>
     run(async () => {
       await deviceStore().setConsent(c.source as LocalSource, c.version, granted, erase);
       await onChanged();

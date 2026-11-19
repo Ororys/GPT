@@ -1,6 +1,14 @@
 'use client';
 import { useState } from 'react';
-import { ExternalLink, FileText, Check, Info, PencilLine, TriangleAlert } from 'lucide-react';
+import {
+  ExternalLink,
+  FileText,
+  Check,
+  Info,
+  PencilLine,
+  TriangleAlert,
+  Sparkles,
+} from 'lucide-react';
 import type { HealthRecord, Observation } from '@/modules/health-records/model';
 import { dateLabel } from '@/modules/observations/selectors';
 import { localDay, zoneOf } from '@/modules/observations/time';
@@ -13,6 +21,7 @@ export function EvidenceModal({
   onCorrected,
   openPdf,
   deleteDocument,
+  readWithAi,
 }: {
   record: HealthRecord;
   selection: { documentId: string; observationId?: string } | null;
@@ -22,6 +31,8 @@ export function EvidenceModal({
   openPdf?: (documentId: string) => Promise<void>;
   /** On-device record: the person may delete their own document (RGPD art. 17). */
   deleteDocument?: (documentId: string) => Promise<void>;
+  /** On-device record: transcription by an online AI, after consent (sprint 24). */
+  readWithAi?: { configured: boolean; open: (documentId: string) => void };
 }) {
   const doc = record.documents.find((d) => d.id === selection?.documentId);
   const observation = record.observations.find((o) => o.id === selection?.observationId);
@@ -224,8 +235,10 @@ export function EvidenceModal({
           )}
           {!doc.synthetic ? (
             <Notice>
-              PDF conservé tel que vous l’avez ajouté, chiffré sur ce téléphone. Ses valeurs ne sont
-              pas lues automatiquement.
+              PDF conservé tel que vous l’avez ajouté, chiffré sur ce téléphone.{' '}
+              {rows.length
+                ? `${rows.length} valeur(s) recopiée(s) par l’IA et choisie(s) par vous, à vérifier.`
+                : 'Ses valeurs ne sont pas lues automatiquement.'}
             </Notice>
           ) : (
             <Notice>
@@ -252,6 +265,18 @@ export function EvidenceModal({
                 <ExternalLink size={16} />
                 Ouvrir le PDF · page {observation?.evidence.page || 1}
               </a>
+            )}
+            {readWithAi && doc.kind === 'biology' && (
+              <button
+                className="button"
+                disabled={!readWithAi.configured}
+                onClick={() => readWithAi.open(doc.id)}
+              >
+                <Sparkles size={16} />
+                {readWithAi.configured
+                  ? 'Lire les valeurs avec l’IA'
+                  : 'Lecture par IA non configurée'}
+              </button>
             )}
             {deleteDocument && (
               <button

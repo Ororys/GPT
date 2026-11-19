@@ -5,7 +5,13 @@ export const ImportSchema = z.strictObject({
   synthetic: z.literal(true),
   personId: z.literal(PERSON_ALPHA),
   batchId: z.literal('demo-lab-2026-11-18'),
-  observations: z.array(ObservationSchema).min(1).max(100),
+  // The demo file stays strictly fictitious, whatever the shared schema allows.
+  observations: z
+    .array(
+      ObservationSchema.extend({ personId: z.literal(PERSON_ALPHA), synthetic: z.literal(true) }),
+    )
+    .min(1)
+    .max(100),
 });
 export const importTemplate: z.infer<typeof ImportSchema> = {
   schemaVersion: 1,

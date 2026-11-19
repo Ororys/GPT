@@ -41,6 +41,7 @@ import { ImportModal } from './import-modal';
 import { DeviceGate, NoticeText } from './device-gate';
 import { DeviceSettings } from './device-settings';
 import { PdfAddModal } from './pdf-add-modal';
+import { AiReadModal, AI_RELAY_URL } from './ai-read-modal';
 import { DEVICE_RUNTIME, deviceStore } from '@/modules/local/session';
 import { Panel, Pill, Modal, Skeleton, Notice } from './ui';
 const navigation = [
@@ -142,6 +143,7 @@ function WorkspaceView({ view }: { view: View }) {
   const [importOpen, setImportOpen] = useState(false);
   const [source, setSource] = useState<{ documentId: string; observationId?: string } | null>(null);
   const [activityId, setActivityId] = useState<string | null>(null);
+  const [aiDocument, setAiDocument] = useState<string | null>(null);
   const [helpOpen, setHelpOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [summaryPeriod, setSummaryPeriod] = useState(365);
@@ -700,6 +702,13 @@ function WorkspaceView({ view }: { view: View }) {
                     window.open(url, '_blank', 'noopener');
                     setTimeout(() => URL.revokeObjectURL(url), 60_000);
                   },
+                  readWithAi: {
+                    configured: !!AI_RELAY_URL,
+                    open: (id: string) => {
+                      setSource(null);
+                      setAiDocument(id);
+                    },
+                  },
                   deleteDocument: async (id: string) => {
                     await deviceStore().deleteDocument(id);
                     setSource(null);
@@ -714,6 +723,19 @@ function WorkspaceView({ view }: { view: View }) {
           />
         </>
       )}
+      {DEVICE_RUNTIME &&
+        record &&
+        aiDocument &&
+        record.documents.some((d) => d.id === aiDocument) && (
+          <AiReadModal
+            key={aiDocument}
+            record={record}
+            document={record.documents.find((d) => d.id === aiDocument)!}
+            open
+            onClose={() => setAiDocument(null)}
+            onAdded={() => refresh()}
+          />
+        )}
       {DEVICE_RUNTIME ? (
         <PdfAddModal
           open={importOpen}

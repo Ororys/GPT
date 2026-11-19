@@ -10,11 +10,11 @@ async function samplePdf(text: string) {
   doc.addPage();
   return Buffer.from(await doc.save());
 }
-function watchRequests(page: Page) {
+function watchRequests(page: Page, allowed = ['127.0.0.1:3200']) {
   const outside: string[] = [];
   page.on('request', (r) => {
     const url = new URL(r.url());
-    if (!['127.0.0.1:3200'].includes(url.host) && !['data:', 'blob:'].includes(url.protocol))
+    if (!allowed.includes(url.host) && !['data:', 'blob:'].includes(url.protocol))
       outside.push(r.url());
   });
   return outside;
@@ -175,4 +175,75 @@ test('retrait d’une autorisation avec effacement, code oublié, accessibilité
   page.once('dialog', (d) => void d.accept());
   await page.getByRole('button', { name: 'Code oublié : tout effacer' }).click();
   await expect(page.getByRole('heading', { name: 'Bienvenue' })).toBeVisible();
+});
+
+test('lecture par IA : accord à chaque envoi, relais seul contacté, valeurs choisies puis rangées', async ({
+  page,
+}) => {
+  // The app talks to the relay only; never to the AI provider directly.
+  const outside = watchRequests(page, ['127.0.0.1:3200', '127.0.0.1:3300']);
+  const relayCalls: string[] = [];
+  page.on('request', (r) => {
+    if (new URL(r.url()).port === '3300') relayCalls.push(r.method());
+  });
+  await onboard(page, '24681357');
+  await page.getByRole('button', { name: /ouvrir les paramètres/ }).click();
+  await page.getByRole('button', { name: 'Autoriser : Documents PDF' }).click();
+  await expect(page.getByRole('button', { name: 'Retirer : Documents PDF' })).toBeVisible();
+  await page
+    .getByRole('button', { name: /Ajouter un PDF/ })
+    .first()
+    .click();
+  const dialog = page.getByRole('dialog');
+  await dialog.getByLabel('Fichier PDF').setInputFiles({
+    name: 'bilan-ia.pdf',
+    mimeType: 'application/pdf',
+    buffer: await samplePdf('Bilan IA'),
+  });
+  await dialog.getByLabel('Date du document').fill('2026-03-02');
+  await dialog.getByRole('button', { name: 'Ranger le document' }).click();
+  await expect(dialog.getByRole('status')).toBeVisible();
+  await dialog.getByRole('button', { name: 'Fermer', exact: true }).first().click();
+  await page.getByRole('link', { name: 'Documents' }).first().click();
+  await page.locator('.document-card', { hasText: 'bilan-ia' }).click();
+  await page.getByRole('button', { name: 'Lire les valeurs avec l’IA' }).click();
+  const ai = page.getByRole('dialog');
+  const send = ai.getByRole('button', { name: 'Envoyer et lire' });
+  await expect(send).toBeDisabled();
+  await ai.getByLabel('J’accepte l’envoi de ce document à OpenAI.').check();
+  // Without the « Lecture des PDF par une IA » permission, nothing is sent.
+  await send.click();
+  await expect(ai.locator('.feedback.error')).toContainText('Autorisez d’abord « Lecture des PDF');
+  expect(relayCalls).toEqual([]);
+  await ai.getByRole('button', { name: 'Annuler' }).click();
+  await page.getByRole('button', { name: /ouvrir les paramètres/ }).click();
+  await page
+    .getByRole('button', { name: 'Autoriser : Lecture des PDF par une IA (OpenAI)' })
+    .click();
+  await expect(
+    page.getByRole('button', { name: 'Retirer : Lecture des PDF par une IA (OpenAI)' }),
+  ).toBeVisible();
+  await page.getByRole('link', { name: 'Documents' }).first().click();
+  await page.locator('.document-card', { hasText: 'bilan-ia' }).click();
+  await page.getByRole('button', { name: 'Lire les valeurs avec l’IA' }).click();
+  await ai.getByLabel('J’accepte l’envoi de ce document à OpenAI.').check();
+  await ai.getByRole('button', { name: 'Envoyer et lire' }).click();
+  // Review: printed date shown, « < 0,5 » blocked, nothing added yet.
+  await expect(ai).toContainText('date imprimée lue par l’IA : « 02/03/2026 »');
+  await expect(ai.getByLabel('Ajouter CRP')).toBeDisabled();
+  await expect(ai).toContainText('Valeur non numérique');
+  await expect(ai.getByLabel('Ajouter Glycémie à jeun')).toBeChecked();
+  await ai.getByLabel('Ajouter Ferritine').uncheck();
+  await ai.getByRole('button', { name: 'Ajouter 1 valeur(s)' }).click();
+  await expect(ai.getByRole('status')).toContainText(
+    '1 valeur(s) ajoutée(s) à votre dossier, à vérifier',
+  );
+  await ai.getByRole('button', { name: 'Fermer' }).first().click();
+  await page.getByRole('link', { name: 'Biologie' }).first().click();
+  await expect(page.getByText('Glycémie à jeun').first()).toBeVisible();
+  expect(
+    (await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze()).violations,
+  ).toEqual([]);
+  expect(relayCalls.filter((m) => m === 'POST')).toHaveLength(1);
+  expect(outside).toEqual([]);
 });

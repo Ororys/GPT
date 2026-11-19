@@ -17,7 +17,14 @@ import { number } from './format';
 export function Biology({ record, period, openDocument }: PageProps) {
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState('Tous');
-  const [selected, setSelected] = useState('FERRITIN');
+  // Demo default: ferritin. On-device record: the first parameter that has values.
+  const [selected, setSelected] = useState(() =>
+    record.biomarkers.some((b) => b.code === 'FERRITIN')
+      ? 'FERRITIN'
+      : (record.biomarkers.find((b) => record.observations.some((o) => o.code === b.code))?.code ??
+        record.biomarkers[0]?.code ??
+        ''),
+  );
   const [compare, setCompare] = useState(false);
   const [allHistory, setAllHistory] = useState(true);
   const rows = record.biomarkers.filter(
@@ -32,7 +39,12 @@ export function Biology({ record, period, openDocument }: PageProps) {
   const last = observed.at(-1);
   const chartSeries = useMemo<ChartSeries[]>(
     () =>
-      [selected, ...(compare && selected !== 'LDL_C' ? ['LDL_C'] : [])].map((code) => {
+      [
+        selected,
+        ...(compare && selected !== 'LDL_C' && record.biomarkers.some((b) => b.code === 'LDL_C')
+          ? ['LDL_C']
+          : []),
+      ].map((code) => {
         const b = record.biomarkers.find((b) => b.code === code)!;
         return {
           name: b.shortLabel,
@@ -174,14 +186,16 @@ export function Biology({ record, period, openDocument }: PageProps) {
                   />
                   Tout l’historique
                 </label>
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={compare}
-                    onChange={(e) => setCompare(e.target.checked)}
-                  />
-                  Comparer au LDL <small>(axe distinct)</small>
-                </label>
+                {record.biomarkers.some((b) => b.code === 'LDL_C') && (
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={compare}
+                      onChange={(e) => setCompare(e.target.checked)}
+                    />
+                    Comparer au LDL <small>(axe distinct)</small>
+                  </label>
+                )}
               </div>
             </div>
             {observed.length ? (
@@ -241,7 +255,13 @@ export function Biology({ record, period, openDocument }: PageProps) {
               title="Chaque valeur a une origine"
               action={<Pill>{observed.length} résultats</Pill>}
             />
-            <div className="table-scroll">
+            {/* Scrollable table: reachable with the keyboard (WCAG 2.1.1); role region allowed in .oxlintrc. */}
+            <div
+              className="table-scroll"
+              tabIndex={0}
+              role="region"
+              aria-label="Tableau des valeurs"
+            >
               <table>
                 <thead>
                   <tr>

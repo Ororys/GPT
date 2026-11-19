@@ -6,6 +6,13 @@
   "ignorePatterns": [".next/**", "test-results/**", "playwright-report/**", "next-env.d.ts"],
   "rules": {
     "no-unused-vars": "error",
-    "jsx-a11y/prefer-tag-over-role": "off"
+    "jsx-a11y/prefer-tag-over-role": "off",
+    "jsx-a11y/no-noninteractive-tabindex": [
+      "error",
+      {
+        "roles": ["region"],
+        "tags": []
+      }
+    ]
   }
 }

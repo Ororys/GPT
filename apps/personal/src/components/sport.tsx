@@ -182,7 +182,8 @@ export function Sport({ record, period, openActivity }: PageProps) {
             </select>
           }
         />
-        <div className="table-scroll">
+        {/* Scrollable table: reachable with the keyboard (WCAG 2.1.1); role region allowed in .oxlintrc. */}
+        <div className="table-scroll" tabIndex={0} role="region" aria-label="Tableau des séances">
           <table>
             <thead>
               <tr>

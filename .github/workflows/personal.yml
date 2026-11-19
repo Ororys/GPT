@@ -54,7 +54,9 @@ jobs:
       - run: npm run test:e2e:oidc
       - run: npm run test:e2e
       # Launch mode « données sur le téléphone »: static screens, encrypted on-device record.
-      - run: npm run build:mobile && npm run test:e2e:device
+      - run: npm run test:relay
+      # Device build pointed at a local relay + OpenAI stand-in (no key, no network).
+      - run: npm run build:mobile:test && npm run test:e2e:device
       - uses: actions/upload-artifact@v4
         if: always()
         with:

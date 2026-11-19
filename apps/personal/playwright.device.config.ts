@@ -16,10 +16,33 @@ export default defineConfig({
       ? { launchOptions: { executablePath: process.env.HC_PLAYWRIGHT_CHROMIUM } }
       : {}),
   },
-  webServer: {
-    command: 'npx tsx scripts/serve-static.ts',
-    url: 'http://127.0.0.1:3200/',
-    reuseExistingServer: false,
-    timeout: 30_000,
-  },
+  // Static app, the real relay, and a local stand-in for OpenAI (no key, no network).
+  // Build first with: NEXT_PUBLIC_HC_AI_RELAY_URL=http://127.0.0.1:3300 npm run build:mobile
+  webServer: [
+    {
+      command: 'npx tsx scripts/serve-static.ts',
+      url: 'http://127.0.0.1:3200/',
+      reuseExistingServer: false,
+      timeout: 30_000,
+    },
+    {
+      command: 'npx tsx tests/helpers/fake-openai.ts',
+      port: 3400,
+      reuseExistingServer: false,
+      timeout: 30_000,
+    },
+    {
+      command: 'npx tsx ../relay/src/server.ts',
+      port: 3300,
+      reuseExistingServer: false,
+      timeout: 30_000,
+      env: {
+        PORT: '3300',
+        OPENAI_API_KEY: 'cle-de-test',
+        OPENAI_MODEL: 'modele-de-test',
+        OPENAI_BASE_URL: 'http://127.0.0.1:3400/v1',
+        RELAY_ALLOWED_ORIGINS: 'http://127.0.0.1:3200',
+      },
+    },
+  ],
 });

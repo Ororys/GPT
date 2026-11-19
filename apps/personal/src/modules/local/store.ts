@@ -1,5 +1,7 @@
 import { biomarkers } from '../health-records/fixtures';
-import type { HealthDocument, HealthRecord } from '../health-records/model';
+import type { Biomarker, HealthDocument, HealthRecord, Observation } from '../health-records/model';
+import type { AiCandidate } from '../ai/candidates';
+import { AI_METHOD, AI_NOTICE_VERSION, AI_PROVIDER } from '../ai/contract';
 import type { ConsentState } from '../consent/model';
 import { DeviceImportSchema, type DeviceSampleInput } from '../device/model';
 import { deviceDaily, type DeviceRow } from '../device/daily';
@@ -15,8 +17,10 @@ import type { Vault } from './vault';
 export const LOCAL_PERSON = 'device-owner';
 /** Version of the information text accepted at first launch; bump when the text changes. */
 export const NOTICE_VERSION = '2026-11-19';
-export const LOCAL_SOURCES = ['device-health', 'pdf-documents'] as const;
+/** 'ai-reading': sending a filed PDF to an online AI that transcribes its values (sprint 24). */
+export const LOCAL_SOURCES = ['device-health', 'pdf-documents', 'ai-reading'] as const;
 export type LocalSource = (typeof LOCAL_SOURCES)[number];
+export type LocalConsentState = Omit<ConsentState, 'source'> & { source: LocalSource };
 export const MAX_PDF_BYTES = 20 * 1024 * 1024;
 export interface Onboarding {
   adultDeclared: true;
@@ -89,7 +93,7 @@ export class LocalStore {
   private async history(source: LocalSource) {
     return (await this.vault.read<ConsentState['history']>(`consent/${source}`)) ?? [];
   }
-  async consents(): Promise<ConsentState[]> {
+  async consents(): Promise<LocalConsentState[]> {
     return Promise.all(
       LOCAL_SOURCES.map(async (source) => {
         const history = await this.history(source);
@@ -121,7 +125,13 @@ export class LocalStore {
     if (!(await this.history(source)).at(-1)?.granted) throw Error('CONSENT_REQUIRED');
   }
   async eraseSource(source: LocalSource) {
-    const prefixes = source === 'device-health' ? ['device/', 'device-index'] : ['doc/', 'pdf/'];
+    const prefixes =
+      source === 'device-health'
+        ? ['device/', 'device-index']
+        : source === 'pdf-documents'
+          ? ['doc/', 'pdf/', 'obs/', 'custom-biomarkers', 'ai-log/']
+          : // Every value in this record was transcribed by the AI from a PDF.
+            ['obs/', 'custom-biomarkers', 'ai-log/'];
     for (const prefix of prefixes)
       for (const key of await this.vault.kv.keys(prefix)) await this.vault.kv.delete(key);
   }
@@ -218,8 +228,94 @@ export class LocalStore {
   }
   async deleteDocument(id: string) {
     if (!(await this.vault.kv.get(`doc/${id}`))) throw Error('NOT_FOUND');
+    for (const [key, o] of await this.storedObservations())
+      if (o.sourceId === id) await this.vault.kv.delete(key);
+    await this.vault.kv.delete(`ai-log/${id}`);
     await this.vault.kv.delete(`pdf/${id}`);
     await this.vault.kv.delete(`doc/${id}`);
+  }
+  // ---- Values transcribed by the AI: only the lines the person selected, still « à
+  // vérifier », confidence absent, printed value and unit kept (sprint 24).
+  private async storedObservations() {
+    const list: [string, Observation][] = [];
+    for (const key of await this.vault.kv.keys('obs/'))
+      list.push([key, (await this.vault.read<Observation>(key))!]);
+    return list;
+  }
+  private async customBiomarkers() {
+    return (await this.vault.read<Biomarker[]>('custom-biomarkers')) ?? [];
+  }
+  async addAiObservations(input: {
+    documentId: string;
+    candidates: AiCandidate[];
+    selected: string[];
+    model: string;
+  }) {
+    await this.requireConsent('pdf-documents');
+    await this.requireConsent('ai-reading');
+    const doc = await this.vault.read<StoredDocument>(`doc/${input.documentId}`);
+    if (!doc) throw Error('NOT_FOUND');
+    const chosen = input.candidates.filter((c) => input.selected.includes(c.id));
+    if (!chosen.length || chosen.some((c) => c.blocked || c.value === null))
+      throw Error('INVALID_SELECTION');
+    const existing = await this.storedObservations();
+    // Same document read twice: never a second copy of the same line.
+    const already = new Set(
+      existing
+        .filter(([, o]) => o.sourceId === doc.id)
+        .map(([, o]) => `${o.code}|${o.evidence.page}|${o.evidence.originalValue}`),
+    );
+    const custom = await this.customBiomarkers();
+    const at = this.now().toISOString();
+    let inserted = 0,
+      duplicates = 0;
+    for (const c of chosen) {
+      if (already.has(`${c.code}|${c.page}|${c.value}`)) {
+        duplicates++;
+        continue;
+      }
+      if (c.newBiomarker && !custom.some((b) => b.code === c.code)) custom.push(c.newBiomarker);
+      const observation: Observation = {
+        id: `obs-${globalThis.crypto.randomUUID()}`,
+        personId: LOCAL_PERSON,
+        synthetic: false,
+        code: c.code,
+        value: c.value!,
+        unit: c.unit,
+        measuredAt: `${doc.date}T00:00:00Z`,
+        measuredPrecision: 'day',
+        knownAt: at,
+        method: 'lab_method_not_reported',
+        sourceId: doc.id,
+        quality: 'needs-review',
+        evidence: {
+          documentId: doc.id,
+          page: c.page,
+          sourceText: `${c.label} ${c.printedValue} ${c.originalUnit}`.trim().slice(0, 200),
+          method: 'ai-transcription',
+          validation: 'needs-review',
+          processedAt: at,
+          confidence: null,
+          originalValue: c.value!,
+          originalUnit: c.originalUnit,
+        },
+        ...(c.reference ? { reference: c.reference } : {}),
+      };
+      await this.vault.put(`obs/${globalThis.crypto.randomUUID()}`, observation);
+      inserted++;
+    }
+    await this.vault.put('custom-biomarkers', custom);
+    const log = (await this.vault.read<object[]>(`ai-log/${doc.id}`)) ?? [];
+    log.push({
+      provider: AI_PROVIDER,
+      model: input.model,
+      method: AI_METHOD,
+      noticeVersion: AI_NOTICE_VERSION,
+      at,
+      inserted,
+    });
+    await this.vault.put(`ai-log/${doc.id}`, log);
+    return { inserted, duplicates };
   }
   // ---- Read model shared with the screens.
   async record(): Promise<HealthRecord> {
@@ -239,6 +335,8 @@ export class LocalStore {
       status: 'available',
       synthetic: false,
     }));
+    const observations = (await this.storedObservations()).map(([, o]) => o);
+    const custom = await this.customBiomarkers();
     return {
       personId: LOCAL_PERSON,
       timeZone: DEFAULT_TIME_ZONE,
@@ -247,8 +345,11 @@ export class LocalStore {
       storage: 'device',
       asOf: this.now().toISOString(),
       profile: { firstName: name, initials: initials(name), description: 'Sur ce téléphone' },
-      biomarkers,
-      observations: [],
+      // Only parameters that have values here: nothing shown empty or invented.
+      biomarkers: [...biomarkers, ...custom].filter((b) =>
+        observations.some((o) => o.code === b.code),
+      ),
+      observations,
       documents,
       activities: [],
       sleep: [],

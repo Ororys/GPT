@@ -72,6 +72,7 @@ test('autorisations : refusées par défaut, versionnées, conflit détecté', a
     [
       ['device-health', false, 0],
       ['pdf-documents', false, 0],
+      ['ai-reading', false, 0],
     ],
   );
   await assert.rejects(
@@ -182,7 +183,7 @@ test('suppression d’un document, export complet, puis suppression totale', asy
   assert.equal(exported.documents.length, 1);
   assert.equal(atob(exported.documents[0]!.pdfBase64).includes('%PDF-'), true);
   assert.equal(exported.onboarding?.noticeVersion, NOTICE_VERSION);
-  assert.equal(exported.consents.length, 2);
+  assert.equal(exported.consents.length, 3);
   await store.deleteAll();
   assert.equal(kv.map.size, 0, 'rien ne reste, pas même la clé');
   assert.equal(await hasVault(kv), false);

@@ -14,6 +14,8 @@ export const EvidenceSchema = z.object({
     'device-export',
     'declared',
     'native-pdf',
+    // Values transcribed by an online AI from a PDF the person filed (sprint 24).
+    'ai-transcription',
   ]),
   validation: z.enum(['synthetic-verified', 'needs-review', 'declared']),
   processedAt: z.iso.datetime(),
@@ -34,8 +36,9 @@ export const CorrectionSchema = z.object({
 export type Correction = z.infer<typeof CorrectionSchema>;
 export const ObservationSchema = z.object({
   id: z.string(),
-  personId: z.literal(PERSON_ALPHA),
-  synthetic: z.literal(true),
+  /** Fictitious records: PERSON_ALPHA. On-device record: the phone's owner (sprint 24). */
+  personId: z.string(),
+  synthetic: z.boolean(),
   code: z.string(),
   value: z.number().finite(),
   unit: z.string(),

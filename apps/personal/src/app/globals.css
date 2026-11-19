@@ -5093,3 +5093,25 @@ tbody tr:last-child td {
   flex-direction: column;
   gap: 14px;
 }
+.ai-candidates {
+  display: grid;
+  gap: 6px;
+  max-height: 50vh;
+  overflow: auto;
+}
+.ai-candidates li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 10px;
+  background: var(--surface-raised);
+}
+.ai-candidates li.blocked {
+  opacity: 0.85;
+}
+.ai-candidates small {
+  color: var(--muted);
+}

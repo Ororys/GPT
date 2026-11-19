@@ -10,6 +10,7 @@ Document de synthèse pour le fondateur, en langage simple. Référence techniqu
 |---|---|
 | Vue d'ensemble, Biologie, Sport, Documents, Timeline, Paramètres | En place (5 pages + réglages, design d'origine conservé) |
 | Application « sur le téléphone » | Premier lancement (majorité, information), code, rangement des PDF, export, suppression d'un document ou de tout, retrait d'une autorisation avec effacement (sprint 23) |
+| Lecture des PDF par IA (OpenAI) | Codée et testée avec un faux OpenAI : accord à chaque envoi, relais sans stockage, transcription sans interprétation, revue ligne par ligne. **Pas encore essayée en réel** (il faut une clé API) |
 | Lecture de PDF de laboratoire | Texte natif, format de tableau contrôlé, 9 PDF de test fictifs. Revue avant ajout, blocage des cas ambigus, correction versionnée, doublons signalés |
 | Mesures du centre | Tour de taille, tension, préhension, 5 levers de chaise, masse grasse : avec protocole, sans norme inventée |
 | Données du téléphone | Lues dans Santé (iPhone) et Health Connect (Android) en lecture seule : sommeil, FC au repos, VFC, pas, distance. Sans double comptage, synchronisées à l'ouverture de l'application |

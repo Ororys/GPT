@@ -1,6 +1,6 @@
 {
   "name": "@health-convergence/personal",
-  "version": "0.23.0",
+  "version": "0.24.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -23,7 +23,9 @@
     "test:e2e:oidc": "tsx scripts/e2e-oidc.ts",
     "test:backup": "tsx --test tests/backup.integration.ts",
     "build:mobile": "tsx scripts/build-mobile.ts",
-    "test:e2e:device": "playwright test -c playwright.device.config.ts"
+    "test:e2e:device": "playwright test -c playwright.device.config.ts",
+    "test:relay": "tsx --test ../relay/tests/*.test.ts",
+    "build:mobile:test": "NEXT_PUBLIC_HC_AI_RELAY_URL=http://127.0.0.1:3300 tsx scripts/build-mobile.ts"
   },
   "dependencies": {
     "@capacitor/core": "8.6.0",

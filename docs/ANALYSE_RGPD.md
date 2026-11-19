@@ -154,3 +154,13 @@ Demande du fondateur : faire lire les valeurs d'un PDF par une IA en ligne, **sa
 4. Mettre à jour l'AIPD et la politique de confidentialité avant d'activer la fonction.
 
 **Alternative sans aucune de ces obligations pour la société** : un bouton « Partager » qui ouvre le PDF dans l'application d'IA que la personne choisit elle-même (ChatGPT, Le Chat…), puis la personne saisit les valeurs dans Convergence. C'est moins pratique, mais c'est alors son propre usage.
+
+### Choix d'OpenAI (19 novembre 2026) : points propres à ce fournisseur
+
+Sources secondaires, à confirmer sur les documents contractuels d'OpenAI :
+- **Un abonnement ChatGPT n'est pas le contrat de l'API.** Il faut un projet sur la plateforme API, dont le DPA (avec les clauses types de l'UE) s'accepte dans les réglages. Les clients de l'EEE contractent avec OpenAI Ireland.
+- Par défaut, les contenus de l'API peuvent être conservés **jusqu'à 30 jours** pour la surveillance des abus. La **conservation nulle** et la **résidence européenne** sont accordées sur demande.
+- Une source indique qu'OpenAI **n'est pas certifiée** Data Privacy Framework : les transferts reposeraient alors sur les clauses types, avec une **analyse d'impact des transferts** à mener.
+- Le relais appelle l'API avec `store: false`, ce qui évite l'historique côté OpenAI, mais pas forcément la conservation pour la surveillance des abus. D'où l'intérêt de la conservation nulle, et du point HDS à faire valider.
+
+Sources : [OpenAI — résidence en Europe](https://openai.com/index/introducing-data-residency-in-europe/), [Sovergate — conservation nulle et résidence UE](https://sovergate.com/blog/openai-zero-data-retention-eu-data-residency), [iubenda — OpenAI et RGPD](https://www.iubenda.com/en/blog/openai-gdpr-compliance/).

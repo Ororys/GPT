@@ -15,9 +15,15 @@ const app = resolve(import.meta.dirname, '..');
 const target = resolve(app, '../mobile/dist');
 // Inside the app folder so that node_modules resolves and Turbopack's root contains it.
 const work = mkdtempSync(join(app, '.mobile-build-'));
-/** Only this page origin is ever contacted: no analytics, no external service (RGPD art. 25). */
-export const DEVICE_CSP =
-  "default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'none'; frame-src 'self' blob:";
+/**
+ * The page may contact only itself, plus the AI relay when one is configured at build time
+ * (NEXT_PUBLIC_HC_AI_RELAY_URL, sprint 24): no analytics, no other service (RGPD art. 25).
+ */
+const relay = process.env.NEXT_PUBLIC_HC_AI_RELAY_URL;
+const relayOrigin = relay ? new URL(relay).origin : '';
+if (relay && new URL(relay).protocol !== 'https:' && !/^http:\/\/127\.0\.0\.1:/.test(relay))
+  throw Error('NEXT_PUBLIC_HC_AI_RELAY_URL must use HTTPS (127.0.0.1 allowed for tests only)');
+export const DEVICE_CSP = `default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'${relayOrigin ? ` ${relayOrigin}` : ''}; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'none'; frame-src 'self' blob:`;
 function patch(file: string, from: string | RegExp, to: string) {
   const path = join(work, file);
   const text = readFileSync(path, 'utf8');

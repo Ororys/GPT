@@ -1,3 +1,7 @@
+# Sprint 24 / 0.24.0 — 19 novembre 2026
+
+Lecture des PDF par OpenAI (transcription seule) : autorisation dédiée et accord à chaque envoi, relais sans stockage (`apps/relay`), réponse revérifiée, classement par rubrique, ajout des seules lignes choisies « à vérifier ». Aucun appel réel testé (pas de clé). Tableaux défilants accessibles au clavier. Voir docs/personal-sprint-24/BILAN.md.
+
 # Sprint 23 / 0.23.0 — 19 novembre 2026
 
 Lancement « données sur le téléphone » : pages embarquées dans l'application (sans serveur), coffre chiffré par un code, premier lancement (majorité, information versionnée), rangement des PDF, retrait avec effacement, suppression d'un document ou de toutes les données, export complet, aucune requête hors de l'application, sauvegardes cloud exclues. La version hébergée est conservée. Voir docs/personal-sprint-23/BILAN.md.

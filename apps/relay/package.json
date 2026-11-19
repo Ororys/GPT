@@ -1,0 +1,14 @@
+{
+  "name": "@health-convergence/relay",
+  "version": "0.24.0",
+  "private": true,
+  "type": "module",
+  "description": "Relais sans stockage entre l'application et OpenAI pour la transcription des PDF (sprint 24).",
+  "scripts": {
+    "start": "node --import tsx src/server.ts",
+    "test": "tsx --test tests/*.test.ts"
+  },
+  "engines": {
+    "node": ">=24"
+  }
+}
